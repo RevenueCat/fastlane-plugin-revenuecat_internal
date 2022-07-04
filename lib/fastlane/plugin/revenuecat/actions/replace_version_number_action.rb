@@ -9,14 +9,18 @@ module Fastlane
         previous_version_number = params[:current_version]
         new_version_number = params[:new_version]
         files_to_update = params[:files_to_update]
+        files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
         UI.user_error!("missing current version param") unless previous_version_number
         UI.user_error!("missing new version param") unless new_version_number
         UI.user_error!("missing files to update param") unless files_to_update
+        UI.user_error!("missing files to update without prerelease modifiers param") unless files_to_update_without_prerelease_modifiers
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
 
         files_to_update.each do |file_to_update|
           Helper::RevenuecatHelper.replace_in(previous_version_number, new_version_number, file_to_update)
+        end
+        files_to_update_without_prerelease_modifiers.each do |file_to_update|
           Helper::RevenuecatHelper.replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update)
         end
       end
@@ -43,6 +47,12 @@ module Fastlane
                                        env_name: "FILES_TO_UPDATE_VERSION",
                                        description: "Files that contain the version number and need to have it updated",
                                        optional: false,
+                                       type: Array),
+          FastlaneCore::ConfigItem.new(key: :files_to_update_without_prerelease_modifiers,
+                                       env_name: "FILES_TO_UPDATE_VERSION_WITHOUT_PRERELEASE_MODIFIERS",
+                                       description: "Files that contain the version number without release modifiers and need to have it updated",
+                                       optional: true,
+                                       default_value: [],
                                        type: Array)
         ]
       end
