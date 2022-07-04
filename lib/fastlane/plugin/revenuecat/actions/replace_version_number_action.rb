@@ -1,4 +1,5 @@
 require 'fastlane/action'
+require 'fastlane_core'
 require_relative '../helper/revenuecat_helper'
 
 module Fastlane
@@ -31,18 +32,18 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :current_version,
-                               description: "Current version of the sdk",
-                                  optional: false,
-                                      type: String),
+                                       description: "Current version of the sdk",
+                                       optional: false,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :new_version,
-                               description: "New version of the sdk",
-                                  optional: false,
-                                      type: String),
+                                       description: "New version of the sdk",
+                                       optional: false,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :files_to_update,
-                                  env_name: "FILES_TO_UPDATE_VERSION",
-                               description: "Files that contain the version number and need to have it updated",
-                                  optional: false,
-                                      type: Array)
+                                       env_name: "FILES_TO_UPDATE_VERSION",
+                                       description: "Files that contain the version number and need to have it updated",
+                                       optional: false,
+                                       type: Array)
         ]
       end
 

@@ -1,4 +1,5 @@
 require 'fastlane_core/ui/ui'
+require 'fastlane/action'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -11,7 +12,7 @@ module Fastlane
         end
         sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
         backup_extension = '.bck'
-        Fastlane::Action.sh("sed", '-i', backup_extension, sed_regex, path)
+        Action.sh("sed", '-i', backup_extension, sed_regex, path)
       end
     end
   end
