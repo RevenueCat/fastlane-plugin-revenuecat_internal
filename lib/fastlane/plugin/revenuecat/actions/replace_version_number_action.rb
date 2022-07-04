@@ -1,5 +1,5 @@
 require 'fastlane/action'
-require 'fastlane_core'
+require 'fastlane_core/configuration/config_item'
 require_relative '../helper/revenuecat_helper'
 
 module Fastlane
