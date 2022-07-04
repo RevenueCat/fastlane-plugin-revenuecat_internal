@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'fastlane-plugin-revenuecat'
   spec.version       = Fastlane::Revenuecat::VERSION
   spec.author        = 'Toni Rico'
-  spec.email         = 'antonio.rico.diez@revenuecat.com'
+  spec.email         = 'toni.rico.diez@revenuecat.com'
 
   spec.summary       = 'A plugin including commonly used automation logic for RevenueCat SDKs.'
   spec.homepage      = "https://github.com/RevenueCat/fastlane-plugin-revenuecat"
