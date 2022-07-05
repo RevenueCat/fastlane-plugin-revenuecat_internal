@@ -25,7 +25,7 @@ module Fastlane
         # Ask for new version number
         new_version_number = UI.input("New version number: ")
 
-        generated_contents = Helper::RevenuecatHelper.auto_generate_changelog(repo_name, version_number, github_token, rate_limit_sleep, verbose)
+        generated_contents = Helper::RevenuecatHelper.auto_generate_changelog(repo_name, nil, github_token, rate_limit_sleep, verbose)
         Helper::RevenuecatHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 

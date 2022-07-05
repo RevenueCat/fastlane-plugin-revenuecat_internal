@@ -1,5 +1,6 @@
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
+require 'fastlane/other_action'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -28,7 +29,7 @@ module Fastlane
         path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
 
         # Get all commits from previous version (tag) to HEAD
-        resp = github_api(path: path, api_token: github_token)
+        resp = Fastlane::other_action.github_api(path: path, api_token: github_token)
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
