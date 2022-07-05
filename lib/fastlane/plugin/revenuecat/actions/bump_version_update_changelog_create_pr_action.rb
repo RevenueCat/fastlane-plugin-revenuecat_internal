@@ -6,14 +6,14 @@ module Fastlane
   module Actions
     class BumpVersionUpdateChangelogCreatePRAction < Action
       def self.run(params)
-        branch = params[:branch] || 'main'
-        repo_name = params[:repo_name] || UI.user_error!("missing repo_name param")
+        branch = params[:branch]
+        repo_name = params[:repo_name]
         github_token = params[:github_token]
-        rate_limit_sleep = params[:github_rate_limit]&.to_i || 0
-        verbose = params[:verbose] || false
-        version_number = params[:current_version] || UI.user_error!("missing currrent_version param")
-        files_to_update = params[:files_to_update] || UI.user_error!("missing files to update param")
-        files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers] || []
+        rate_limit_sleep = params[:github_rate_limit]
+        verbose = params[:verbose]
+        version_number = params[:current_version]
+        files_to_update = params[:files_to_update]
+        files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
 
         ensure_git_branch(branch: branch)
         ensure_git_status_clean
@@ -38,9 +38,9 @@ module Fastlane
         changelog = File.read(changelog_path)
 
         Helper::RevenuecatHelper.create_new_release_branch(new_version_number)
-        Helper::RevenuecatHelper.replace_version_number(version_number, 
-                                                        new_version_number, 
-                                                        files_to_update, 
+        Helper::RevenuecatHelper.replace_version_number(version_number,
+                                                        new_version_number,
+                                                        files_to_update,
                                                         files_to_update_without_prerelease_modifiers)
         Helper::RevenuecatHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
         Helper::RevenuecatHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
@@ -94,7 +94,7 @@ module Fastlane
                                        default_value: 0,
                                        type: Integer),
           FastlaneCore::ConfigItem.new(key: :branch,
-                                       description: "Allows to execute the action from the given branch. Default is \"main\" branch.",
+                                       description: "Allows to execute the action from the given branch",
                                        optional: true,
                                        default_value: "main",
                                        type: String),

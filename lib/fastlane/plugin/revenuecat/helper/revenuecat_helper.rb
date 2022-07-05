@@ -19,7 +19,7 @@ module Fastlane
       end
 
       def self.auto_generate_changelog(repo_name, old_version, github_token, rate_limit_sleep, verbose)
-        last_version = sh("git describe --tags --abbrev=0").strip
+        last_version = Actions.sh("git describe --tags --abbrev=0").strip
         old_version ||= last_version
         UI.important("Auto-generating changelog since #{old_version}")
 
@@ -66,7 +66,6 @@ module Fastlane
       end
 
       def self.edit_changelog(generated_contents, changelog_path, editor)
-        # Open CHANGELOG.latest.md in editor
         changelog_filename = File.basename(changelog_path)
         content_before_opening_editor = File.read(changelog_path)
 
@@ -114,12 +113,12 @@ module Fastlane
       end
 
       def self.create_new_release_branch(release_version)
-        sh("git checkout -b 'release/#{release_version}'")
+        Actions.sh("git checkout -b 'release/#{release_version}'")
       end
 
       def self.commmit_changes_and_push_current_branch(commit_message)
-        sh("git add -u")
-        sh("git commit -m '#{commit_message}'")
+        Actions.sh("git add -u")
+        Actions.sh("git commit -m '#{commit_message}'")
         push_to_git_remote
       end
 
@@ -129,7 +128,7 @@ module Fastlane
         end
         sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
         backup_extension = '.bck'
-        Action.sh("sed", '-i', backup_extension, sed_regex, path)
+        Actions.sh("sed", '-i', backup_extension, sed_regex, path)
       end
     end
   end
