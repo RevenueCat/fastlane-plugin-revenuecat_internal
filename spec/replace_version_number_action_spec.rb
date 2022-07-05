@@ -52,14 +52,13 @@ describe Fastlane::Actions::ReplaceVersionNumberAction do
       )
     end
 
-    it 'replaces old version with new version in passed files when files to update without prerelease modifiers is empty' do
+    it 'replaces old version with new version in passed files when files to update without prerelease modifiers is not passed' do
       expect(Fastlane::Action).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0-SNAPSHOT|', './test_file.sh').once
       expect(Fastlane::Action).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0-SNAPSHOT|', './test_file2.rb').once
       Fastlane::Actions::ReplaceVersionNumberAction.run(
         current_version: '1.12.0',
         new_version: '1.13.0-SNAPSHOT',
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: []
+        files_to_update: ['./test_file.sh', './test_file2.rb']
       )
     end
 
@@ -92,17 +91,6 @@ describe Fastlane::Actions::ReplaceVersionNumberAction do
           current_version: '1.12.0',
           new_version: '1.13.0',
           files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift']
-        )
-      end.to raise_exception(StandardError)
-    end
-
-    it 'errors if files to update without prerelease modifiers param is missing' do
-      expect(Fastlane::Action).not_to receive(:sh)
-      expect do
-        Fastlane::Actions::ReplaceVersionNumberAction.run(
-          current_version: '1.12.0',
-          new_version: '1.13.0',
-          files_to_update: ['./test_file.sh', './test_file2.rb']
         )
       end.to raise_exception(StandardError)
     end

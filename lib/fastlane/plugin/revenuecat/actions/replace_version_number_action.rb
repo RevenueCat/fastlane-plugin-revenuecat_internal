@@ -9,11 +9,10 @@ module Fastlane
         previous_version_number = params[:current_version]
         new_version_number = params[:new_version]
         files_to_update = params[:files_to_update]
-        files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
+        files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers] || []
         UI.user_error!("missing current version param") unless previous_version_number
         UI.user_error!("missing new version param") unless new_version_number
         UI.user_error!("missing files to update param") unless files_to_update
-        UI.user_error!("missing files to update without prerelease modifiers param") unless files_to_update_without_prerelease_modifiers
         Helper::RevenuecatHelper.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
       end
 
