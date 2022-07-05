@@ -65,20 +65,20 @@ module Fastlane
         formatted
       end
 
-      def self.edit_changelog(generated_contents, changelog_path, editor)
-        changelog_filename = File.basename(changelog_path)
-        content_before_opening_editor = File.read(changelog_path)
+      def self.edit_changelog(generated_contents, changelog_latest_path, editor)
+        changelog_filename = File.basename(changelog_latest_path)
+        content_before_opening_editor = File.read(changelog_latest_path)
 
         if generated_contents.size > 0
           UI.message("Using auto generated contents:\n#{generated_contents}")
-          File.write(changelog_path, generated_contents)
+          File.write(changelog_latest_path, generated_contents)
         else
           UI.user_error!("Generated content for changlog was empty")
         end
 
         UI.message("Will use '#{editor}'... Override by setting FASTLANE_EDITOR environment variable")
         if UI.confirm("Open #{changelog_filename} in '#{editor}'? (No will quit this process)")
-          system(editor, changelog_path.shellescape)
+          system(editor, changelog_latest_path.shellescape)
         else
           UI.user_error!("Cancelled")
         end
@@ -86,7 +86,7 @@ module Fastlane
         # Some people may use visual editors and `system` will continue right away.
         # This will compare the content before and afer attempting to open
         # and will open a blocking prompt for the visual editor changes to be saved
-        content_after_opening_editor = File.read(changelog_path)
+        content_after_opening_editor = File.read(changelog_latest_path)
         return unless content_before_opening_editor == content_after_opening_editor
 
         unless UI.confirm("You may have opened the changelog in a visual editor. Enter 'y' when changes are saved or 'n' to cancel")
@@ -120,6 +120,27 @@ module Fastlane
         Actions.sh("git add -u")
         Actions.sh("git commit -m '#{commit_message}'")
         push_to_git_remote
+      end
+
+      def self.create_release_pr(version_number, changelog)
+        create_pull_request(
+          title: "Release/#{version_number}",
+          base: "main",
+          body: changelog
+        )
+      end
+
+      def self.validate_local_config_status_for_bump(branch)
+        ensure_git_branch(branch: branch)
+        ensure_git_status_clean
+
+        # Ensure GitHub API token is set
+        github_pr_token = ENV.fetch('GITHUB_PULL_REQUEST_API_TOKEN', nil)
+        if github_pr_token.nil? || github_pr_token.empty?
+          UI.error("Environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
+          UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
+          UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
+        end
       end
 
       def self.replace_in(previous_text, new_text, path, allow_empty: false)
