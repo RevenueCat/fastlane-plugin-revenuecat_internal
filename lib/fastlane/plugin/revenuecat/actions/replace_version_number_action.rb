@@ -14,15 +14,7 @@ module Fastlane
         UI.user_error!("missing new version param") unless new_version_number
         UI.user_error!("missing files to update param") unless files_to_update
         UI.user_error!("missing files to update without prerelease modifiers param") unless files_to_update_without_prerelease_modifiers
-        previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
-        new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
-
-        files_to_update.each do |file_to_update|
-          Helper::RevenuecatHelper.replace_in(previous_version_number, new_version_number, file_to_update)
-        end
-        files_to_update_without_prerelease_modifiers.each do |file_to_update|
-          Helper::RevenuecatHelper.replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update)
-        end
+        Helper::RevenuecatHelper.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
       end
 
       def self.description
