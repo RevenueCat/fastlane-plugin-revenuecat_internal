@@ -191,4 +191,64 @@ describe Fastlane::Helper::RevenuecatHelper do
       end.to raise_exception(StandardError)
     end
   end
+
+  describe '.attach_changelog_to_master' do
+    require 'fileutils'
+
+    let(:version_number) { '1.12.0' }
+    let(:tmp_test_files_path) { './tmp_test_files' }
+    let(:changelog_latest_path) { './tmp_test_files/CHANGELOG.latest.md' }
+    let(:changelog_path) { './tmp_test_files/CHANGELOG.md' }
+
+    before(:each) do
+      Dir.mkdir(tmp_test_files_path)
+      File.write(changelog_latest_path, 'changelog latest contents')
+      File.write(changelog_path, "## 1.11.0\nchangelog contents")
+    end
+
+    after(:each) do
+      FileUtils.rm_rf(tmp_test_files_path)
+    end
+
+    it 'prepends changelog latest file contents to changelog file' do
+      Fastlane::Helper::RevenuecatHelper.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      changelog_contents = File.read(changelog_path)
+      expect(changelog_contents).to eq("## 1.12.0\nchangelog latest contents\n## 1.11.0\nchangelog contents")
+    end
+  end
+
+  describe '.create_new_release_branch' do
+    it 'creates new release branch with version number' do
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout -b 'release/1.12.0'")
+      Fastlane::Helper::RevenuecatHelper.create_new_release_branch('1.12.0')
+    end
+  end
+
+  describe '.commmit_changes_and_push_current_branch' do
+    before(:each) do
+      allow(Fastlane::Actions).to receive(:sh).with(anything)
+      allow(Fastlane::Actions::PushToGitRemoteAction).to receive(:run).with(remote: 'origin')
+    end
+
+    it 'stages files' do
+      expect(Fastlane::Actions).to receive(:sh).with('git add -u').once
+      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+    end
+
+    it 'commits files with correct message' do
+      expect(Fastlane::Actions).to receive(:sh).with("git commit -m 'Fastlane test commit message'").once
+      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+    end
+
+    it 'pushes to remote' do
+      expect(Fastlane::Actions::PushToGitRemoteAction).to receive(:run).with(remote: 'origin').once
+      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+    end
+  end
+
+  describe '.create_release_pr' do
+    it 'creates pr' do
+      Fastlane::Helper::RevenuecatHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name')
+    end
+  end
 end

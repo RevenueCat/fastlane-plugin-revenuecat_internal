@@ -40,7 +40,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatHelper).to receive(:commmit_changes_and_push_current_branch).with("Version bump for #{new_version}").once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:create_release_pr).with(new_version, edited_changelog).once
+      expect(Fastlane::Helper::RevenuecatHelper).to receive(:create_release_pr).with(new_version, edited_changelog, mock_repo_name).once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.run(
         current_version: current_version,

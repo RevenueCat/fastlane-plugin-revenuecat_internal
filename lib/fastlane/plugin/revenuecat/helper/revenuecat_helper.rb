@@ -1,6 +1,8 @@
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
+require 'fastlane/actions/push_to_git_remote'
+require 'fastlane/actions/create_pull_request'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -116,16 +118,21 @@ module Fastlane
       end
 
       def self.commmit_changes_and_push_current_branch(commit_message)
-        Actions.sh("git add -u")
+        Actions.sh('git add -u')
         Actions.sh("git commit -m '#{commit_message}'")
-        push_to_git_remote
+        Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_release_pr(version_number, changelog)
-        create_pull_request(
+      def self.create_release_pr(version_number, changelog, repo_name)
+        github_pr_token = ENV.fetch('GITHUB_PULL_REQUEST_API_TOKEN', nil)
+        Actions::CreatePullRequestAction.run(
+          api_token: github_pr_token,
           title: "Release/#{version_number}",
-          base: "main",
-          body: changelog
+          base: 'main',
+          body: changelog,
+          repo: repo_name,
+          head: Actions.git_branch,
+          api_url: 'https://api.github.com'
         )
       end
 
