@@ -28,7 +28,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatHelper).to receive(:validate_local_config_status_for_bump).with(branch).once
       expect(Fastlane::Helper::RevenuecatHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, nil, nil, 3, false)
+        .with(mock_repo_name, mock_github_token, 3)
         .and_return(auto_generated_changelog)
         .once
       expect(Fastlane::Helper::RevenuecatHelper).to receive(:edit_changelog).with(auto_generated_changelog, mock_changelog_latest_path, editor).once
@@ -49,18 +49,17 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
         files_to_update: ['./test_file.sh', './test_file2.rb'],
         files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
         repo_name: mock_repo_name,
-        github_token: nil,
+        github_token: mock_github_token,
         github_rate_limit: 3,
         branch: branch,
-        editor: editor,
-        verbose: false
+        editor: editor
       )
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.available_options.size).to eq(11)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.available_options.size).to eq(10)
     end
 
     # TODO: Add more tests for the options

@@ -1,6 +1,6 @@
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
-require 'fastlane/other_action'
+require 'fastlane/actions/github_api'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -19,9 +19,8 @@ module Fastlane
         end
       end
 
-      def self.auto_generate_changelog(repo_name, old_version, github_token, rate_limit_sleep, verbose)
-        last_version = Actions.sh("git describe --tags --abbrev=0").strip
-        old_version ||= last_version
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
+        old_version = Actions.sh("git describe --tags --abbrev=0").strip
         UI.important("Auto-generating changelog since #{old_version}")
 
         org = "RevenueCat"
@@ -29,11 +28,15 @@ module Fastlane
         path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
 
         # Get all commits from previous version (tag) to HEAD
-        resp = Fastlane::other_action.github_api(path: path, api_token: github_token)
+        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
+                                            path: path,
+                                            http_method: 'GET',
+                                            body: {},
+                                            api_token: github_token)
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
-        formatted = commits.map do |commit|
+        commits.map do |commit|
           if rate_limit_sleep > 0
             UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
             sleep(rate_limit_sleep)
@@ -46,7 +49,11 @@ module Fastlane
 
           # Get pull request associate with commit message
           sha = commit["sha"]
-          pr_resp = github_api(path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}", api_token: github_token)
+          pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
+                                                 path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}",
+                                                 http_method: 'GET',
+                                                 body: {},
+                                                 api_token: github_token)
           body = JSON.parse(pr_resp[:body])
           items = body["items"]
 
@@ -60,10 +67,6 @@ module Fastlane
 
           "* #{message} via #{name} (@#{username})"
         end.join("\n")
-
-        puts(formatted) if verbose
-
-        formatted
       end
 
       def self.edit_changelog(generated_contents, changelog_latest_path, editor)

@@ -10,7 +10,6 @@ module Fastlane
         repo_name = params[:repo_name]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
-        verbose = params[:verbose]
         version_number = params[:current_version]
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
@@ -25,7 +24,7 @@ module Fastlane
         # Ask for new version number
         new_version_number = UI.input("New version number: ")
 
-        generated_contents = Helper::RevenuecatHelper.auto_generate_changelog(repo_name, nil, github_token, rate_limit_sleep, verbose)
+        generated_contents = Helper::RevenuecatHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Helper::RevenuecatHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
@@ -98,12 +97,7 @@ module Fastlane
                                        description: "Allows to override editor to be used when editting the changelog",
                                        optional: true,
                                        default_value: "vim",
-                                       type: String),
-          FastlaneCore::ConfigItem.new(key: :verbose,
-                                       description: "Sets whether to print extra information",
-                                       optional: true,
-                                       default_value: false,
-                                       is_string: false)
+                                       type: String)
         ]
       end
 
