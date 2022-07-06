@@ -137,4 +137,58 @@ describe Fastlane::Helper::RevenuecatHelper do
         .and_return(get_commit_3_response)
     end
   end
+
+  describe '.edit_changelog' do
+    let(:prepopulated_changelog) { 'mock prepopulated changelog' }
+    let(:changelog_latest_path) { './mock-path/CHANGELOG.latest.md' }
+    let(:editor) { 'vim' }
+
+    before(:each) do
+      allow(File).to receive(:read).with(changelog_latest_path).and_return('edited changelog')
+      allow(File).to receive(:write).with(changelog_latest_path, prepopulated_changelog)
+      allow(FastlaneCore::UI).to receive(:confirm).with('Open CHANGELOG.latest.md in \'vim\'? (No will quit this process)').and_return(true)
+      allow_any_instance_of(Object).to receive(:system).with(editor, changelog_latest_path)
+    end
+
+    it 'writes prepopulated changelog to latest changelog file' do
+      expect(File).to receive(:write).with(changelog_latest_path, prepopulated_changelog).once
+      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+    end
+
+    it 'opens editor to edit prepopulated changelog' do
+      expect_any_instance_of(Object).to receive(:system).with(editor, changelog_latest_path).once
+      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+    end
+
+    it 'fails if prepopulated changelog is empty' do
+      expect(File).not_to receive(:write)
+      expect do
+        Fastlane::Helper::RevenuecatHelper.edit_changelog('', changelog_latest_path, editor)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if user cancels on confirmation to open editor' do
+      expect(File).not_to receive(:write)
+      allow(FastlaneCore::UI).to receive(:confirm).with('Open CHANGELOG.latest.md in \'vim\'? (No will quit this process)').and_return(false)
+      expect do
+        Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'asks for confirmation if prepopulated changelog remains the same after editor opening' do
+      allow(File).to receive(:read).with(changelog_latest_path).and_return(prepopulated_changelog)
+      expect(FastlaneCore::UI).to receive(:confirm)
+        .with('You may have opened the changelog in a visual editor. Enter \'y\' when changes are saved or \'n\' to cancel').and_return(true).once
+      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+    end
+
+    it 'fails if confirmation if prepopulated changelog remains the same after editor opening' do
+      allow(File).to receive(:read).with(changelog_latest_path).and_return(prepopulated_changelog)
+      expect(FastlaneCore::UI).to receive(:confirm)
+        .with('You may have opened the changelog in a visual editor. Enter \'y\' when changes are saved or \'n\' to cancel').and_return(false).once
+      expect do
+        Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+      end.to raise_exception(StandardError)
+    end
+  end
 end

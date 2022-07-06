@@ -69,29 +69,24 @@ module Fastlane
         end.join("\n")
       end
 
-      def self.edit_changelog(generated_contents, changelog_latest_path, editor)
+      def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
         changelog_filename = File.basename(changelog_latest_path)
-        content_before_opening_editor = File.read(changelog_latest_path)
 
-        if generated_contents.size > 0
-          UI.message("Using auto generated contents:\n#{generated_contents}")
-          File.write(changelog_latest_path, generated_contents)
-        else
-          UI.user_error!("Generated content for changlog was empty")
-        end
+        UI.user_error!("Pre populated content for changelog was empty") if prepopulated_changelog.empty?
+
+        UI.message("Using pre populated contents:\n#{prepopulated_changelog}")
 
         UI.message("Will use '#{editor}'... Override by setting FASTLANE_EDITOR environment variable")
-        if UI.confirm("Open #{changelog_filename} in '#{editor}'? (No will quit this process)")
-          system(editor, changelog_latest_path.shellescape)
-        else
-          UI.user_error!("Cancelled")
-        end
+        UI.user_error!("Cancelled") unless UI.confirm("Open #{changelog_filename} in '#{editor}'? (No will quit this process)")
+        File.write(changelog_latest_path, prepopulated_changelog)
+
+        system(editor, changelog_latest_path.shellescape)
 
         # Some people may use visual editors and `system` will continue right away.
         # This will compare the content before and afer attempting to open
         # and will open a blocking prompt for the visual editor changes to be saved
         content_after_opening_editor = File.read(changelog_latest_path)
-        return unless content_before_opening_editor == content_after_opening_editor
+        return unless prepopulated_changelog == content_after_opening_editor
 
         unless UI.confirm("You may have opened the changelog in a visual editor. Enter 'y' when changes are saved or 'n' to cancel")
           UI.user_error!("Cancelled")
