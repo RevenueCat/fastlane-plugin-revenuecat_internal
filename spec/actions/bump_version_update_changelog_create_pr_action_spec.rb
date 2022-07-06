@@ -15,32 +15,38 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
       allow(ENV).to receive(:fetch).with('GITHUB_PULL_REQUEST_API_TOKEN', nil).and_return(mock_github_token)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:validate_local_config_status_for_bump).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:auto_generate_changelog).with(anything).and_return(auto_generated_changelog)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:edit_changelog).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:create_new_release_branch).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:replace_version_number).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:attach_changelog_to_master).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:commmit_changes_and_push_current_branch).with(anything)
-      allow(Fastlane::Helper::RevenuecatHelper).to receive(:create_release_pr).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:auto_generate_changelog).with(anything).and_return(auto_generated_changelog)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_release_branch).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch).with(anything)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_release_pr).with(anything)
     end
 
     it 'calls all the appropriate methods with appropriate parameters' do
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:validate_local_config_status_for_bump).with(branch).once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:auto_generate_changelog)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump).with(branch).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:auto_generate_changelog)
         .with(mock_repo_name, mock_github_token, 3)
         .and_return(auto_generated_changelog)
         .once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:edit_changelog).with(auto_generated_changelog, mock_changelog_latest_path, editor).once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:create_new_release_branch).with(new_version).once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:replace_version_number)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
+        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_release_branch).with(new_version).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
         .once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:attach_changelog_to_master)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:commmit_changes_and_push_current_branch).with("Version bump for #{new_version}").once
-      expect(Fastlane::Helper::RevenuecatHelper).to receive(:create_release_pr).with(new_version, edited_changelog, mock_repo_name).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
+        .with("Version bump for #{new_version}")
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_release_pr)
+        .with(new_version, edited_changelog, mock_repo_name)
+        .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.run(
         current_version: current_version,

@@ -1,4 +1,4 @@
-describe Fastlane::Helper::RevenuecatHelper do
+describe Fastlane::Helper::RevenuecatInternalHelper do
   describe '.replace_version_number' do
     let(:file_to_update_1) { './test_files/file_to_update_1.txt' }
     let(:file_to_update_2) { './test_files/file_to_update_2.txt' }
@@ -11,12 +11,12 @@ describe Fastlane::Helper::RevenuecatHelper do
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
-      Fastlane::Helper::RevenuecatHelper.replace_version_number('1.11.0',
-                                                                '1.12.0',
-                                                                [file_to_update_1,
-                                                                 file_to_update_2],
-                                                                [file_to_update_without_prerelease_modifiers_3,
-                                                                 file_to_update_without_prerelease_modifiers_4])
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0',
+        '1.12.0',
+        [file_to_update_1, file_to_update_2],
+        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+      )
     end
 
     it 'updates previous version number with new version number when current version has prerelease modifiers' do
@@ -25,12 +25,12 @@ describe Fastlane::Helper::RevenuecatHelper do
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
-      Fastlane::Helper::RevenuecatHelper.replace_version_number('1.11.0-SNAPSHOT',
-                                                                '1.12.0',
-                                                                [file_to_update_1,
-                                                                 file_to_update_2],
-                                                                [file_to_update_without_prerelease_modifiers_3,
-                                                                 file_to_update_without_prerelease_modifiers_4])
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0-SNAPSHOT',
+        '1.12.0',
+        [file_to_update_1, file_to_update_2],
+        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+      )
     end
 
     it 'updates previous version number with new version number when new version has prerelease modifiers' do
@@ -39,12 +39,12 @@ describe Fastlane::Helper::RevenuecatHelper do
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
-      Fastlane::Helper::RevenuecatHelper.replace_version_number('1.11.0',
-                                                                '1.12.0-SNAPSHOT',
-                                                                [file_to_update_1,
-                                                                 file_to_update_2],
-                                                                [file_to_update_without_prerelease_modifiers_3,
-                                                                 file_to_update_without_prerelease_modifiers_4])
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0',
+        '1.12.0-SNAPSHOT',
+        [file_to_update_1, file_to_update_2],
+        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+      )
     end
   end
 
@@ -70,9 +70,11 @@ describe Fastlane::Helper::RevenuecatHelper do
     it 'generates changelog automatically from github commits' do
       setup_stubs
       expect_any_instance_of(Object).not_to receive(:sleep)
-      changelog = Fastlane::Helper::RevenuecatHelper.auto_generate_changelog('mock-repo-name',
-                                                                             'mock-github-token',
-                                                                             0)
+      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
       expect(changelog).to eq("* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
@@ -81,9 +83,11 @@ describe Fastlane::Helper::RevenuecatHelper do
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_stubs
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
-      changelog = Fastlane::Helper::RevenuecatHelper.auto_generate_changelog('mock-repo-name',
-                                                                             'mock-github-token',
-                                                                             3)
+      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        3
+      )
       expect(changelog).to eq("* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
@@ -99,9 +103,11 @@ describe Fastlane::Helper::RevenuecatHelper do
               api_token: 'mock-github-token')
         .and_return(duplicate_items_get_commit_2_response)
       expect do
-        Fastlane::Helper::RevenuecatHelper.auto_generate_changelog('mock-repo-name',
-                                                                   'mock-github-token',
-                                                                   0)
+        Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0
+        )
       end.to raise_exception(StandardError)
     end
 
@@ -152,18 +158,18 @@ describe Fastlane::Helper::RevenuecatHelper do
 
     it 'writes prepopulated changelog to latest changelog file' do
       expect(File).to receive(:write).with(changelog_latest_path, prepopulated_changelog).once
-      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+      Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
     end
 
     it 'opens editor to edit prepopulated changelog' do
       expect_any_instance_of(Object).to receive(:system).with(editor, changelog_latest_path).once
-      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+      Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
     end
 
     it 'fails if prepopulated changelog is empty' do
       expect(File).not_to receive(:write)
       expect do
-        Fastlane::Helper::RevenuecatHelper.edit_changelog('', changelog_latest_path, editor)
+        Fastlane::Helper::RevenuecatInternalHelper.edit_changelog('', changelog_latest_path, editor)
       end.to raise_exception(StandardError)
     end
 
@@ -171,7 +177,7 @@ describe Fastlane::Helper::RevenuecatHelper do
       expect(File).not_to receive(:write)
       allow(FastlaneCore::UI).to receive(:confirm).with('Open CHANGELOG.latest.md in \'vim\'? (No will quit this process)').and_return(false)
       expect do
-        Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+        Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
       end.to raise_exception(StandardError)
     end
 
@@ -179,7 +185,7 @@ describe Fastlane::Helper::RevenuecatHelper do
       allow(File).to receive(:read).with(changelog_latest_path).and_return(prepopulated_changelog)
       expect(FastlaneCore::UI).to receive(:confirm)
         .with('You may have opened the changelog in a visual editor. Enter \'y\' when changes are saved or \'n\' to cancel').and_return(true).once
-      Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+      Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
     end
 
     it 'fails if confirmation if prepopulated changelog remains the same after editor opening' do
@@ -187,7 +193,7 @@ describe Fastlane::Helper::RevenuecatHelper do
       expect(FastlaneCore::UI).to receive(:confirm)
         .with('You may have opened the changelog in a visual editor. Enter \'y\' when changes are saved or \'n\' to cancel').and_return(false).once
       expect do
-        Fastlane::Helper::RevenuecatHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
+        Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
       end.to raise_exception(StandardError)
     end
   end
@@ -211,7 +217,7 @@ describe Fastlane::Helper::RevenuecatHelper do
     end
 
     it 'prepends changelog latest file contents to changelog file' do
-      Fastlane::Helper::RevenuecatHelper.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      Fastlane::Helper::RevenuecatInternalHelper.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
       changelog_contents = File.read(changelog_path)
       expect(changelog_contents).to eq("## 1.12.0\nchangelog latest contents\n## 1.11.0\nchangelog contents")
     end
@@ -220,7 +226,7 @@ describe Fastlane::Helper::RevenuecatHelper do
   describe '.create_new_release_branch' do
     it 'creates new release branch with version number' do
       expect(Fastlane::Actions).to receive(:sh).with("git checkout -b 'release/1.12.0'")
-      Fastlane::Helper::RevenuecatHelper.create_new_release_branch('1.12.0')
+      Fastlane::Helper::RevenuecatInternalHelper.create_new_release_branch('1.12.0')
     end
   end
 
@@ -232,23 +238,23 @@ describe Fastlane::Helper::RevenuecatHelper do
 
     it 'stages files' do
       expect(Fastlane::Actions).to receive(:sh).with('git add -u').once
-      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
     end
 
     it 'commits files with correct message' do
       expect(Fastlane::Actions).to receive(:sh).with("git commit -m 'Fastlane test commit message'").once
-      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
     end
 
     it 'pushes to remote' do
       expect(Fastlane::Actions::PushToGitRemoteAction).to receive(:run).with(remote: 'origin').once
-      Fastlane::Helper::RevenuecatHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
     end
   end
 
   describe '.create_release_pr' do
     it 'creates pr' do
-      Fastlane::Helper::RevenuecatHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name')
+      Fastlane::Helper::RevenuecatInternalHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name')
     end
   end
 end

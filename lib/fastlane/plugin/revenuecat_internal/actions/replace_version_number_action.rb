@@ -1,6 +1,6 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
-require_relative '../helper/revenuecat_helper'
+require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
@@ -10,7 +10,10 @@ module Fastlane
         new_version_number = params[:new_version_number]
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
-        Helper::RevenuecatHelper.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
+        Helper::RevenuecatInternalHelper.replace_version_number(previous_version_number,
+                                                                new_version_number,
+                                                                files_to_update,
+                                                                files_to_update_without_prerelease_modifiers)
       end
 
       def self.description

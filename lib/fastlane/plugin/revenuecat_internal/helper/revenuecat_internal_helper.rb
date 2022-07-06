@@ -8,7 +8,7 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
-    class RevenuecatHelper
+    class RevenuecatInternalHelper
       def self.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]

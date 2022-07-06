@@ -1,6 +1,6 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
-require_relative '../helper/revenuecat_helper'
+require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
@@ -17,25 +17,25 @@ module Fastlane
         changelog_path = params[:changelog_path]
         editor = params[:editor]
 
-        Helper::RevenuecatHelper.validate_local_config_status_for_bump(branch)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch)
 
         UI.important("Current version is #{version_number}")
 
         # Ask for new version number
         new_version_number = UI.input("New version number: ")
 
-        generated_contents = Helper::RevenuecatHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
-        Helper::RevenuecatHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
+        generated_contents = Helper::RevenuecatInternalHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
+        Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
-        Helper::RevenuecatHelper.create_new_release_branch(new_version_number)
-        Helper::RevenuecatHelper.replace_version_number(version_number,
-                                                        new_version_number,
-                                                        files_to_update,
-                                                        files_to_update_without_prerelease_modifiers)
-        Helper::RevenuecatHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
-        Helper::RevenuecatHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
-        Helper::RevenuecatHelper.create_release_pr(new_version_number, changelog, repo_name)
+        Helper::RevenuecatInternalHelper.create_new_release_branch(new_version_number)
+        Helper::RevenuecatInternalHelper.replace_version_number(version_number,
+                                                                new_version_number,
+                                                                files_to_update,
+                                                                files_to_update_without_prerelease_modifiers)
+        Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
+        Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
+        Helper::RevenuecatInternalHelper.create_release_pr(new_version_number, changelog, repo_name)
       end
 
       def self.description

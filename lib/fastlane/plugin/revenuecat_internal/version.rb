@@ -1,5 +1,5 @@
 module Fastlane
-  module Revenuecat
+  module RevenuecatInternal
     VERSION = "0.1.0"
   end
 end
