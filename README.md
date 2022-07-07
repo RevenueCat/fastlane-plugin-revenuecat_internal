@@ -1,6 +1,6 @@
 # revenuecat_internal plugin
 
-[![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-revenuecat-internal)
+[![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-revenuecat_internal)
 
 ## Getting Started
 
@@ -14,13 +14,14 @@ fastlane add_plugin revenuecat_internal
 
 A plugin including commonly used automation logic for RevenueCat SDKs.
 
-**Note to author:** Add a more detailed description about this plugin here. If your plugin contains multiple actions, make sure to mention them here.
+### Actions
+
+- `bump_version_update_changelog_create_pr`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter). It also fetches the list of commits since the last tag in the given repo and generates a changelog using those, allowing the user to edit the result. Finally, it creates a release branch in the form of `release/NEW_VERSION_NUMBER`, commits and pushes all changes to `origin` and creates a release PR.
+- `replace_version_number`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter).
 
 ## Example
 
 Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.
-
-**Note to author:** Please set up a sample project to make it easy for users to explore what your plugin does. Provide everything that is necessary to try out the plugin in this project (including a sample Xcode/Android project if necessary)
 
 ## Run tests for this plugin
 
