@@ -68,7 +68,5 @@ describe Fastlane::Actions::ReplaceVersionNumberAction do
     it 'has correct number of options' do
       expect(Fastlane::Actions::ReplaceVersionNumberAction.available_options.size).to eq(4)
     end
-
-    # TODO: Add more tests for the options
   end
 end

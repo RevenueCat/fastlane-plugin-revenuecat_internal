@@ -62,13 +62,47 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         editor: editor
       )
     end
+
+    it 'fails if github_pr_token is nil' do
+      expect do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          files_to_update: ['./test_file.sh', './test_file2.rb'],
+          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+          repo_name: mock_repo_name,
+          github_pr_token: nil,
+          github_token: mock_github_token,
+          github_rate_limit: 3,
+          branch: branch,
+          editor: editor
+        )
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if github_pr_token is empty' do
+      expect do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          files_to_update: ['./test_file.sh', './test_file2.rb'],
+          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+          repo_name: mock_repo_name,
+          github_pr_token: '',
+          github_token: mock_github_token,
+          github_rate_limit: 3,
+          branch: branch,
+          editor: editor
+        )
+      end.to raise_exception(StandardError)
+    end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
       expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(11)
     end
-
-    # TODO: Add more tests for the options
   end
 end
