@@ -1,5 +1,6 @@
 describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
   describe '#run' do
+    let(:mock_github_pr_token) { 'mock-github-pr-token' }
     let(:mock_github_token) { 'mock-github-token' }
     let(:mock_repo_name) { 'mock-repo-name' }
     let(:mock_changelog_latest_path) { './fake-changelog-latest-path/CHANGELOG.latest.md' }
@@ -12,7 +13,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
     let(:new_version) { '1.13.0' }
 
     before(:each) do
-      allow(ENV).to receive(:fetch).with('GITHUB_PULL_REQUEST_API_TOKEN', nil).and_return(mock_github_token)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump).with(anything)
@@ -45,7 +45,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
         .with("Version bump for #{new_version}")
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_release_pr)
-        .with(new_version, edited_changelog, mock_repo_name)
+        .with(new_version, edited_changelog, mock_repo_name, mock_github_pr_token)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.run(
@@ -55,6 +55,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
         files_to_update: ['./test_file.sh', './test_file2.rb'],
         files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
         repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
         branch: branch,
@@ -65,7 +66,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.available_options.size).to eq(10)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.available_options.size).to eq(11)
     end
 
     # TODO: Add more tests for the options

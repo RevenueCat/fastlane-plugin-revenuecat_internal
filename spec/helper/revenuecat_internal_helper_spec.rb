@@ -254,7 +254,53 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
   describe '.create_release_pr' do
     it 'creates pr' do
-      Fastlane::Helper::RevenuecatInternalHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name')
+      allow(Fastlane::Actions).to receive(:git_branch).and_return('fake-current-branch')
+      expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
+        .with(
+          api_token: 'fake-github-pr-token',
+          title: 'Release/1.12.0',
+          base: 'main',
+          body: 'fake-changelog',
+          repo: 'RevenueCat/fake-repo-name',
+          head: 'fake-current-branch',
+          api_url: 'https://api.github.com'
+        ).once
+      Fastlane::Helper::RevenuecatInternalHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name', 'fake-github-pr-token')
+    end
+  end
+
+  describe '.validate_local_config_status_for_bump' do
+    it 'ensures repo is in specified branch' do
+      expect(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch').once
+      allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch')
+    end
+
+    it 'ensures repo is in a clean state' do
+      allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
+      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).once
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch')
+    end
+  end
+
+  describe '.replace_in' do
+    let(:tmp_test_file_path) { './tmp_test_files/test_file.txt' }
+
+    it 'fails if new string is empty and allow_empty false' do
+      expect(Fastlane::Actions).not_to receive(:sh)
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'changes old string with empty new string if allow_empty is true' do
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0||', tmp_test_file_path)
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: true)
+    end
+
+    it 'changes old string occurences with new string' do
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0|', tmp_test_file_path)
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.12.0', '1.13.0', tmp_test_file_path)
     end
   end
 end

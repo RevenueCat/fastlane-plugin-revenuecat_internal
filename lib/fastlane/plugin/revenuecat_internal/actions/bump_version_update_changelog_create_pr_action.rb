@@ -8,6 +8,7 @@ module Fastlane
       def self.run(params)
         branch = params[:branch]
         repo_name = params[:repo_name]
+        github_pr_token = params[:github_pr_token]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
         version_number = params[:current_version]
@@ -16,6 +17,13 @@ module Fastlane
         changelog_latest_path = params[:changelog_latest_path]
         changelog_path = params[:changelog_path]
         editor = params[:editor]
+
+        # Ensure GitHub API token is set
+        if github_pr_token.nil? || github_pr_token.empty?
+          UI.error("A github_pr_token parameter or an environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
+          UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
+          UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
+        end
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch)
 
@@ -35,7 +43,7 @@ module Fastlane
                                                                 files_to_update_without_prerelease_modifiers)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
-        Helper::RevenuecatInternalHelper.create_release_pr(new_version_number, changelog, repo_name)
+        Helper::RevenuecatInternalHelper.create_release_pr(new_version_number, changelog, repo_name, github_pr_token)
       end
 
       def self.description
@@ -74,6 +82,11 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :repo_name,
                                        env_name: "RC_INTERNAL_REPO_NAME",
                                        description: "Name of the repo of the SDK",
+                                       optional: false,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :github_pr_token,
+                                       env_name: "GITHUB_PULL_REQUEST_API_TOKEN",
+                                       description: "Github token to use to create the release PR",
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :github_token,

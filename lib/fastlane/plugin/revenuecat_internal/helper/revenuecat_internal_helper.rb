@@ -3,6 +3,8 @@ require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require 'fastlane/actions/push_to_git_remote'
 require 'fastlane/actions/create_pull_request'
+require 'fastlane/actions/ensure_git_branch'
+require 'fastlane/actions/ensure_git_status_clean'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -123,30 +125,21 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_release_pr(version_number, changelog, repo_name)
-        github_pr_token = ENV.fetch('GITHUB_PULL_REQUEST_API_TOKEN', nil)
+      def self.create_release_pr(version_number, changelog, repo_name, github_pr_token)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: "Release/#{version_number}",
           base: 'main',
           body: changelog,
-          repo: repo_name,
+          repo: "RevenueCat/#{repo_name}",
           head: Actions.git_branch,
           api_url: 'https://api.github.com'
         )
       end
 
       def self.validate_local_config_status_for_bump(branch)
-        ensure_git_branch(branch: branch)
-        ensure_git_status_clean
-
-        # Ensure GitHub API token is set
-        github_pr_token = ENV.fetch('GITHUB_PULL_REQUEST_API_TOKEN', nil)
-        if github_pr_token.nil? || github_pr_token.empty?
-          UI.error("Environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
-          UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
-          UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
-        end
+        Actions::EnsureGitBranchAction.run(branch: branch)
+        Actions::EnsureGitStatusCleanAction.run
       end
 
       def self.replace_in(previous_text, new_text, path, allow_empty: false)
