@@ -139,7 +139,7 @@ module Fastlane
 
       def self.validate_local_config_status_for_bump(branch)
         Actions::EnsureGitBranchAction.run(branch: branch)
-        Actions::EnsureGitStatusCleanAction.run
+        Actions::EnsureGitStatusCleanAction.run({})
       end
 
       def self.replace_in(previous_text, new_text, path, allow_empty: false)

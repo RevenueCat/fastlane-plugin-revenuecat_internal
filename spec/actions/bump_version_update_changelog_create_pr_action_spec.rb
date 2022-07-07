@@ -1,4 +1,4 @@
-describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
+describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
   describe '#run' do
     let(:mock_github_pr_token) { 'mock-github-pr-token' }
     let(:mock_github_token) { 'mock-github-token' }
@@ -48,7 +48,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
         .with(new_version, edited_changelog, mock_repo_name, mock_github_pr_token)
         .once
 
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.run(
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
@@ -66,7 +66,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePRAction.available_options.size).to eq(11)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(11)
     end
 
     # TODO: Add more tests for the options

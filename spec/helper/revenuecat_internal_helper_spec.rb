@@ -278,7 +278,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'ensures repo is in a clean state' do
       allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
-      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).once
+      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch')
     end
   end

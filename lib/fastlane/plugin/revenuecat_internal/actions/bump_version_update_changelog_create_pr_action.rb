@@ -4,7 +4,7 @@ require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
-    class BumpVersionUpdateChangelogCreatePRAction < Action
+    class BumpVersionUpdateChangelogCreatePrAction < Action
       def self.run(params)
         branch = params[:branch]
         repo_name = params[:repo_name]
