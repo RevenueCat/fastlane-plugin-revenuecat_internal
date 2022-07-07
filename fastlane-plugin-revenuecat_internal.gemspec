@@ -3,13 +3,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'fastlane/plugin/revenuecat_internal/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'fastlane-plugin-revenuecat-internal'
+  spec.name          = 'fastlane-plugin-revenuecat_internal'
   spec.version       = Fastlane::RevenuecatInternal::VERSION
   spec.author        = 'Toni Rico'
   spec.email         = 'toni.rico.diez@revenuecat.com'
 
   spec.summary       = 'A plugin including commonly used automation logic for RevenueCat SDKs.'
-  spec.homepage      = "https://github.com/RevenueCat/fastlane-plugin-revenuecat-internal"
+  spec.homepage      = "https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal"
   spec.license       = "MIT"
 
   spec.files         = Dir["lib/**/*"] + %w(README.md LICENSE)
