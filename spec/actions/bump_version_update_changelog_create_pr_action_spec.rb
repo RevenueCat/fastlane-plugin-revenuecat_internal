@@ -12,21 +12,12 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:current_version) { '1.12.0' }
     let(:new_version) { '1.13.0' }
 
-    before(:each) do
+    it 'calls all the appropriate methods with appropriate parameters' do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:auto_generate_changelog).with(anything).and_return(auto_generated_changelog)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_release_branch).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch).with(anything)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_release_pr).with(anything)
-    end
-
-    it 'calls all the appropriate methods with appropriate parameters' do
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump).with(branch).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
+        .with(branch, mock_github_pr_token)
+        .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:auto_generate_changelog)
         .with(mock_repo_name, mock_github_token, 3)
         .and_return(auto_generated_changelog)
@@ -34,7 +25,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path, editor)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_release_branch).with(new_version).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_and_checkout_new_branch)
+        .with('release/1.13.0')
+        .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
         .once
@@ -44,8 +37,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_release_pr)
-        .with(new_version, edited_changelog, mock_repo_name, mock_github_pr_token)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, mock_github_pr_token)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -61,42 +54,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         branch: branch,
         editor: editor
       )
-    end
-
-    it 'fails if github_pr_token is nil' do
-      expect do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          files_to_update: ['./test_file.sh', './test_file2.rb'],
-          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
-          repo_name: mock_repo_name,
-          github_pr_token: nil,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          branch: branch,
-          editor: editor
-        )
-      end.to raise_exception(StandardError)
-    end
-
-    it 'fails if github_pr_token is empty' do
-      expect do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          files_to_update: ['./test_file.sh', './test_file2.rb'],
-          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
-          repo_name: mock_repo_name,
-          github_pr_token: '',
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          branch: branch,
-          editor: editor
-        )
-      end.to raise_exception(StandardError)
     end
   end
 

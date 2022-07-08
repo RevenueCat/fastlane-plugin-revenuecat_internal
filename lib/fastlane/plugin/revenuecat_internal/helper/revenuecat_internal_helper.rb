@@ -115,8 +115,8 @@ module Fastlane
         end
       end
 
-      def self.create_new_release_branch(release_version)
-        Actions.sh("git checkout -b 'release/#{release_version}'")
+      def self.create_new_branch_and_checkout(branch_name)
+        Actions.sh("git checkout -b '#{branch_name}'")
       end
 
       def self.commmit_changes_and_push_current_branch(commit_message)
@@ -125,19 +125,25 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_release_pr(version_number, changelog, repo_name, github_pr_token)
+      def self.create_pr_to_main(title, body, repo_name, github_pr_token)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
-          title: "Release/#{version_number}",
+          title: title,
           base: 'main',
-          body: changelog,
+          body: body,
           repo: "RevenueCat/#{repo_name}",
           head: Actions.git_branch,
           api_url: 'https://api.github.com'
         )
       end
 
-      def self.validate_local_config_status_for_bump(branch)
+      def self.validate_local_config_status_for_bump(branch, github_pr_token)
+        # Ensure GitHub API token is set
+        if github_pr_token.nil? || github_pr_token.empty?
+          UI.error("A github_pr_token parameter or an environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
+          UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
+          UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
+        end
         Actions::EnsureGitBranchAction.run(branch: branch)
         Actions::EnsureGitStatusCleanAction.run({})
       end
@@ -149,6 +155,15 @@ module Fastlane
         sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
         backup_extension = '.bck'
         Actions.sh("sed", '-i', backup_extension, sed_regex, path)
+      end
+
+      def self.calculate_next_snapshot_version(current_version)
+        version_split = current_version.split('.')
+        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
+        major = version_split[0]
+        minor = version_split[1]
+        next_version = "#{major}.#{minor.to_i + 1}.0"
+        "#{next_version}-SNAPSHOT"
       end
     end
   end

@@ -18,6 +18,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 
 - `bump_version_update_changelog_create_pr`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter). It also fetches the list of commits since the last tag in the given repo and generates a changelog using those, allowing the user to edit the result. Finally, it creates a release branch in the form of `release/NEW_VERSION_NUMBER`, commits and pushes all changes to `origin` and creates a release PR.
 - `replace_version_number`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter).
+- `create_next_snapshot_version`: This action creates bumps the version to the next minor with a `-SNAPSHOT` suffix and creates a PR with the changes.
 
 ## Example
 
