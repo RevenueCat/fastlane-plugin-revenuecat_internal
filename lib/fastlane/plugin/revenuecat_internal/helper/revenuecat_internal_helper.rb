@@ -180,7 +180,8 @@ module Fastlane
           commitish: commit_hash,
           upload_assets: upload_assets,
           is_draft: false,
-          is_prerelease: is_prerelease
+          is_prerelease: is_prerelease,
+          server_url: 'https://api.github.com'
         )
       end
     end
