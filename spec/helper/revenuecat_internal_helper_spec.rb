@@ -353,6 +353,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:github_api_token) { 'fake-github-api-token' }
     let(:no_prerelease_version) { '1.11.0' }
     let(:prerelease_version) { '1.11.0-SNAPSHOT' }
+    let(:server_url) { 'https://api.github.com' }
 
     before(:each) do
       allow(Fastlane::Actions).to receive(:last_git_commit_dict).and_return(commit_hash: commit_hash)
@@ -368,7 +369,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         commitish: commit_hash,
         upload_assets: upload_assets,
         is_draft: false,
-        is_prerelease: false
+        is_prerelease: false,
+        server_url: server_url
       )
       Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
         no_prerelease_version,
@@ -389,7 +391,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         commitish: commit_hash,
         upload_assets: upload_assets,
         is_draft: false,
-        is_prerelease: true
+        is_prerelease: true,
+        server_url: server_url
       )
       Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
         prerelease_version,
