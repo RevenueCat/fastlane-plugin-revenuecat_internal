@@ -5,6 +5,7 @@ require 'fastlane/actions/push_to_git_remote'
 require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
+require 'fastlane/actions/set_github_release'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -164,6 +165,23 @@ module Fastlane
         minor = version_split[1]
         next_version = "#{major}.#{minor.to_i + 1}.0"
         "#{next_version}-SNAPSHOT"
+      end
+
+      def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
+        commit_hash = Actions.last_git_commit_dict[:commit_hash]
+        is_prerelease = release_version.include?("-")
+
+        Actions::SetGithubReleaseAction.run(
+          repository_name: "RevenueCat/#{repo_name}",
+          api_token: github_api_token,
+          name: release_version,
+          tag_name: release_version,
+          description: release_description,
+          commitish: commit_hash,
+          upload_assets: upload_assets,
+          is_draft: false,
+          is_prerelease: is_prerelease
+        )
       end
     end
   end

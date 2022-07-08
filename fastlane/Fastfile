@@ -33,3 +33,13 @@ lane :sample_create_next_snapshot_version_action do |options|
     branch: 'main'
   )
 end
+
+lane :sample_create_github_release_action do |options|
+  create_github_release(
+    version: 'release_version_number',
+    repo_name: 'repo-name',
+    github_api_token: 'github-api-token', # This can also be obtained from ENV RC_INTERNAL_GITHUB_TOKEN
+    changelog_latest_path: './path-to/CHANGELOG.latest.md',
+    upload_assets: ['./file-to-upload.txt', './file-to-upload-2.rb']
+  )
+end

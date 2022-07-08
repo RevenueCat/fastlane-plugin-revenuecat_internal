@@ -344,4 +344,60 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       end.to raise_exception(StandardError)
     end
   end
+
+  describe '.create_github_release' do
+    let(:commit_hash) { 'fake-commit-hash' }
+    let(:release_description) { 'fake-description' }
+    let(:upload_assets) { ['./path-to/upload-asset-1.txt', './path-to/upload-asset-2.rb'] }
+    let(:repo_name) { 'fake-repo-name' }
+    let(:github_api_token) { 'fake-github-api-token' }
+    let(:no_prerelease_version) { '1.11.0' }
+    let(:prerelease_version) { '1.11.0-SNAPSHOT' }
+
+    before(:each) do
+      allow(Fastlane::Actions).to receive(:last_git_commit_dict).and_return(commit_hash: commit_hash)
+    end
+
+    it 'calls SetGithubReleaseAction with appropriate parameters for non-prerelease version' do
+      expect(Fastlane::Actions::SetGithubReleaseAction).to receive(:run).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: no_prerelease_version,
+        tag_name: no_prerelease_version,
+        description: release_description,
+        commitish: commit_hash,
+        upload_assets: upload_assets,
+        is_draft: false,
+        is_prerelease: false
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        no_prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token
+      )
+    end
+
+    it 'calls SetGithubReleaseAction with appropriate parameters for prerelease version' do
+      expect(Fastlane::Actions::SetGithubReleaseAction).to receive(:run).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: prerelease_version,
+        tag_name: prerelease_version,
+        description: release_description,
+        commitish: commit_hash,
+        upload_assets: upload_assets,
+        is_draft: false,
+        is_prerelease: true
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token
+      )
+    end
+  end
 end
