@@ -1,4 +1,4 @@
-lane :test_bump_version_update_changelog_create_pr do |options|
+lane :sample_bump_version_update_changelog_create_pr_action do |options|
   bump_version_update_changelog_create_pr(
     current_version: 'current_version_number',
     changelog_latest_path: './path-to/CHANGELOG.latest.md',
@@ -14,7 +14,7 @@ lane :test_bump_version_update_changelog_create_pr do |options|
   )
 end
 
-lane :test_replace_version_number do |options|
+lane :sample_replace_version_number_action do |options|
   replace_version_number(
     current_version: 'current_version_number',
     new_version_number: 'new_version_number',
