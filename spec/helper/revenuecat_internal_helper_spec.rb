@@ -270,49 +270,54 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   end
 
   describe '.validate_local_config_status_for_bump' do
+    before(:each) do
+      allow(Fastlane::Actions).to receive(:sh).with('git', 'branch', '--list', 'new-branch').and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with('git', 'ls-remote', '--heads', 'origin', 'new-branch').and_return('')
+      allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
+      allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
+    end
+
     it 'fails if github_pr_token is nil' do
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', nil)
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', nil)
       end.to raise_exception(StandardError)
     end
 
     it 'fails if github_pr_token is empty' do
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', '')
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', '')
       end.to raise_exception(StandardError)
+    end
+
+    it 'fails if new branch exists locally' do
+      expect(Fastlane::Actions).to receive(:sh).with('git', 'branch', '--list', 'new-branch').and_return('new-branch').once
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if new branch exists remotely' do
+      expect(Fastlane::Actions).to receive(:sh)
+        .with('git', 'ls-remote', '--heads', 'origin', 'new-branch')
+        .and_return('59f7273ae446cef04eb402b9708f0772389c59c4  refs/heads/new-branch')
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+      end.to raise_exception(StandardError)
+    end
+
+    it 'ensures new branch does not exist remotely' do
+      expect(Fastlane::Actions).to receive(:sh).with('git', 'ls-remote', '--heads', 'origin', 'new-branch').once
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures repo is in specified branch' do
       expect(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch').once
-      allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures repo is in a clean state' do
-      allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
       expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'fake-github-pr-token')
-    end
-  end
-
-  describe '.replace_in' do
-    let(:tmp_test_file_path) { './tmp_test_files/test_file.txt' }
-
-    it 'fails if new string is empty and allow_empty false' do
-      expect(Fastlane::Actions).not_to receive(:sh)
-      expect do
-        Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: false)
-      end.to raise_exception(StandardError)
-    end
-
-    it 'changes old string with empty new string if allow_empty is true' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0||', tmp_test_file_path)
-      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: true)
-    end
-
-    it 'changes old string occurences with new string' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0|', tmp_test_file_path)
-      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.12.0', '1.13.0', tmp_test_file_path)
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
     end
   end
 

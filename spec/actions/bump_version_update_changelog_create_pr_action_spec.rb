@@ -16,7 +16,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(branch, mock_github_pr_token)
+        .with(branch, 'release/1.13.0', mock_github_pr_token)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:auto_generate_changelog)
         .with(mock_repo_name, mock_github_token, 3)
