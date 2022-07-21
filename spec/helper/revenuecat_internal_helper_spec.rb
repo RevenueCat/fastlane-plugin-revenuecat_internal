@@ -408,4 +408,25 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       )
     end
   end
+
+  describe '.replace_in' do
+    let(:tmp_test_file_path) { './tmp_test_files/test_file.txt' }
+
+    it 'fails if new string is empty and allow_empty false' do
+      expect(Fastlane::Actions).not_to receive(:sh)
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'changes old string with empty new string if allow_empty is true' do
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0||', tmp_test_file_path)
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: true)
+    end
+
+    it 'changes old string occurences with new string' do
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0|', tmp_test_file_path)
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.12.0', '1.13.0', tmp_test_file_path)
+    end
+  end
 end

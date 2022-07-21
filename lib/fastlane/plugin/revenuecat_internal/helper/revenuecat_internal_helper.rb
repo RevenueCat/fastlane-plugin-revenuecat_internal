@@ -177,7 +177,7 @@ module Fastlane
         )
       end
 
-      private_class_method def self.replace_in(previous_text, new_text, path, allow_empty: false)
+      def self.replace_in(previous_text, new_text, path, allow_empty: false)
         if new_text.to_s.strip.empty? && !allow_empty
           UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
         end
