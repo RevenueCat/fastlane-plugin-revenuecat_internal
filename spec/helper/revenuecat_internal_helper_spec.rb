@@ -410,7 +410,19 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   end
 
   describe '.replace_in' do
+    require 'fileutils'
+
     let(:tmp_test_file_path) { './tmp_test_files/test_file.txt' }
+
+    before(:each) do
+      ENV["FORCE_SH_DURING_TESTS"] = 'true'
+      Dir.mkdir('tmp_test_files')
+    end
+
+    after(:each) do
+      ENV["FORCE_SH_DURING_TESTS"] = nil
+      FileUtils.rm_rf('tmp_test_files')
+    end
 
     it 'fails if new string is empty and allow_empty false' do
       expect(Fastlane::Actions).not_to receive(:sh)
@@ -420,13 +432,29 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'changes old string with empty new string if allow_empty is true' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0||', tmp_test_file_path)
+      File.write(tmp_test_file_path, 'Testing removing=1.11.0, but not=1.11.1')
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.11.0', '', tmp_test_file_path, allow_empty: true)
+      expect(File.read(tmp_test_file_path)).to eq('Testing removing=, but not=1.11.1')
     end
 
-    it 'changes old string occurences with new string' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0|', tmp_test_file_path)
-      Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.12.0', '1.13.0', tmp_test_file_path)
+    it 'changes old string with new string' do
+      File.write(tmp_test_file_path, 'Testing changing text=4.1.3-SNAPSHOT')
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3-SNAPSHOT', '4.1.3', tmp_test_file_path)
+      expect(File.read(tmp_test_file_path)).to eq('Testing changing text=4.1.3')
+    end
+
+    it 'does not change any text if old text not present in file' do
+      contents = 'Testing 4.1.4'
+      File.write(tmp_test_file_path, contents)
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3', '4.4.0-SNAPSHOT', tmp_test_file_path)
+      expect(File.read(tmp_test_file_path)).to eq(contents)
+    end
+
+    it 'does not change text that does not match exact old text with dots' do
+      contents = '55413C0025B778E00ECCA5A'
+      File.write(tmp_test_file_path, '55413C0025B778E00ECCA5A')
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3', '4.4.0-SNAPSHOT', tmp_test_file_path)
+      expect(File.read(tmp_test_file_path)).to eq(contents)
     end
   end
 end
