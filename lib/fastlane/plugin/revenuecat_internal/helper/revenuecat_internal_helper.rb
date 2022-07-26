@@ -183,7 +183,7 @@ module Fastlane
         end
         sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
         backup_extension = '.bck'
-        Actions.sh("sed", '-i', backup_extension, sed_regex, path)
+        Actions.sh("sed", "-i#{backup_extension}", sed_regex, path)
       end
 
       private_class_method def self.ensure_new_branch_local_remote(new_branch)

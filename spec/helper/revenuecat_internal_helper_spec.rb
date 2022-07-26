@@ -6,10 +6,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:file_to_update_without_prerelease_modifiers_4) { './test_files/file_to_update_4.txt' }
 
     it 'updates previous version number with new version number when no prerelease modifiers are passed' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_1).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_2).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
@@ -20,10 +20,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'updates previous version number with new version number when current version has prerelease modifiers' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_1).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_2).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
@@ -34,10 +34,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'updates previous version number with new version number when new version has prerelease modifiers' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_1).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_2).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
+      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
