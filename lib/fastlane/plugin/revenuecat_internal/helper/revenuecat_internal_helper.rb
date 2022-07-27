@@ -181,9 +181,10 @@ module Fastlane
         if new_text.to_s.strip.empty? && !allow_empty
           UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
         end
-        sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
-        backup_extension = '.bck'
-        Actions.sh("sed", "-i#{backup_extension}", sed_regex, path)
+        original_text = File.read(path)
+        replaced_text = original_text.gsub(previous_text, new_text)
+        File.write("#{path}.bck", original_text)
+        File.write(path, replaced_text)
       end
 
       private_class_method def self.ensure_new_branch_local_remote(new_branch)
