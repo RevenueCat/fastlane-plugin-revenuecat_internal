@@ -1,0 +1,590 @@
+{
+    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/compare/4.7.0...HEAD",
+    "html_url": "https://github.com/RevenueCat/purchases-ios/compare/4.7.0...HEAD",
+    "permalink_url": "https://github.com/RevenueCat/purchases-ios/compare/RevenueCat:bb8687d...RevenueCat:cfdd80f",
+    "diff_url": "https://github.com/RevenueCat/purchases-ios/compare/4.7.0...HEAD.diff",
+    "patch_url": "https://github.com/RevenueCat/purchases-ios/compare/4.7.0...HEAD.patch",
+    "base_commit": {
+        "sha": "bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "node_id": "C_kwDOBnB8hdoAKGJiODY4N2Q1MTE5MGU0MmNkNDhlNmNkZDgwMzkzOTJmMjA4NjAxYzM",
+        "commit": {
+            "author": {
+                "name": "NachoSoto",
+                "email": "NachoSoto@users.noreply.github.com",
+                "date": "2022-07-04T14:27:41Z"
+            },
+            "committer": {
+                "name": "GitHub",
+                "email": "noreply@github.com",
+                "date": "2022-07-04T14:27:41Z"
+            },
+            "message": "Release/4.7.0 (#1745)\n\n### Changes:\r\n* Replaced `CustomerInfo.nonSubscriptionTransactions` with a new non-`StoreTransaction` type (#1733) via NachoSoto (@NachoSoto)\r\n* `Purchases.configure`: added overload taking a `Configuration.Builder` (#1720) via NachoSoto (@NachoSoto)\r\n* Extract Attribution logic out of Purchases (#1693) via Joshua Liebowitz (@taquitos)\r\n* Remove create alias (#1695) via Joshua Liebowitz (@taquitos)\r\n\r\nAll attribution APIs can now be accessed from `Purchases.shared.attribution`.\r\n\r\n### Improvements:\r\n* Improved purchasing logs, added promotional offer information (#1725) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: don't log attribute errors if there are none (#1742) via NachoSoto (@NachoSoto)\r\n* `FatalErrorUtil`: don't override `fatalError` on release builds (#1736) via NachoSoto (@NachoSoto)\r\n* `SKPaymentTransaction`: added more context to warnings about missing properties (#1731) via NachoSoto (@NachoSoto)\r\n* New SwiftUI Purchase Tester example (#1722) via Josh Holtz (@joshdholtz)\r\n* update docs for `showManageSubscriptions` (#1729) via aboedo (@aboedo)\r\n* `PurchasesOrchestrator`: unify finish transactions between SK1 and SK2 (#1704) via NachoSoto (@NachoSoto)\r\n* `SubscriberAttribute`: converted into `struct` (#1648) via NachoSoto (@NachoSoto)\r\n* `CacheFetchPolicy.notStaleCachedOrFetched`: added warning to docstring (#1708) via NachoSoto (@NachoSoto)\r\n* Clear cached offerings and products after Storefront changes (2/4) (#1583) via Juanpe Catalán (@Juanpe)\r\n* `ROT13`: optimized initialization and removed magic numbers (#1702) via NachoSoto (@NachoSoto)\r\n\r\n### Fixes:\r\n* `logIn`/`logOut`: sync attributes before aliasing (#1716) via NachoSoto (@NachoSoto)\r\n* `Purchases.customerInfo(fetchPolicy:)`: actually use `fetchPolicy` parameter (#1721) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: fix behavior dealing with `nil` `SKPaymentTransaction.productIdentifier` during purchase (#1680) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator.handlePurchasedTransaction`: always refresh receipt data (#1703) via NachoSoto (@NachoSoto)",
+            "tree": {
+                "sha": "73157a7b0c3357745693a4feb78a93cb26997682",
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/73157a7b0c3357745693a4feb78a93cb26997682"
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+            "comment_count": 0,
+            "verification": {
+                "verified": true,
+                "reason": "valid",
+                "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiwvjdCRBK7hj4Ov3rIwAAKLAIAI+zlCFSPleYUrhBfrUqkfDr\nnLAA6FqQGKwrDuI+o1hUtHyVYXwLLUN1tHoffyaDrNOA3BvVLgcKqXWT1poi6SDj\nIcCwHH2PV72q0pbIhrnHvzes7Eo9d3ml7bVE0uK7EIvHn18cVaUukHLda6g89q8l\nbTnBl1kr4+juijFoKJfAqBza60bLjLokiLEqgGYleERqJ35HZstmgV4ll9X3B5+0\nok2KnwrCf75iH+n6VQ5tGktQtq3Xb1CW88/FV8RjzcU+NojAIfdxlRUfpnf5EnOu\n9j2QIWa0XojcJAnZ691Deyq1RMR6G2YoeTQBJoqClA7v3Iv1VBvHmYQAvJsspKk=\n=Obu7\n-----END PGP SIGNATURE-----\n",
+                "payload": "tree 73157a7b0c3357745693a4feb78a93cb26997682\nparent 0dfa812b8a9d15d7903b37e1b2252cad88357dd3\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1656944861 -0700\ncommitter GitHub <noreply@github.com> 1656944861 -0700\n\nRelease/4.7.0 (#1745)\n\n### Changes:\r\n* Replaced `CustomerInfo.nonSubscriptionTransactions` with a new non-`StoreTransaction` type (#1733) via NachoSoto (@NachoSoto)\r\n* `Purchases.configure`: added overload taking a `Configuration.Builder` (#1720) via NachoSoto (@NachoSoto)\r\n* Extract Attribution logic out of Purchases (#1693) via Joshua Liebowitz (@taquitos)\r\n* Remove create alias (#1695) via Joshua Liebowitz (@taquitos)\r\n\r\nAll attribution APIs can now be accessed from `Purchases.shared.attribution`.\r\n\r\n### Improvements:\r\n* Improved purchasing logs, added promotional offer information (#1725) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: don't log attribute errors if there are none (#1742) via NachoSoto (@NachoSoto)\r\n* `FatalErrorUtil`: don't override `fatalError` on release builds (#1736) via NachoSoto (@NachoSoto)\r\n* `SKPaymentTransaction`: added more context to warnings about missing properties (#1731) via NachoSoto (@NachoSoto)\r\n* New SwiftUI Purchase Tester example (#1722) via Josh Holtz (@joshdholtz)\r\n* update docs for `showManageSubscriptions` (#1729) via aboedo (@aboedo)\r\n* `PurchasesOrchestrator`: unify finish transactions between SK1 and SK2 (#1704) via NachoSoto (@NachoSoto)\r\n* `SubscriberAttribute`: converted into `struct` (#1648) via NachoSoto (@NachoSoto)\r\n* `CacheFetchPolicy.notStaleCachedOrFetched`: added warning to docstring (#1708) via NachoSoto (@NachoSoto)\r\n* Clear cached offerings and products after Storefront changes (2/4) (#1583) via Juanpe Catalán (@Juanpe)\r\n* `ROT13`: optimized initialization and removed magic numbers (#1702) via NachoSoto (@NachoSoto)\r\n\r\n### Fixes:\r\n* `logIn`/`logOut`: sync attributes before aliasing (#1716) via NachoSoto (@NachoSoto)\r\n* `Purchases.customerInfo(fetchPolicy:)`: actually use `fetchPolicy` parameter (#1721) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: fix behavior dealing with `nil` `SKPaymentTransaction.productIdentifier` during purchase (#1680) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator.handlePurchasedTransaction`: always refresh receipt data (#1703) via NachoSoto (@NachoSoto)"
+            }
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3/comments",
+        "author": {
+            "login": "NachoSoto",
+            "id": 685609,
+            "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/NachoSoto",
+            "html_url": "https://github.com/NachoSoto",
+            "followers_url": "https://api.github.com/users/NachoSoto/followers",
+            "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+            "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+            "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+            "repos_url": "https://api.github.com/users/NachoSoto/repos",
+            "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "committer": {
+            "login": "web-flow",
+            "id": 19864447,
+            "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+            "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/web-flow",
+            "html_url": "https://github.com/web-flow",
+            "followers_url": "https://api.github.com/users/web-flow/followers",
+            "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+            "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+            "organizations_url": "https://api.github.com/users/web-flow/orgs",
+            "repos_url": "https://api.github.com/users/web-flow/repos",
+            "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/web-flow/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "parents": [
+            {
+                "sha": "0dfa812b8a9d15d7903b37e1b2252cad88357dd3",
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/0dfa812b8a9d15d7903b37e1b2252cad88357dd3",
+                "html_url": "https://github.com/RevenueCat/purchases-ios/commit/0dfa812b8a9d15d7903b37e1b2252cad88357dd3"
+            }
+        ]
+    },
+    "merge_base_commit": {
+        "sha": "bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "node_id": "C_kwDOBnB8hdoAKGJiODY4N2Q1MTE5MGU0MmNkNDhlNmNkZDgwMzkzOTJmMjA4NjAxYzM",
+        "commit": {
+            "author": {
+                "name": "NachoSoto",
+                "email": "NachoSoto@users.noreply.github.com",
+                "date": "2022-07-04T14:27:41Z"
+            },
+            "committer": {
+                "name": "GitHub",
+                "email": "noreply@github.com",
+                "date": "2022-07-04T14:27:41Z"
+            },
+            "message": "Release/4.7.0 (#1745)\n\n### Changes:\r\n* Replaced `CustomerInfo.nonSubscriptionTransactions` with a new non-`StoreTransaction` type (#1733) via NachoSoto (@NachoSoto)\r\n* `Purchases.configure`: added overload taking a `Configuration.Builder` (#1720) via NachoSoto (@NachoSoto)\r\n* Extract Attribution logic out of Purchases (#1693) via Joshua Liebowitz (@taquitos)\r\n* Remove create alias (#1695) via Joshua Liebowitz (@taquitos)\r\n\r\nAll attribution APIs can now be accessed from `Purchases.shared.attribution`.\r\n\r\n### Improvements:\r\n* Improved purchasing logs, added promotional offer information (#1725) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: don't log attribute errors if there are none (#1742) via NachoSoto (@NachoSoto)\r\n* `FatalErrorUtil`: don't override `fatalError` on release builds (#1736) via NachoSoto (@NachoSoto)\r\n* `SKPaymentTransaction`: added more context to warnings about missing properties (#1731) via NachoSoto (@NachoSoto)\r\n* New SwiftUI Purchase Tester example (#1722) via Josh Holtz (@joshdholtz)\r\n* update docs for `showManageSubscriptions` (#1729) via aboedo (@aboedo)\r\n* `PurchasesOrchestrator`: unify finish transactions between SK1 and SK2 (#1704) via NachoSoto (@NachoSoto)\r\n* `SubscriberAttribute`: converted into `struct` (#1648) via NachoSoto (@NachoSoto)\r\n* `CacheFetchPolicy.notStaleCachedOrFetched`: added warning to docstring (#1708) via NachoSoto (@NachoSoto)\r\n* Clear cached offerings and products after Storefront changes (2/4) (#1583) via Juanpe Catalán (@Juanpe)\r\n* `ROT13`: optimized initialization and removed magic numbers (#1702) via NachoSoto (@NachoSoto)\r\n\r\n### Fixes:\r\n* `logIn`/`logOut`: sync attributes before aliasing (#1716) via NachoSoto (@NachoSoto)\r\n* `Purchases.customerInfo(fetchPolicy:)`: actually use `fetchPolicy` parameter (#1721) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: fix behavior dealing with `nil` `SKPaymentTransaction.productIdentifier` during purchase (#1680) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator.handlePurchasedTransaction`: always refresh receipt data (#1703) via NachoSoto (@NachoSoto)",
+            "tree": {
+                "sha": "73157a7b0c3357745693a4feb78a93cb26997682",
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/73157a7b0c3357745693a4feb78a93cb26997682"
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+            "comment_count": 0,
+            "verification": {
+                "verified": true,
+                "reason": "valid",
+                "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiwvjdCRBK7hj4Ov3rIwAAKLAIAI+zlCFSPleYUrhBfrUqkfDr\nnLAA6FqQGKwrDuI+o1hUtHyVYXwLLUN1tHoffyaDrNOA3BvVLgcKqXWT1poi6SDj\nIcCwHH2PV72q0pbIhrnHvzes7Eo9d3ml7bVE0uK7EIvHn18cVaUukHLda6g89q8l\nbTnBl1kr4+juijFoKJfAqBza60bLjLokiLEqgGYleERqJ35HZstmgV4ll9X3B5+0\nok2KnwrCf75iH+n6VQ5tGktQtq3Xb1CW88/FV8RjzcU+NojAIfdxlRUfpnf5EnOu\n9j2QIWa0XojcJAnZ691Deyq1RMR6G2YoeTQBJoqClA7v3Iv1VBvHmYQAvJsspKk=\n=Obu7\n-----END PGP SIGNATURE-----\n",
+                "payload": "tree 73157a7b0c3357745693a4feb78a93cb26997682\nparent 0dfa812b8a9d15d7903b37e1b2252cad88357dd3\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1656944861 -0700\ncommitter GitHub <noreply@github.com> 1656944861 -0700\n\nRelease/4.7.0 (#1745)\n\n### Changes:\r\n* Replaced `CustomerInfo.nonSubscriptionTransactions` with a new non-`StoreTransaction` type (#1733) via NachoSoto (@NachoSoto)\r\n* `Purchases.configure`: added overload taking a `Configuration.Builder` (#1720) via NachoSoto (@NachoSoto)\r\n* Extract Attribution logic out of Purchases (#1693) via Joshua Liebowitz (@taquitos)\r\n* Remove create alias (#1695) via Joshua Liebowitz (@taquitos)\r\n\r\nAll attribution APIs can now be accessed from `Purchases.shared.attribution`.\r\n\r\n### Improvements:\r\n* Improved purchasing logs, added promotional offer information (#1725) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: don't log attribute errors if there are none (#1742) via NachoSoto (@NachoSoto)\r\n* `FatalErrorUtil`: don't override `fatalError` on release builds (#1736) via NachoSoto (@NachoSoto)\r\n* `SKPaymentTransaction`: added more context to warnings about missing properties (#1731) via NachoSoto (@NachoSoto)\r\n* New SwiftUI Purchase Tester example (#1722) via Josh Holtz (@joshdholtz)\r\n* update docs for `showManageSubscriptions` (#1729) via aboedo (@aboedo)\r\n* `PurchasesOrchestrator`: unify finish transactions between SK1 and SK2 (#1704) via NachoSoto (@NachoSoto)\r\n* `SubscriberAttribute`: converted into `struct` (#1648) via NachoSoto (@NachoSoto)\r\n* `CacheFetchPolicy.notStaleCachedOrFetched`: added warning to docstring (#1708) via NachoSoto (@NachoSoto)\r\n* Clear cached offerings and products after Storefront changes (2/4) (#1583) via Juanpe Catalán (@Juanpe)\r\n* `ROT13`: optimized initialization and removed magic numbers (#1702) via NachoSoto (@NachoSoto)\r\n\r\n### Fixes:\r\n* `logIn`/`logOut`: sync attributes before aliasing (#1716) via NachoSoto (@NachoSoto)\r\n* `Purchases.customerInfo(fetchPolicy:)`: actually use `fetchPolicy` parameter (#1721) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator`: fix behavior dealing with `nil` `SKPaymentTransaction.productIdentifier` during purchase (#1680) via NachoSoto (@NachoSoto)\r\n* `PurchasesOrchestrator.handlePurchasedTransaction`: always refresh receipt data (#1703) via NachoSoto (@NachoSoto)"
+            }
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/bb8687d51190e42cd48e6cdd8039392f208601c3",
+        "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3/comments",
+        "author": {
+            "login": "NachoSoto",
+            "id": 685609,
+            "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/NachoSoto",
+            "html_url": "https://github.com/NachoSoto",
+            "followers_url": "https://api.github.com/users/NachoSoto/followers",
+            "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+            "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+            "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+            "repos_url": "https://api.github.com/users/NachoSoto/repos",
+            "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "committer": {
+            "login": "web-flow",
+            "id": 19864447,
+            "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+            "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/web-flow",
+            "html_url": "https://github.com/web-flow",
+            "followers_url": "https://api.github.com/users/web-flow/followers",
+            "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+            "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+            "organizations_url": "https://api.github.com/users/web-flow/orgs",
+            "repos_url": "https://api.github.com/users/web-flow/repos",
+            "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/web-flow/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "parents": [
+            {
+                "sha": "0dfa812b8a9d15d7903b37e1b2252cad88357dd3",
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/0dfa812b8a9d15d7903b37e1b2252cad88357dd3",
+                "html_url": "https://github.com/RevenueCat/purchases-ios/commit/0dfa812b8a9d15d7903b37e1b2252cad88357dd3"
+            }
+        ]
+    },
+    "status": "ahead",
+    "ahead_by": 3,
+    "behind_by": 0,
+    "total_commits": 3,
+    "commits": [
+        {
+            "sha": "a72c0435ecf71248f311900475e881cc07ac2eaf",
+            "node_id": "C_kwDOBnB8hdoAKGE3MmMwNDM1ZWNmNzEyNDhmMzExOTAwNDc1ZTg4MWNjMDdhYzJlYWY",
+            "commit": {
+                "author": {
+                    "name": "aboedo",
+                    "email": "andresboedo@gmail.com",
+                    "date": "2022-07-04T14:36:41Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-07-04T14:36:41Z"
+                },
+                "message": "added log when setting `autoSyncPurchases` to false (#1749)",
+                "tree": {
+                    "sha": "051c6736cff89107bd32cb3b8baa64627c7eac8a",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/051c6736cff89107bd32cb3b8baa64627c7eac8a"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiwvr5CRBK7hj4Ov3rIwAAaHoIAGNCSoN7wVbeuBBMMr0PutDS\n4m2wl5q6is2hXgjFVZTDAToX6K+6c8FbHtmnOwgzjjEdY3T+ewIWNQ1IZFGDcarx\nzAxbk1r5jsyrrs2wGb53XK/HvT87IpWTARh5g1h+NUCT0/jmyIIReHgxNgSzUzhr\nGlM2MowmwE2qrlV062L33A7NIFP267lIfyriTPUHfmpfKkZN/EKdIcGX+2dtOX49\nFMpVxF1AFsp+GTiDLr6N1LIIByevGRliaQWcGYNvQWoeqG/h7bU87gq9ZeitMCEH\nVizJTA2YiGl4mGIBocTicWAoqauHBrPZmqHd1N4rcW0c3LQLEAIyFX5xk8V24Do=\n=7PGO\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 051c6736cff89107bd32cb3b8baa64627c7eac8a\nparent bb8687d51190e42cd48e6cdd8039392f208601c3\nauthor aboedo <andresboedo@gmail.com> 1656945401 -0300\ncommitter GitHub <noreply@github.com> 1656945401 -0300\n\nadded log when setting `autoSyncPurchases` to false (#1749)\n\n"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf/comments",
+            "author": {
+                "login": "aboedo",
+                "id": 3922667,
+                "node_id": "MDQ6VXNlcjM5MjI2Njc=",
+                "avatar_url": "https://avatars.githubusercontent.com/u/3922667?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/aboedo",
+                "html_url": "https://github.com/aboedo",
+                "followers_url": "https://api.github.com/users/aboedo/followers",
+                "following_url": "https://api.github.com/users/aboedo/following{/other_user}",
+                "gists_url": "https://api.github.com/users/aboedo/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/aboedo/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/aboedo/subscriptions",
+                "organizations_url": "https://api.github.com/users/aboedo/orgs",
+                "repos_url": "https://api.github.com/users/aboedo/repos",
+                "events_url": "https://api.github.com/users/aboedo/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/aboedo/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "bb8687d51190e42cd48e6cdd8039392f208601c3",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+                    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/bb8687d51190e42cd48e6cdd8039392f208601c3"
+                }
+            ]
+        },
+        {
+            "sha": "0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+            "node_id": "C_kwDOBnB8hdoAKDBlNjdjZGIxYzc1ODJjZTNlMmZkMDAzNjdhY2MyNGRiNjI0MmM2ZDY",
+            "commit": {
+                "author": {
+                    "name": "Toni Rico",
+                    "email": "antonio.rico.diez@revenuecat.com",
+                    "date": "2022-07-05T04:49:17Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-07-05T04:49:17Z"
+                },
+                "message": "Fix replace version without prerelease modifiers (#1751)\n\n* Fix replacing version without prerelease modifiers\r\n\r\n* Move SystemInfo.swift to use version with prerelease modifiers and remove outdated files",
+                "tree": {
+                    "sha": "3b552b9fbfcc806a009325e84a098680cb9cf952",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/3b552b9fbfcc806a009325e84a098680cb9cf952"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiw8LNCRBK7hj4Ov3rIwAAx28IAK9cCcm3f58V5rLV9dPmJXjb\n46NoSgWH4jG/yuSdPbIwMFU0KoxjrZFLn0xsgRzdKFwxDSdZufjukEB8K25nw+/H\niYBxq5muO/NcN+zjYpl8a6xVWrMEgmAzgkM6C4KK7dAFOPPzh96yo2H0XfwJbBd8\nU+Bseg+J8Dq7+ObKnSeQ03Oo8kUfbdzV673r+4z5iR6FgY3hBiFjzzkXqIQn6N9u\nPxpErOgLmsb21gKF/BrvWzg9y+CTZhsbiktDxLM3GuPxOynJLCuRvqliADZNw6Z3\nDsiPdvIwezopzppYHy+VXsKKnzeSnIB3QddLp9eNIUaaIKgXb/MNurc54/mB+pQ=\n=0/O8\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 3b552b9fbfcc806a009325e84a098680cb9cf952\nparent a72c0435ecf71248f311900475e881cc07ac2eaf\nauthor Toni Rico <antonio.rico.diez@revenuecat.com> 1656996557 +0200\ncommitter GitHub <noreply@github.com> 1656996557 +0200\n\nFix replace version without prerelease modifiers (#1751)\n\n* Fix replacing version without prerelease modifiers\r\n\r\n* Move SystemInfo.swift to use version with prerelease modifiers and remove outdated files"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/commit/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6/comments",
+            "author": {
+                "login": "tonidero",
+                "id": 808417,
+                "node_id": "MDQ6VXNlcjgwODQxNw==",
+                "avatar_url": "https://avatars.githubusercontent.com/u/808417?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/tonidero",
+                "html_url": "https://github.com/tonidero",
+                "followers_url": "https://api.github.com/users/tonidero/followers",
+                "following_url": "https://api.github.com/users/tonidero/following{/other_user}",
+                "gists_url": "https://api.github.com/users/tonidero/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/tonidero/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/tonidero/subscriptions",
+                "organizations_url": "https://api.github.com/users/tonidero/orgs",
+                "repos_url": "https://api.github.com/users/tonidero/repos",
+                "events_url": "https://api.github.com/users/tonidero/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/tonidero/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "a72c0435ecf71248f311900475e881cc07ac2eaf",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+                    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf"
+                }
+            ]
+        },
+        {
+            "sha": "cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "node_id": "C_kwDOBnB8hdoAKGNmZGQ4MGY3M2Q4YzkxMTIxMzEzZDcyMjI3YjRjYmUyODNiNTdjMWU",
+            "commit": {
+                "author": {
+                    "name": "RevenueCat Releases",
+                    "email": "60164957+revenuecat-ops@users.noreply.github.com",
+                    "date": "2022-07-05T04:50:37Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-07-05T04:50:37Z"
+                },
+                "message": "Prepare next version: 4.8.0-SNAPSHOT (#1750)\n\n* Preparing for next version\r\n\r\n* Remove prerelease modifiers from plist files\r\n\r\nCo-authored-by: Distiller <distiller@static.198.206.135.57.macminivault.com>\r\nCo-authored-by: Toni Rico <antonio.rico.diez@revenuecat.com>",
+                "tree": {
+                    "sha": "f096af3048224d3e97517cb0fbab72c7441581e1",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/f096af3048224d3e97517cb0fbab72c7441581e1"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiw8MdCRBK7hj4Ov3rIwAAelcIAJD0hVc5TaAolEK+nt9rfI7j\nLlCQ5ngCFUXLsXnh8yDc66XvY6rf8XzRHZfa6ToHTcXU4T+rsBUMVo1B3d4Xcwfm\nQTJO0lz1L3DYRqvM7xA1oTtZOqW96/Lt7NA2BQkJkvxzOjFBXPwVNSdzoUdpus6S\nrJhOUIG01cY3jLcQem5EqNVmAysxvDukv94CRw1KioxKZERdOPOathsNCrDy+U4H\ngS10SSEzmTk4Mm7RL5ps4bAek2JCluIOMd50FG+QRXEsocJ4WlRfh4pU5DfGyZeu\nKm4baaAMiZyPyfcU7VUI0rzHgx4Jo+/g4xu1ectTCg/F2cZbA70oVgbRF5Bxojo=\n=xQh5\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree f096af3048224d3e97517cb0fbab72c7441581e1\nparent 0e67cdb1c7582ce3e2fd00367acc24db6242c6d6\nauthor RevenueCat Releases <60164957+revenuecat-ops@users.noreply.github.com> 1656996637 +0200\ncommitter GitHub <noreply@github.com> 1656996637 +0200\n\nPrepare next version: 4.8.0-SNAPSHOT (#1750)\n\n* Preparing for next version\r\n\r\n* Remove prerelease modifiers from plist files\r\n\r\nCo-authored-by: Distiller <distiller@static.198.206.135.57.macminivault.com>\r\nCo-authored-by: Toni Rico <antonio.rico.diez@revenuecat.com>"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/commit/cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/cfdd80f73d8c91121313d72227b4cbe283b57c1e/comments",
+            "author": {
+                "login": "revenuecat-ops",
+                "id": 60164957,
+                "node_id": "MDQ6VXNlcjYwMTY0OTU3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/60164957?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/revenuecat-ops",
+                "html_url": "https://github.com/revenuecat-ops",
+                "followers_url": "https://api.github.com/users/revenuecat-ops/followers",
+                "following_url": "https://api.github.com/users/revenuecat-ops/following{/other_user}",
+                "gists_url": "https://api.github.com/users/revenuecat-ops/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/revenuecat-ops/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/revenuecat-ops/subscriptions",
+                "organizations_url": "https://api.github.com/users/revenuecat-ops/orgs",
+                "repos_url": "https://api.github.com/users/revenuecat-ops/repos",
+                "events_url": "https://api.github.com/users/revenuecat-ops/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/revenuecat-ops/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6",
+                    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/0e67cdb1c7582ce3e2fd00367acc24db6242c6d6"
+                }
+            ]
+        }
+    ],
+    "files": [
+        {
+            "sha": "f4c92234f9e1188f83ab5f3368856ba043f9c037",
+            "filename": ".jazzy.yaml",
+            "status": "modified",
+            "additions": 2,
+            "deletions": 2,
+            "changes": 4,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/.jazzy.yaml",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/.jazzy.yaml",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/.jazzy.yaml?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -2,9 +2,9 @@ clean: true\n author: RevenueCat\n author_url: https://revenuecat.com\n sdk: iphonesimulator\n-module_version: 4.7.0\n+module_version: 4.8.0-SNAPSHOT\n github_url: https://github.com/revenuecat/purchases-ios\n-github_file_prefix: https://github.com/revenuecat/purchases-ios/tree/4.7.0\n+github_file_prefix: https://github.com/revenuecat/purchases-ios/tree/4.8.0-SNAPSHOT\n output: generated_docs\n include:\n   - \"Sources/**/*\""
+        },
+        {
+            "sha": "b108af6136862e4816b2fdcae187618f61b5bbe0",
+            "filename": ".version",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/.version",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/.version",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/.version?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -1 +1 @@\n-4.7.0\n+4.8.0-SNAPSHOT"
+        },
+        {
+            "sha": "aa37ecdaff01405238d989d58a6c8ba0ccfd49f1",
+            "filename": "RevenueCat.podspec",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/RevenueCat.podspec",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/RevenueCat.podspec",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/RevenueCat.podspec?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -1,6 +1,6 @@\n Pod::Spec.new do |s|\n   s.name             = \"RevenueCat\"\n-  s.version          = \"4.7.0\"\n+  s.version          = \"4.8.0-SNAPSHOT\"\n   s.summary          = \"Subscription and in-app-purchase backend service.\"\n \n   s.description      = <<-DESC"
+        },
+        {
+            "sha": "ae18ae2099b6995c7e6de993d0621a4ef4e2a31b",
+            "filename": "Sources/Info.plist",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FInfo.plist",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FInfo.plist",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FInfo.plist?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -17,7 +17,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.7.0</string>\n+\t<string>4.8.0</string>\n \t<key>CFBundleVersion</key>\n \t<string>$(CURRENT_PROJECT_VERSION)</string>\n \t<key>LSApplicationCategoryType</key>"
+        },
+        {
+            "sha": "90a4cbcbe052e92f9184328dbc141e2d0eb56b34",
+            "filename": "Sources/Logging/Strings/ConfigureStrings.swift",
+            "status": "modified",
+            "additions": 11,
+            "deletions": 0,
+            "changes": 11,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FLogging%2FStrings%2FConfigureStrings.swift",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FLogging%2FStrings%2FConfigureStrings.swift",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FLogging%2FStrings%2FConfigureStrings.swift?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -41,6 +41,8 @@ enum ConfigureStrings {\n \n     case invalidAPIKey\n \n+    case autoSyncPurchasesDisabled\n+\n }\n \n extension ConfigureStrings: CustomStringConvertible {\n@@ -82,6 +84,15 @@ extension ConfigureStrings: CustomStringConvertible {\n             \"Ensure that you are using the public app-specific API key, \" +\n             \" which should look like 'appl_1a2b3c4d5e6f7h'.\\n\" +\n             \"See https://rev.cat/auth for more details.\"\n+\n+        case .autoSyncPurchasesDisabled:\n+            return \"Automatic syncing of purchases has been disabled. \\n\" +\n+            \"RevenueCat won’t observe the StoreKit queue, and it will not sync any purchase \\n\" +\n+            \"automatically. Call syncPurchases whenever a new transaction is completed so the \\n\" +\n+            \"receipt is sent to RevenueCat’s backend. Consumables disappear from the receipt \\n\" +\n+            \"after the transaction is finished, so make sure purchases are synced before \\n\" +\n+            \"finishing any consumable transaction, otherwise RevenueCat won’t register the \\n\" +\n+            \"purchase.\"\n         }\n     }\n "
+        },
+        {
+            "sha": "a44b182a97ecbf8cfde7292d7093dcaade536b03",
+            "filename": "Sources/Misc/SystemInfo.swift",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FMisc%2FSystemInfo.swift",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FMisc%2FSystemInfo.swift",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FMisc%2FSystemInfo.swift?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -43,7 +43,7 @@ class SystemInfo {\n     }\n \n     static var frameworkVersion: String {\n-        return \"4.7.0\"\n+        return \"4.8.0-SNAPSHOT\"\n     }\n \n     static var systemVersion: String {"
+        },
+        {
+            "sha": "066d774979ada56b1792ce1c65336f38fd46ebb1",
+            "filename": "Sources/Purchasing/Purchases/Purchases.swift",
+            "status": "modified",
+            "additions": 2,
+            "deletions": 0,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FPurchasing%2FPurchases%2FPurchases.swift",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Sources%2FPurchasing%2FPurchases%2FPurchases.swift",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FPurchasing%2FPurchases%2FPurchases.swift?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -461,6 +461,8 @@ public typealias StartPurchaseBlock = (@escaping PurchaseCompletedBlock) -> Void\n \n         if self.systemInfo.dangerousSettings.autoSyncPurchases {\n             storeKitWrapper.delegate = purchasesOrchestrator\n+        } else {\n+            Logger.warn(Strings.configure.autoSyncPurchasesDisabled)\n         }\n         subscribeToAppStateNotifications()\n         attributionPoster.postPostponedAttributionDataIfNeeded()"
+        },
+        {
+            "sha": "0489939373f96907daaa0d249f380e89bc8848b8",
+            "filename": "Tests/BackendIntegrationTestApp/Info.plist",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FBackendIntegrationTestApp%2FInfo.plist",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FBackendIntegrationTestApp%2FInfo.plist",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FBackendIntegrationTestApp%2FInfo.plist?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -17,7 +17,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.7.0</string>\n+\t<string>4.8.0</string>\n \t<key>CFBundleVersion</key>\n \t<string>1</string>\n \t<key>LSRequiresIPhoneOS</key>"
+        },
+        {
+            "sha": "8bf01c62ff6c99f543a2978e9868fcd929710d31",
+            "filename": "Tests/BackendIntegrationTests/Info.plist",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FBackendIntegrationTests%2FInfo.plist",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FBackendIntegrationTests%2FInfo.plist",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FBackendIntegrationTests%2FInfo.plist?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -15,7 +15,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.7.0</string>\n+\t<string>4.8.0</string>\n \t<key>CFBundleVersion</key>\n \t<string>1</string>\n </dict>"
+        },
+        {
+            "sha": "8bf01c62ff6c99f543a2978e9868fcd929710d31",
+            "filename": "Tests/UnitTests/Info.plist",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FUnitTests%2FInfo.plist",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FUnitTests%2FInfo.plist",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FUnitTests%2FInfo.plist?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -15,7 +15,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.7.0</string>\n+\t<string>4.8.0</string>\n \t<key>CFBundleVersion</key>\n \t<string>1</string>\n </dict>"
+        },
+        {
+            "sha": "fe01d5a799f6f3a5fb10c1b63014d9543ffc7f51",
+            "filename": "Tests/UnitTestsHostApp/Info.plist",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FUnitTestsHostApp%2FInfo.plist",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/Tests%2FUnitTestsHostApp%2FInfo.plist",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FUnitTestsHostApp%2FInfo.plist?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -17,7 +17,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.7.0</string>\n+\t<string>4.8.0</string>\n \t<key>CFBundleVersion</key>\n \t<string>1</string>\n \t<key>LSRequiresIPhoneOS</key>"
+        },
+        {
+            "sha": "c74a363e1d7d9cd37722f0a92632ef5e6249ea52",
+            "filename": "fastlane/CommonFastfile",
+            "status": "modified",
+            "additions": 4,
+            "deletions": 0,
+            "changes": 4,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FCommonFastfile",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FCommonFastfile",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/fastlane%2FCommonFastfile?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -215,13 +215,17 @@ lane :replace_version_number do |options|\n   UI.user_error!(\"missing version\") unless new_version_number\n   files_to_update_string = ENV['FILES_TO_UPDATE_VERSION_STRING']\n   UI.user_error!(\"missing files to update env\") unless files_to_update_string\n+  files_to_update_without_prerelease_modifiers_string = ENV['FILES_TO_UPDATE_VERSION_WITHOUT_PRERELEASE_MODIFIERS_STRING'] || \"\"\n   files_to_update = files_to_update_string.split(\",\")\n+  files_to_update_without_prerelease_modifiers = files_to_update_without_prerelease_modifiers_string.split(\",\")\n   previous_version_number = current_version_number\n   previous_version_number_without_prerelease_modifiers = previous_version_number.split(\"-\")[0]\n   new_version_number_without_prerelease_modifiers = new_version_number.split(\"-\")[0]\n \n   for file_to_update in files_to_update\n     increment_build_number(previous_version_number, new_version_number, file_to_update.strip)\n+  end\n+  for file_to_update in files_to_update_without_prerelease_modifiers\n     increment_build_number(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update.strip)\n   end\n end"
+        },
+        {
+            "sha": "d80f95a0a8272900d317de6828f6da7d1e7ccb17",
+            "filename": "fastlane/Fastfile",
+            "status": "modified",
+            "additions": 3,
+            "deletions": 3,
+            "changes": 6,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FFastfile",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FFastfile",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/fastlane%2FFastfile?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -20,11 +20,11 @@ ENV[\"FILES_TO_UPDATE_VERSION_STRING\"] = \"\n   ../Sources/Misc/SystemInfo.swift,\n   ../.jazzy.yaml,\n   ../.version,\n-  ../Examples/MagicWeather/MagicWeather.xcodeproj/project.pbxproj,\n-  ../Examples/MagicWeatherSwiftUI/Magic Weather SwiftUI.xcodeproj/project.pbxproj,\n   ../scripts/docs/index.html,\n+  ../Sources/Misc/SystemInfo.swift\n+\"\n+ENV[\"FILES_TO_UPDATE_VERSION_WITHOUT_PRERELEASE_MODIFIERS_STRING\"] = \"\n   ../Sources/Info.plist,\n-  ../Sources/Misc/SystemInfo.swift,\n   ../Tests/BackendIntegrationTestApp/Info.plist,\n   ../Tests/BackendIntegrationTests/Info.plist,\n   ../Tests/UnitTests/Info.plist,"
+        },
+        {
+            "sha": "04c3dc5aff302ac940ce04d70975274de00454f6",
+            "filename": "fastlane/README.md",
+            "status": "modified",
+            "additions": 2,
+            "deletions": 2,
+            "changes": 4,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FREADME.md",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/fastlane%2FREADME.md",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/fastlane%2FREADME.md?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -13,10 +13,10 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do\n \n # Available Actions\n \n-### bump\n+### bump_version_update_changelog_create_pr\n \n ```sh\n-[bundle exec] fastlane bump\n+[bundle exec] fastlane bump_version_update_changelog_create_pr\n ```\n \n Bump version, edit changelog, and create pull request"
+        },
+        {
+            "sha": "2c4395dc8c757c8d99c3b67f00a3ba2d0ff849a6",
+            "filename": "scripts/docs/index.html",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/cfdd80f73d8c91121313d72227b4cbe283b57c1e/scripts%2Fdocs%2Findex.html",
+            "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/cfdd80f73d8c91121313d72227b4cbe283b57c1e/scripts%2Fdocs%2Findex.html",
+            "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/scripts%2Fdocs%2Findex.html?ref=cfdd80f73d8c91121313d72227b4cbe283b57c1e",
+            "patch": "@@ -2,7 +2,7 @@\n <!DOCTYPE html>\n <html>\n <head>\n-    <meta http-equiv=\"refresh\" content=\"0; url=https://revenuecat.github.io/purchases-ios-docs/4.7.0/documentation/revenuecat\"/>\n+    <meta http-equiv=\"refresh\" content=\"0; url=https://revenuecat.github.io/purchases-ios-docs/4.8.0-SNAPSHOT/documentation/revenuecat\"/>\n </head>\n <body>\n </body>"
+        }
+    ]
+}
