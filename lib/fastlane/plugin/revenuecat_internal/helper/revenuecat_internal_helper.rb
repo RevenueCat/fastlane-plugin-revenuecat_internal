@@ -183,7 +183,6 @@ module Fastlane
         end
         original_text = File.read(path)
         replaced_text = original_text.gsub(previous_text, new_text)
-        File.write("#{path}.bck", original_text)
         File.write(path, replaced_text)
       end
 

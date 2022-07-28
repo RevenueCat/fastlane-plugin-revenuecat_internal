@@ -485,12 +485,5 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3', '4.4.0-SNAPSHOT', tmp_test_file_path)
       expect(File.read(tmp_test_file_path)).to eq(contents)
     end
-
-    it 'creates backup file with old contents' do
-      File.write(tmp_test_file_path, 'Testing changing text=4.1.3-SNAPSHOT')
-      Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3-SNAPSHOT', '4.1.3', tmp_test_file_path)
-      expect(File.read(tmp_test_file_path)).to eq('Testing changing text=4.1.3')
-      expect(File.read("#{tmp_test_file_path}.bck")).to eq('Testing changing text=4.1.3-SNAPSHOT')
-    end
   end
 end
