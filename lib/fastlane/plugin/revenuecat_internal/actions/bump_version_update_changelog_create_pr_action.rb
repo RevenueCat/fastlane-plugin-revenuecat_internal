@@ -36,7 +36,9 @@ module Fastlane
                                                                 files_to_update_without_prerelease_modifiers)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
-        Helper::RevenuecatInternalHelper.create_pr_to_main("Release/#{new_version_number}", changelog, repo_name, github_pr_token)
+
+        pr_title = "Release/#{new_version_number}"
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, changelog, repo_name, github_pr_token)
       end
 
       def self.description
