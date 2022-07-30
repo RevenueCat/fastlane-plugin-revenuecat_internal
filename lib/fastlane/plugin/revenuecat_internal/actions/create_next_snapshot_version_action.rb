@@ -13,12 +13,12 @@ module Fastlane
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
         branch = params[:branch]
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, github_pr_token)
-
         next_version_snapshot = Helper::RevenuecatInternalHelper.calculate_next_snapshot_version(previous_version_number)
-        branch_name = "bump/#{next_version_snapshot}"
+        new_branch_name = "bump/#{next_version_snapshot}"
 
-        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch(branch_name)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
+
+        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch(new_branch_name)
 
         Helper::RevenuecatInternalHelper.replace_version_number(previous_version_number,
                                                                 next_version_snapshot,

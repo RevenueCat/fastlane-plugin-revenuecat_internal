@@ -138,24 +138,16 @@ module Fastlane
         )
       end
 
-      def self.validate_local_config_status_for_bump(branch, github_pr_token)
+      def self.validate_local_config_status_for_bump(branch, new_branch, github_pr_token)
         # Ensure GitHub API token is set
         if github_pr_token.nil? || github_pr_token.empty?
           UI.error("A github_pr_token parameter or an environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
           UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
           UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
         end
+        ensure_new_branch_local_remote(new_branch)
         Actions::EnsureGitBranchAction.run(branch: branch)
         Actions::EnsureGitStatusCleanAction.run({})
-      end
-
-      def self.replace_in(previous_text, new_text, path, allow_empty: false)
-        if new_text.to_s.strip.empty? && !allow_empty
-          UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
-        end
-        sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
-        backup_extension = '.bck'
-        Actions.sh("sed", '-i', backup_extension, sed_regex, path)
       end
 
       def self.calculate_next_snapshot_version(current_version)
@@ -183,6 +175,29 @@ module Fastlane
           is_prerelease: is_prerelease,
           server_url: 'https://api.github.com'
         )
+      end
+
+      private_class_method def self.replace_in(previous_text, new_text, path, allow_empty: false)
+        if new_text.to_s.strip.empty? && !allow_empty
+          UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
+        end
+        sed_regex = "s|#{previous_text.sub('.', '\\.')}|#{new_text}|"
+        backup_extension = '.bck'
+        Actions.sh("sed", '-i', backup_extension, sed_regex, path)
+      end
+
+      private_class_method def self.ensure_new_branch_local_remote(new_branch)
+        local_branches = Actions.sh('git', 'branch', '--list', new_branch)
+        unless local_branches.empty?
+          UI.error("Branch '#{new_branch}' already exists in local repository.")
+          UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
+        end
+
+        remote_branches = Actions.sh('git', 'ls-remote', '--heads', 'origin', new_branch)
+        unless remote_branches.empty?
+          UI.error("Branch '#{new_branch}' already exists in remote repository.")
+          UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
+        end
       end
     end
   end

@@ -8,7 +8,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(branch, github_pr_token)
+        .with(branch, "bump/#{next_version}", github_pr_token)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:calculate_next_snapshot_version)
         .with(current_version)

@@ -18,18 +18,20 @@ module Fastlane
         changelog_path = params[:changelog_path]
         editor = params[:editor]
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, github_pr_token)
-
         UI.important("Current version is #{version_number}")
 
         # Ask for new version number
         new_version_number = UI.input("New version number: ")
 
+        new_branch_name = "release/#{new_version_number}"
+
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
+
         generated_contents = Helper::RevenuecatInternalHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
-        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch("release/#{new_version_number}")
+        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch(new_branch_name)
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
