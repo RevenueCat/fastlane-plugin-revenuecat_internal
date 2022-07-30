@@ -1,15 +1,25 @@
 describe Fastlane::Helper::RevenuecatInternalHelper do
   describe '.replace_version_number' do
-    let(:file_to_update_1) { './test_files/file_to_update_1.txt' }
-    let(:file_to_update_2) { './test_files/file_to_update_2.txt' }
-    let(:file_to_update_without_prerelease_modifiers_3) { './test_files/file_to_update_3.txt' }
-    let(:file_to_update_without_prerelease_modifiers_4) { './test_files/file_to_update_4.txt' }
+    require 'fileutils'
+
+    let(:file_to_update_1) { './tmp_test_files/file_to_update_1.txt' }
+    let(:file_to_update_2) { './tmp_test_files/file_to_update_2.txt' }
+    let(:file_to_update_without_prerelease_modifiers_3) { './tmp_test_files/file_to_update_3.txt' }
+    let(:file_to_update_without_prerelease_modifiers_4) { './tmp_test_files/file_to_update_4.txt' }
+
+    before(:each) do
+      Dir.mkdir('./tmp_test_files')
+    end
+
+    after(:each) do
+      FileUtils.rm_rf('./tmp_test_files')
+    end
 
     it 'updates previous version number with new version number when no prerelease modifiers are passed' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      File.write(file_to_update_1, 'Contains version: 1.11.0')
+      File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
@@ -17,13 +27,18 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         [file_to_update_1, file_to_update_2],
         [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
       )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.1')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
     end
 
     it 'updates previous version number with new version number when current version has prerelease modifiers' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0-SNAPSHOT|1.12.0|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      File.write(file_to_update_1, 'Contains version: 1.11.0 and version with snapshot: 1.11.0-SNAPSHOT')
+      File.write(file_to_update_2, 'Contains version: 1.11.0-SNAPSHOT and other version: 1.11.1')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
@@ -31,13 +46,18 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         [file_to_update_1, file_to_update_2],
         [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
       )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.11.0 and version with snapshot: 1.12.0')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.1')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
     end
 
     it 'updates previous version number with new version number when new version has prerelease modifiers' do
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_1).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0-SNAPSHOT|', file_to_update_2).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_3).once
-      expect(Fastlane::Actions).to receive(:sh).with('sed', '-i.bck', 's|1\\.11.0|1.12.0|', file_to_update_without_prerelease_modifiers_4).once
+      File.write(file_to_update_1, 'Contains version: 1.11.0')
+      File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
@@ -45,6 +65,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         [file_to_update_1, file_to_update_2],
         [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
       )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0-SNAPSHOT')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0-SNAPSHOT and other version: 1.11.1')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
     end
   end
 
@@ -415,12 +440,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:tmp_test_file_path) { './tmp_test_files/test_file.txt' }
 
     before(:each) do
-      ENV["FORCE_SH_DURING_TESTS"] = 'true'
       Dir.mkdir('tmp_test_files')
     end
 
     after(:each) do
-      ENV["FORCE_SH_DURING_TESTS"] = nil
       FileUtils.rm_rf('tmp_test_files')
     end
 
@@ -441,6 +464,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(tmp_test_file_path, 'Testing changing text=4.1.3-SNAPSHOT')
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3-SNAPSHOT', '4.1.3', tmp_test_file_path)
       expect(File.read(tmp_test_file_path)).to eq('Testing changing text=4.1.3')
+    end
+
+    it 'changes multiple occurences of old string with new string' do
+      File.write(tmp_test_file_path, "Testing changing text=4.1.3-SNAPSHOT and also\nversion=4.1.3-SNAPSHOT\nand again without spaces4.1.3-SNAPSHOT")
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3-SNAPSHOT', '4.1.3', tmp_test_file_path)
+      expect(File.read(tmp_test_file_path)).to eq("Testing changing text=4.1.3 and also\nversion=4.1.3\nand again without spaces4.1.3")
     end
 
     it 'does not change any text if old text not present in file' do
