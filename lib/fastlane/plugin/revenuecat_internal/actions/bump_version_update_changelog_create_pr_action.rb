@@ -31,7 +31,7 @@ module Fastlane
         Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
-        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch(new_branch_name)
+        Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,

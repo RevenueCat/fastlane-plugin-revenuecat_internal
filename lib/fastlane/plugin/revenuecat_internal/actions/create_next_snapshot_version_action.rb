@@ -18,7 +18,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
 
-        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch(new_branch_name)
+        Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
 
         Helper::RevenuecatInternalHelper.replace_version_number(previous_version_number,
                                                                 next_version_snapshot,

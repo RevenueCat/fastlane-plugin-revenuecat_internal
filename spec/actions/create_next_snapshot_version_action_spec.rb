@@ -14,7 +14,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         .with(current_version)
         .and_return(next_version)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_and_checkout_new_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with('bump/1.13.0-SNAPSHOT')
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)

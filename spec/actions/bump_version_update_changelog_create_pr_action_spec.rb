@@ -25,7 +25,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path, editor)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_and_checkout_new_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with('release/1.13.0')
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
