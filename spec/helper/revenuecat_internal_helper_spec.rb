@@ -223,10 +223,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.create_new_release_branch' do
+  describe '.create_new_branch_and_checkout' do
     it 'creates new release branch with version number' do
-      expect(Fastlane::Actions).to receive(:sh).with("git checkout -b 'release/1.12.0'")
-      Fastlane::Helper::RevenuecatInternalHelper.create_new_release_branch('1.12.0')
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout -b 'fake-branch'")
+      Fastlane::Helper::RevenuecatInternalHelper.create_new_branch_and_checkout('fake-branch')
     end
   end
 
@@ -252,34 +252,46 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.create_release_pr' do
+  describe '.create_pr_to_main' do
     it 'creates pr' do
       allow(Fastlane::Actions).to receive(:git_branch).and_return('fake-current-branch')
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
         .with(
           api_token: 'fake-github-pr-token',
-          title: 'Release/1.12.0',
+          title: 'fake-title',
           base: 'main',
           body: 'fake-changelog',
           repo: 'RevenueCat/fake-repo-name',
           head: 'fake-current-branch',
           api_url: 'https://api.github.com'
         ).once
-      Fastlane::Helper::RevenuecatInternalHelper.create_release_pr('1.12.0', 'fake-changelog', 'fake-repo-name', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr_to_main('fake-title', 'fake-changelog', 'fake-repo-name', 'fake-github-pr-token')
     end
   end
 
   describe '.validate_local_config_status_for_bump' do
+    it 'fails if github_pr_token is nil' do
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', nil)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if github_pr_token is empty' do
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', '')
+      end.to raise_exception(StandardError)
+    end
+
     it 'ensures repo is in specified branch' do
       expect(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch').once
       allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'fake-github-pr-token')
     end
 
     it 'ensures repo is in a clean state' do
       allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
       expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'fake-github-pr-token')
     end
   end
 
@@ -301,6 +313,35 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'changes old string occurences with new string' do
       expect(Fastlane::Actions).to receive(:sh).with('sed', '-i', '.bck', 's|1\\.12.0|1.13.0|', tmp_test_file_path)
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('1.12.0', '1.13.0', tmp_test_file_path)
+    end
+  end
+
+  describe '.calculate_next_snapshot_version' do
+    it 'calculates next version correctly with version with hotfix' do
+      next_version = Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11.1')
+      expect(next_version).to eq('1.12.0-SNAPSHOT')
+    end
+
+    it 'calculates next version correctly with snapshot version' do
+      next_version = Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11.1-SNAPSHOT')
+      expect(next_version).to eq('1.12.0-SNAPSHOT')
+    end
+
+    it 'calculates next version correctly with major relase' do
+      next_version = Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('5.0.0')
+      expect(next_version).to eq('5.1.0-SNAPSHOT')
+    end
+
+    it 'fails if given version without hotfix number' do
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11')
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given version with more than 3 numbers' do
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11.1.1')
+      end.to raise_exception(StandardError)
     end
   end
 end

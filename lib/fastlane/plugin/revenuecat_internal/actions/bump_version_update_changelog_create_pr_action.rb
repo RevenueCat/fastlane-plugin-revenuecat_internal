@@ -18,14 +18,7 @@ module Fastlane
         changelog_path = params[:changelog_path]
         editor = params[:editor]
 
-        # Ensure GitHub API token is set
-        if github_pr_token.nil? || github_pr_token.empty?
-          UI.error("A github_pr_token parameter or an environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
-          UI.error("Please make a fastlane/.env file from the fastlane/.env.SAMPLE template")
-          UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
-        end
-
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, github_pr_token)
 
         UI.important("Current version is #{version_number}")
 
@@ -36,14 +29,16 @@ module Fastlane
         Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
-        Helper::RevenuecatInternalHelper.create_new_release_branch(new_version_number)
+        Helper::RevenuecatInternalHelper.create_and_checkout_new_branch("release/#{new_version_number}")
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
                                                                 files_to_update_without_prerelease_modifiers)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
-        Helper::RevenuecatInternalHelper.create_release_pr(new_version_number, changelog, repo_name, github_pr_token)
+
+        pr_title = "Release/#{new_version_number}"
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, changelog, repo_name, github_pr_token)
       end
 
       def self.description
