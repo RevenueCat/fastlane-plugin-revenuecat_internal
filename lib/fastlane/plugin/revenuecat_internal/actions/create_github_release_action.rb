@@ -29,7 +29,7 @@ module Fastlane
       end
 
       def self.description
-        "Bumps minor version and adds -SNAPSHOT suffix to version. Creates a PR with the changes"
+        "Creates a github release with the given version number using the CHANGELOG.latest.md file as description and tagging the latest commit of the current branch"
       end
 
       def self.authors
