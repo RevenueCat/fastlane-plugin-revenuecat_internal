@@ -20,6 +20,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `replace_version_number`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter).
 - `create_next_snapshot_version`: This action creates bumps the version to the next minor with a `-SNAPSHOT` suffix and creates a PR with the changes.
 - `create_github_release`: This action will create a github release with the given version number as name and tag and the contents of the CHANGELOG.latest.md file as description. It can also upload files to the release if needed.
+- `replace_text_in_files`: This action will replace all the occurences of the old text with new text in the list of given paths to files.
 
 ## Example
 

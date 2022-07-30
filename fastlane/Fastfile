@@ -43,3 +43,11 @@ lane :sample_create_github_release_action do |options|
     upload_assets: ['./file-to-upload.txt', './file-to-upload-2.rb']
   )
 end
+
+lane :sample_replace_text_in_files_action do |options|
+  replace_text_in_files(
+    previous_text: 'previous text',
+    new_text: 'new text',
+    paths_of_files_to_update: ['./test-file1.txt', './test-file2.rb']
+  )
+end
