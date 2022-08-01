@@ -10,12 +10,14 @@ module Fastlane
         previous_text = params[:previous_text]
         new_text = params[:new_text]
         paths_of_files_to_update = params[:paths_of_files_to_update]
+        allow_empty = params[:allow_empty]
 
         paths_of_files_to_update.each do |path|
           Helper::RevenuecatInternalHelper.replace_in(
             previous_text,
             new_text,
-            path
+            path,
+            allow_empty
           )
         end
       end
@@ -41,7 +43,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :paths_of_files_to_update,
                                        description: "List of paths of files where we will perform the replace",
                                        optional: false,
-                                       type: Array)
+                                       type: Array),
+          FastlaneCore::ConfigItem.new(key: :allow_empty,
+                                       description: "Allows for the new_text to be empty",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false)
         ]
       end
 
