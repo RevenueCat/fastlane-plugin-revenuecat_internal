@@ -17,7 +17,7 @@ module Fastlane
             previous_text,
             new_text,
             path,
-            allow_empty
+            allow_empty: allow_empty
           )
         end
       end
@@ -45,7 +45,7 @@ module Fastlane
                                        optional: false,
                                        type: Array),
           FastlaneCore::ConfigItem.new(key: :allow_empty,
-                                       description: "Allows for the new_text to be empty",
+                                       description: "Allows for the new_text parameter to be empty",
                                        optional: true,
                                        default_value: false,
                                        is_string: false)
