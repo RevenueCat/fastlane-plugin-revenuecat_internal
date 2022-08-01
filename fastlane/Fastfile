@@ -51,3 +51,9 @@ lane :sample_replace_text_in_files_action do |options|
     paths_of_files_to_update: ['./test-file1.txt', './test-file2.rb']
   )
 end
+
+lane :sample_commit_current_changes_action do |options|
+  commit_current_changes(
+    commit_message: 'Sample commit message'
+  )
+end
