@@ -2,10 +2,10 @@ describe Fastlane::Actions::ReplaceTextInFilesAction do
   describe '#run' do
     it 'calls appropriate helper with correct parameters for each given path' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_in)
-        .with('old_text', 'new_text', './test_file.sh', true)
+        .with('old_text', 'new_text', './test_file.sh', allow_empty: true)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_in)
-        .with('old_text', 'new_text', './test_file2.rb', true)
+        .with('old_text', 'new_text', './test_file2.rb', allow_empty: true)
         .once
       Fastlane::Actions::ReplaceTextInFilesAction.run(
         previous_text: 'old_text',
@@ -17,7 +17,7 @@ describe Fastlane::Actions::ReplaceTextInFilesAction do
 
     it 'works when passing only 1 path' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_in)
-        .with('old_text', 'new_text', './test_file.sh', false)
+        .with('old_text', 'new_text', './test_file.sh', allow_empty: false)
         .once
       Fastlane::Actions::ReplaceTextInFilesAction.run(
         previous_text: 'old_text',
