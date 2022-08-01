@@ -486,4 +486,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(File.read(tmp_test_file_path)).to eq(contents)
     end
   end
+
+  describe '.commit_current_changes' do
+    it 'calls appropriate actions with correct parameters' do
+      expect(Fastlane::Actions).to receive(:sh).with('git add -u').once
+      expect(Fastlane::Actions).to receive(:sh).with("git commit -m 'fake-commit-message'").once
+      Fastlane::Helper::RevenuecatInternalHelper.commit_current_changes('fake-commit-message')
+    end
+  end
 end
