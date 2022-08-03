@@ -57,3 +57,10 @@ lane :sample_commit_current_changes_action do |options|
     commit_message: 'Sample commit message'
   )
 end
+
+lane :sample_get_latest_github_release_within_same_major_action do |options|
+  get_latest_github_release_within_same_major(
+    repo_name: 'repo-name',
+    current_version: 'current_version_number'
+  )
+end

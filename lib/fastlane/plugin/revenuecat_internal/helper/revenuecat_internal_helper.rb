@@ -190,6 +190,28 @@ module Fastlane
         Actions.sh("git commit -m '#{commit_message}'")
       end
 
+      def self.get_github_release_tag_names(repo_name)
+        response = Actions::GithubApiAction.run(
+          server_url: "https://api.github.com",
+          http_method: 'GET',
+          path: "repos/RevenueCat/#{repo_name}/releases",
+          error_handlers: {
+            404 => proc do |result|
+              UI.user_error!("Repository #{repo_name} cannot be found, please double check its name and that you provided a valid API token (if it's a private repository).")
+            end,
+            401 => proc do |result|
+              UI.user_error!("You are not authorized to access #{repo_name}, please make sure you provided a valid API token.")
+            end,
+            '*' => proc do |result|
+              UI.user_error!("GitHub responded with #{result[:status]}:#{result[:body]}")
+            end
+          }
+        )
+        json = response[:json]
+        json.reject { |item| item["prerelease"] }
+            .map { |item| item['tag_name'] }
+      end
+
       private_class_method def self.ensure_new_branch_local_remote(new_branch)
         local_branches = Actions.sh('git', 'branch', '--list', new_branch)
         unless local_branches.empty?
