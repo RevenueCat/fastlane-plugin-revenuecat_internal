@@ -35,7 +35,7 @@ module Fastlane
       #####################################################
 
       def self.description
-        "This will get latest release version that is available on GitHub"
+        "This will get latest release version that is available on GitHub within the same major as the version given as parameter"
       end
 
       def self.available_options
