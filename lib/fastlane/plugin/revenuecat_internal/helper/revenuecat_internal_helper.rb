@@ -121,8 +121,7 @@ module Fastlane
       end
 
       def self.commmit_changes_and_push_current_branch(commit_message)
-        Actions.sh('git add -u')
-        Actions.sh("git commit -m '#{commit_message}'")
+        commit_current_changes(commit_message)
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
@@ -184,6 +183,11 @@ module Fastlane
         original_text = File.read(path)
         replaced_text = original_text.gsub(previous_text, new_text)
         File.write(path, replaced_text)
+      end
+
+      def self.commit_current_changes(commit_message)
+        Actions.sh('git add -u')
+        Actions.sh("git commit -m '#{commit_message}'")
       end
 
       private_class_method def self.ensure_new_branch_local_remote(new_branch)
