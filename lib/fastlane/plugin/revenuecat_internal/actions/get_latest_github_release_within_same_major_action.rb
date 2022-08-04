@@ -58,7 +58,7 @@ module Fastlane
       end
 
       def self.authors
-        ["vegaro"]
+        ["vegaro", "tonidero"]
       end
 
       def self.is_supported?(platform)
