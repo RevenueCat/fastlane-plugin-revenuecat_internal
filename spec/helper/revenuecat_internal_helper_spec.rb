@@ -100,7 +100,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
+      expect(changelog).to eq("## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
@@ -113,7 +114,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         3
       )
-      expect(changelog).to eq("* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
+      expect(changelog).to eq("## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end

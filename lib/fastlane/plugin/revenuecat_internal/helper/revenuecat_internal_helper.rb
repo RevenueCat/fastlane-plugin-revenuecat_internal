@@ -41,6 +41,9 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
+        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"]
+        changelog_sections = { :breaking_changes => [], :fixes => [], :new_features => [], :other => [] }
+
         commits.map do |commit|
           if rate_limit_sleep > 0
             UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
@@ -66,11 +69,40 @@ module Fastlane
             item = items.first
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
+
+            change_types = item["labels"].map{ |label_info| label_info["name"] }.select { |label| supported_types.include? label }.uniq
+
+            if change_types.include? "breaking"
+              section = :breaking_changes
+            elsif change_types.include? "feat"
+              section = :new_features
+            elsif change_types.include? "fix"
+              section = :fixes
+            else
+              section = :other
+            end
+
+            line = "* #{message} via #{name} (@#{username})"
+            changelog_sections[section].push(line)   
           else
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
+        end
 
-          "* #{message} via #{name} (@#{username})"
+        formatted = changelog_sections.reject{ |k, v| v.empty? }.map do |section_name, prs|
+          if prs.size > 0
+            case section_name
+            when :breaking_changes
+              title = "## Breaking Changes"
+            when :fixes
+              title = "## Bugfixes"
+            when :new_features
+              title = "## New Features"
+            when :other
+              title = "## Other Changes"
+            end
+            "#{title}\n#{prs.join("\n")}"
+          end
         end.join("\n")
       end
 
