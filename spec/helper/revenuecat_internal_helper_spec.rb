@@ -91,6 +91,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:duplicate_items_get_commit_2_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/duplicate_items_get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
+    let(:breaking_get_commit_1_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/breaking_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
 
     it 'generates changelog automatically from github commits' do
       setup_stubs
@@ -100,10 +103,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("## Other Changes\n" \
-                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
+      expect(changelog).to eq("## Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+                              "## New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
@@ -114,10 +119,28 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         3
       )
-      expect(changelog).to eq("## Other Changes\n" \
-                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
+      expect(changelog).to eq("## Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+                              "## New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
+    end
+
+    it 'sleeps between getting commits info if passing rate limit sleep' do
+      setup_stubs
+      expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
+      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        3
+      )
+      expect(changelog).to eq("## Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
     it 'fails if it finds multiple commits with same sha' do
@@ -136,6 +159,29 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           0
         )
       end.to raise_exception(StandardError)
+    end
+
+    it 'breaking fix is added to breaking changes section' do
+      setup_stubs
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(breaking_get_commit_1_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(changelog).to eq("## Breaking Changes\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "## Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
     def setup_stubs
