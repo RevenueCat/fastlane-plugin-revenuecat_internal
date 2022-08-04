@@ -22,6 +22,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `create_github_release`: This action will create a github release with the given version number as name and tag and the contents of the CHANGELOG.latest.md file as description. It can also upload files to the release if needed.
 - `replace_text_in_files`: This action will replace all the occurences of the old text with new text in the list of given paths to files.
 - `commit_current_changes`: This action will commit all currently modified files into the current branch in the local repository. (This will not include untracked files)
+- `get_latest_github_release_within_same_major`: This action will return the latest release found in github for the same major version as the one given as parameter.
 
 ## Example
 
