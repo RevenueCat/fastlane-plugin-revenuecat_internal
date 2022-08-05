@@ -41,7 +41,7 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
-        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"]
+        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"].to_set
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
         commits.map do |commit|
@@ -68,7 +68,7 @@ module Fastlane
             types_of_change = item["labels"]
                               .map { |label_info| label_info["name"] }
                               .select { |label| supported_types.include?(label) }
-                              .uniq
+                              .to_set
 
             section = get_section_depending_on_types_of_change(types_of_change)
 
