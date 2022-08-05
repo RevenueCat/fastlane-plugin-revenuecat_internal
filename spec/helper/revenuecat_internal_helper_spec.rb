@@ -187,7 +187,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
-    it 'change is classified as Other Changes if no pr has no label' do
+    it 'change is classified as Other Changes if pr has no label' do
       setup_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
