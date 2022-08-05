@@ -44,11 +44,11 @@
                     "description": ""
                 },
                 {
-                    "id": 4352868124,
-                    "node_id": "LA_kwDOBnB8hc8AAAACA3N_HQ",
-                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/feat",
-                    "name": "feat",
-                    "color": "8B3E6B",
+                    "id": 4352868120,
+                    "node_id": "LA_kwDOBnB8hc8AAAACA3N_HD",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/breaking",
+                    "name": "breaking",
+                    "color": "8B3E6C",
                     "default": false,
                     "description": ""
                 }

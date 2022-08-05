@@ -41,16 +41,16 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
+        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"].to_set
+        changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
+
         commits.map do |commit|
           if rate_limit_sleep > 0
             UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
             sleep(rate_limit_sleep)
           end
 
-          # Default to commit message info
-          message = commit["commit"]["message"].lines.first.strip
           name = commit["commit"]["author"]["name"]
-          username = commit["author"]["login"]
 
           # Get pull request associate with commit message
           sha = commit["sha"]
@@ -61,17 +61,25 @@ module Fastlane
                                                  api_token: github_token)
           body = JSON.parse(pr_resp[:body])
           items = body["items"]
-
           if items.size == 1
             item = items.first
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
+            types_of_change = item["labels"]
+                              .map { |label_info| label_info["name"] }
+                              .select { |label| supported_types.include?(label) }
+                              .to_set
+
+            section = get_section_depending_on_types_of_change(types_of_change)
+
+            line = "* #{message} via #{name} (@#{username})"
+            changelog_sections[section].push(line)
           else
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
+        end
 
-          "* #{message} via #{name} (@#{username})"
-        end.join("\n")
+        build_changelog_sections(changelog_sections)
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -223,6 +231,36 @@ module Fastlane
         unless remote_branches.empty?
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
+        end
+      end
+
+      private_class_method def self.build_changelog_sections(changelog_sections)
+        changelog_sections.reject { |k, v| v.empty? }.map do |section_name, prs|
+          next unless prs.size > 0
+
+          case section_name
+          when :breaking_changes
+            title = "## Breaking Changes"
+          when :fixes
+            title = "## Bugfixes"
+          when :new_features
+            title = "## New Features"
+          when :other
+            title = "## Other Changes"
+          end
+          "#{title}\n#{prs.join("\n")}"
+        end.join("\n")
+      end
+
+      private_class_method def self.get_section_depending_on_types_of_change(change_types)
+        if change_types.include?("breaking")
+          :breaking_changes
+        elsif change_types.include?("feat")
+          :new_features
+        elsif change_types.include?("fix")
+          :fixes
+        else
+          :other
         end
       end
     end
