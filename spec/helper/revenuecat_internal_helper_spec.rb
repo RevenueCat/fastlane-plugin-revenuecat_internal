@@ -94,6 +94,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:breaking_get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/breaking_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:no_label_get_commit_1_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/no_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
 
     it 'generates changelog automatically from github commits' do
       setup_stubs
@@ -182,6 +185,28 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "## Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
+    end
+
+    it 'change is classified as Other Changes if no pr has no label' do
+      setup_stubs
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(no_label_get_commit_1_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(changelog).to eq("## Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## Other Changes\n" \
+                              "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
 
     def setup_stubs
