@@ -1,0 +1,18 @@
+{
+    "name": "PurchasesHybridCommon.podspec",
+    "path": "PurchasesHybridCommon.podspec",
+    "sha": "d4cbb981c76fff5f2cd871cb311b1f51e5e63e5c",
+    "size": 1250,
+    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/PurchasesHybridCommon.podspec?ref=3.3.0",
+    "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/3.3.0/PurchasesHybridCommon.podspec",
+    "git_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/blobs/d4cbb981c76fff5f2cd871cb311b1f51e5e63e5c",
+    "download_url": "https://raw.githubusercontent.com/RevenueCat/purchases-hybrid-common/3.3.0/PurchasesHybridCommon.podspec",
+    "type": "file",
+    "content": "UG9kOjpTcGVjLm5ldyBkbyB8c3wKICBzLm5hbWUgICAgICAgICAgICAgPSAi\nUHVyY2hhc2VzSHlicmlkQ29tbW9uIgogIHMudmVyc2lvbiAgICAgICAgICA9\nICIzLjMuMCIKICBzLnN1bW1hcnkgICAgICAgICAgPSAiQ29tbW9uIGZpbGVz\nIGZvciBoeWJyaWQgU0RLcyBmb3IgUmV2ZW51ZUNhdCdzIFN1YnNjcmlwdGlv\nbiBhbmQgaW4tYXBwLXB1cmNoYXNlIGJhY2tlbmQgc2VydmljZS4iCgogIHMu\nZGVzY3JpcHRpb24gICAgICA9IDw8LURFU0MKICAgICAgICAgICAgICAgICAg\nICAgICBTYXZlIHlvdXJzZWxmIHRoZSBoYXN0bGUgb2YgaW1wbGVtZW50aW5n\nIGEgc3Vic2NyaXB0aW9ucyBiYWNrZW5kLiBVc2UgUmV2ZW51ZUNhdCBpbnN0\nZWFkIGh0dHBzOi8vd3d3LnJldmVudWVjYXQuY29tLwogICAgICAgICAgICAg\nICAgICAgICAgIERFU0MKCiAgcy5ob21lcGFnZSAgICAgICAgID0gImh0dHBz\nOi8vd3d3LnJldmVudWVjYXQuY29tLyIKICBzLmxpY2Vuc2UgICAgICAgICAg\nPSAgeyA6dHlwZSA9PiAnTUlUJyB9CiAgcy5hdXRob3IgICAgICAgICAgID0g\neyAiUmV2ZW51ZUNhdCwgSW5jLiIgPT4gInN1cHBvcnRAcmV2ZW51ZWNhdC5j\nb20iIH0KICBzLnNvdXJjZSAgICAgICAgICAgPSB7IDpnaXQgPT4gImh0dHBz\nOi8vZ2l0aHViLmNvbS9yZXZlbnVlY2F0L3B1cmNoYXNlcy1oeWJyaWQtY29t\nbW9uLmdpdCIsIDp0YWcgPT4gcy52ZXJzaW9uLnRvX3MgfQogIHMuZG9jdW1l\nbnRhdGlvbl91cmwgPSAiaHR0cHM6Ly9kb2NzLnJldmVudWVjYXQuY29tLyIK\nCiAgcy5mcmFtZXdvcmsgICAgICA9ICdTdG9yZUtpdCcKCiAgcy5kZXBlbmRl\nbmN5ICdSZXZlbnVlQ2F0JywgJzQuOS4wJwogIHMuc3dpZnRfdmVyc2lvbiA9\nICc1LjAnCgogIHMuaW9zLmRlcGxveW1lbnRfdGFyZ2V0ID0gJzExLjAnCiAg\ncy5vc3guZGVwbG95bWVudF90YXJnZXQgPSAnMTAuMTMnCiAgcy53YXRjaG9z\nLmRlcGxveW1lbnRfdGFyZ2V0ID0gJzYuMicKICBzLnR2b3MuZGVwbG95bWVu\ndF90YXJnZXQgPSAnMTEuMCcKCiAgcy5wb2RfdGFyZ2V0X3hjY29uZmlnID0g\neyAnREVGSU5FU19NT0RVTEUnID0+ICdZRVMnIH0KCiAgcy5zb3VyY2VfZmls\nZXMgPSBbJ2lvcy9QdXJjaGFzZXNIeWJyaWRDb21tb24vUHVyY2hhc2VzSHli\ncmlkQ29tbW9uLyoqLyoue2gsbSxzd2lmdH0nXQoKICBzLnB1YmxpY19oZWFk\nZXJfZmlsZXMgPSBbCiAgICAnaW9zL1B1cmNoYXNlc0h5YnJpZENvbW1vbi9Q\ndXJjaGFzZXNIeWJyaWRDb21tb24vKi5oJwogIF0KCmVuZAo=\n",
+    "encoding": "base64",
+    "_links": {
+        "self": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/PurchasesHybridCommon.podspec?ref=3.3.0",
+        "git": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/blobs/d4cbb981c76fff5f2cd871cb311b1f51e5e63e5c",
+        "html": "https://github.com/RevenueCat/purchases-hybrid-common/blob/3.3.0/PurchasesHybridCommon.podspec"
+    }
+}
