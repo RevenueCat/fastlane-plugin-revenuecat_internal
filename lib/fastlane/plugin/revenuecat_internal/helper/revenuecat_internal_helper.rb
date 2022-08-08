@@ -9,6 +9,7 @@ require 'fastlane/actions/set_github_release'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
+  SUPPORTED_PR_LABELS = %w[breaking build ci docs feat fix perf refactor style test].to_set
 
   module Helper
     class RevenuecatInternalHelper
@@ -41,7 +42,6 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
-        supported_types = %w[breaking build ci docs feat fix perf refactor style test].to_set
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
         commits.map do |commit|
@@ -67,7 +67,7 @@ module Fastlane
             username = item["user"]["login"]
             types_of_change = item["labels"]
                               .map { |label_info| label_info["name"] }
-                              .select { |label| supported_types.include?(label) }
+                              .select { |label| SUPPORTED_PR_LABELS.include?(label) }
                               .to_set
 
             section = get_section_depending_on_types_of_change(types_of_change)
