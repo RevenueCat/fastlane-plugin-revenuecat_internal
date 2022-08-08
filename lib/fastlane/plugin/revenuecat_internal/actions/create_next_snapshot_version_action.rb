@@ -11,12 +11,11 @@ module Fastlane
         github_pr_token = params[:github_pr_token]
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
-        branch = params[:branch]
 
         next_version_snapshot = Helper::RevenuecatInternalHelper.calculate_next_snapshot_version(previous_version_number)
         new_branch_name = "bump/#{next_version_snapshot}"
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, new_branch_name, github_pr_token)
 
         Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
 
@@ -64,12 +63,7 @@ module Fastlane
                                        description: "Files that contain the version number without release modifiers and need to have it updated",
                                        optional: true,
                                        default_value: [],
-                                       type: Array),
-          FastlaneCore::ConfigItem.new(key: :branch,
-                                       description: "Allows to execute the action from the given branch",
-                                       optional: true,
-                                       default_value: "main",
-                                       type: String)
+                                       type: Array)
         ]
       end
 

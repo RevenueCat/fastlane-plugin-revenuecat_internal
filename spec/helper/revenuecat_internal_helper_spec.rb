@@ -340,6 +340,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
     end
 
+    it 'does not check repo is in specific branch if none passed' do
+      expect(Fastlane::Actions::EnsureGitBranchAction).not_to receive(:run)
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, 'new-branch', 'fake-github-pr-token')
+    end
+
     it 'ensures repo is in a clean state' do
       expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
