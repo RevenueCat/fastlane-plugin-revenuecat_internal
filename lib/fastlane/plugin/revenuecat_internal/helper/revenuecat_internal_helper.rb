@@ -41,7 +41,7 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
-        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"].to_set
+        supported_types = %w[breaking build ci docs feat fix perf refactor style test].to_set
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
         commits.map do |commit|
