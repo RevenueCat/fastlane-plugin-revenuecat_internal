@@ -254,6 +254,8 @@ module Fastlane
             title = "## New Features"
           when :other
             title = "## Other Changes"
+          else
+            title = "## Other Changes"
           end
           "#{title}\n#{prs.join("\n")}"
         end.join("\n")
