@@ -28,6 +28,43 @@ module Fastlane
         end
       end
 
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, current_version)
+        old_version = Actions.sh("git describe --tags --abbrev=0").strip
+        UI.important("Auto-generating changelog since #{old_version}")
+        org = "RevenueCat"
+
+        commits = get_commits_since_old_version(org, github_token, old_version, repo_name)
+
+        type_of_bump = :patch
+
+        commits.each do |commit|
+          break if type_of_bump == :major
+
+          sha = commit["sha"]
+          items = get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+
+          if items.size == 1
+            item = items.first
+
+            types_of_change = item["labels"]
+                              .map { |label_info| label_info["name"] }
+                              .select { |label| SUPPORTED_PR_LABELS.include?(label) }
+                              .to_set
+
+            type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
+            if type_of_bump_for_change == :major
+              type_of_bump = :major
+            elsif type_of_bump_for_change == :minor && type_of_bump != :major
+              type_of_bump = :minor
+            end
+          else
+            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
+          end
+        end
+
+        increase_version(current_version, type_of_bump, false)
+      end
+
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         old_version = Actions.sh("git describe --tags --abbrev=0").strip
         UI.important("Auto-generating changelog since #{old_version}")
@@ -242,6 +279,16 @@ module Fastlane
         end
       end
 
+      private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
+        if change_types.include?("breaking")
+          :major
+        elsif change_types.include?("feat")
+          :minor
+        else
+          :patch
+        end
+      end
+
       private_class_method def self.increase_version(current_version, type_of_bump, snapshot)
         version_split = current_version.split('.')
         UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
@@ -265,7 +312,6 @@ module Fastlane
           next_version
         end
       end
-      private
 
       private_class_method def self.get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
         return @pr_resp_items_by_sha[sha] if @pr_resp_items_by_sha.include?(sha)
