@@ -64,3 +64,11 @@ lane :sample_get_latest_github_release_within_same_major_action do |options|
     current_version: 'current_version_number'
   )
 end
+
+lane :sample_update_hybrids_versions_file_action do |options|
+  update_hybrids_versions_file(
+    versions_file_path: './sample-path-to-VERSIONS.md',
+    new_sdk_version: 'new-version-of-version-of-sdk',
+    hybrid_common_version: 'phc-version'
+  )
+end
