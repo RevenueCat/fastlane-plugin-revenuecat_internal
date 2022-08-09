@@ -242,7 +242,7 @@ module Fastlane
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
-        changelog_sections.reject { |k, v| v.empty? }.map do |section_name, prs|
+        changelog_sections.reject { |_, v| v.empty? }.map do |section_name, prs|
           next unless prs.size > 0
 
           case section_name
