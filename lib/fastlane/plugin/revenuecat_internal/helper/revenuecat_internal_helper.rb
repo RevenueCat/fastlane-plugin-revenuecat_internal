@@ -145,7 +145,7 @@ module Fastlane
         )
       end
 
-      def self.validate_local_config_status_for_bump(branch, new_branch, github_pr_token)
+      def self.validate_local_config_status_for_bump(current_branch, new_branch, github_pr_token)
         # Ensure GitHub API token is set
         if github_pr_token.nil? || github_pr_token.empty?
           UI.error("A github_pr_token parameter or an environment variable GITHUB_PULL_REQUEST_API_TOKEN is required to create a pull request")
@@ -153,7 +153,7 @@ module Fastlane
           UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
         end
         ensure_new_branch_local_remote(new_branch)
-        Actions::EnsureGitBranchAction.run(branch: branch)
+        Actions::EnsureGitBranchAction.run(branch: current_branch) unless current_branch.nil?
         Actions::EnsureGitStatusCleanAction.run({})
       end
 
