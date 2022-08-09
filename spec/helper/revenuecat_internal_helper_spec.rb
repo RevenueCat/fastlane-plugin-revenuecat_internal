@@ -106,11 +106,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("## Bugfixes\n" \
+      expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "## New Features\n" \
+                              "### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "## Other Changes\n" \
+                              "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
@@ -122,11 +122,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         3
       )
-      expect(changelog).to eq("## Bugfixes\n" \
+      expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "## New Features\n" \
+                              "### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "## Other Changes\n" \
+                              "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
@@ -138,11 +138,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         3
       )
-      expect(changelog).to eq("## Bugfixes\n" \
+      expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "## New Features\n" \
+                              "### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "## Other Changes\n" \
+                              "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
@@ -179,11 +179,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("## Breaking Changes\n" \
+      expect(changelog).to eq("### Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "## Bugfixes\n" \
+                              "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "## Other Changes\n" \
+                              "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)")
     end
 
@@ -202,9 +202,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("## Bugfixes\n" \
+      expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "## Other Changes\n" \
+                              "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
@@ -411,6 +411,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'ensures repo is in specified branch' do
       expect(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch').once
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+    end
+
+    it 'does not check repo is in specific branch if none passed' do
+      expect(Fastlane::Actions::EnsureGitBranchAction).not_to receive(:run)
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, 'new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures repo is in a clean state' do

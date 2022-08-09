@@ -2,13 +2,12 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
   describe '#run' do
     let(:github_pr_token) { 'fake-github-pr-token' }
     let(:repo_name) { 'fake-repo-name' }
-    let(:branch) { 'branch' }
     let(:current_version) { '1.12.0' }
     let(:next_version) { '1.13.0-SNAPSHOT' }
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(branch, "bump/#{next_version}", github_pr_token)
+        .with(nil, "bump/#{next_version}", github_pr_token)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:calculate_next_snapshot_version)
         .with(current_version)
@@ -31,15 +30,14 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         repo_name: repo_name,
         github_pr_token: github_pr_token,
         files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file4.swift', './test_file5.kt'],
-        branch: branch
+        files_to_update_without_prerelease_modifiers: ['./test_file4.swift', './test_file5.kt']
       )
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::CreateNextSnapshotVersionAction.available_options.size).to eq(6)
+      expect(Fastlane::Actions::CreateNextSnapshotVersionAction.available_options.size).to eq(5)
     end
   end
 end
