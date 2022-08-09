@@ -165,12 +165,7 @@ module Fastlane
       end
 
       def self.calculate_next_snapshot_version(current_version)
-        version_split = current_version.split('.')
-        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
-        major = version_split[0]
-        minor = version_split[1]
-        next_version = "#{major}.#{minor.to_i + 1}.0"
-        "#{next_version}-SNAPSHOT"
+        increase_version(current_version, :minor, true)
       end
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
@@ -270,6 +265,32 @@ module Fastlane
           :other
         end
       end
+
+      private_class_method def self.increase_version(current_version, type_of_bump, snapshot)
+        version_split = current_version.split('.')
+        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
+
+        major = version_split[0]
+        minor = version_split[1]
+        patch = version_split[2]
+
+        case type_of_bump
+        when :major
+          next_version = "#{major.to_i + 1}.0.0"
+        when :minor
+          next_version = "#{major}.#{minor.to_i + 1}.0"
+        else
+          next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
+        end
+
+        if snapshot
+          "#{next_version}-SNAPSHOT"
+        else
+          next_version
+        end
+      end
+      private
+
     end
   end
 end
