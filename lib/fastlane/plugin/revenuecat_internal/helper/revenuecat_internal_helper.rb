@@ -240,13 +240,13 @@ module Fastlane
 
           case section_name
           when :breaking_changes
-            title = "## Breaking Changes"
+            title = "### Breaking Changes"
           when :fixes
-            title = "## Bugfixes"
+            title = "### Bugfixes"
           when :new_features
-            title = "## New Features"
+            title = "### New Features"
           when :other
-            title = "## Other Changes"
+            title = "### Other Changes"
           end
           "#{title}\n#{prs.join("\n")}"
         end.join("\n")
