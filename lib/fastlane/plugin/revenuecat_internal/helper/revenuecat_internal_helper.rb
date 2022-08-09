@@ -252,8 +252,6 @@ module Fastlane
             title = "## Bugfixes"
           when :new_features
             title = "## New Features"
-          when :other
-            title = "## Other Changes"
           else
             title = "## Other Changes"
           end
