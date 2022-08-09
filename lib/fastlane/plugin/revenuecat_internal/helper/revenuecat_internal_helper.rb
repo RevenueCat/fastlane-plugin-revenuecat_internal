@@ -39,25 +39,13 @@ module Fastlane
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
         commits.map do |commit|
-          if rate_limit_sleep > 0
-            UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
-            sleep(rate_limit_sleep)
-          end
-
           name = commit["commit"]["author"]["name"]
 
-          # Get pull request associate with commit message
           sha = commit["sha"]
-          pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                                 path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}",
-                                                 http_method: 'GET',
-                                                 body: {},
-                                                 api_token: github_token)
-          body = JSON.parse(pr_resp[:body])
-          items = body["items"]
+          items = get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+
           if items.size == 1
             item = items.first
-            @pr_resp_items_by_sha[sha] ||= item
 
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
@@ -278,6 +266,26 @@ module Fastlane
         end
       end
       private
+
+      private_class_method def self.get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+        return @pr_resp_items_by_sha[sha] if @pr_resp_items_by_sha.include?(sha)
+
+        if rate_limit_sleep > 0
+          UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
+          sleep(rate_limit_sleep)
+        end
+
+        # Get pull request associate with commit message
+        pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
+                                               path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}",
+                                               http_method: 'GET',
+                                               body: {},
+                                               api_token: github_token)
+        body = JSON.parse(pr_resp[:body])
+        items = body["items"]
+        @pr_resp_items_by_sha[sha] ||= items
+        return items
+      end
 
       private_class_method def self.get_commits_since_old_version(org, github_token, old_version, repo_name)
         return @cached_commits_by_old_version[old_version] if @cached_commits_by_old_version.include?(old_version)
