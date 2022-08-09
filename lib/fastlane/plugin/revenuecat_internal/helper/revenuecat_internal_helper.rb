@@ -13,8 +13,8 @@ module Fastlane
 
   module Helper
     class RevenuecatInternalHelper
-      @@cached_commits_by_old_version = {}
-      @@prs_by_sha = {}
+      @cached_commits_by_old_version = {}
+      @prs_by_sha = {}
 
       def self.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
@@ -34,18 +34,7 @@ module Fastlane
 
         org = "RevenueCat"
 
-        path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
-
-        # Get all commits from previous version (tag) to HEAD
-        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                            path: path,
-                                            http_method: 'GET',
-                                            body: {},
-                                            api_token: github_token)
-        body = JSON.parse(resp[:body])
-        commits = body["commits"].reverse
-
-        @@cached_commits_by_old_version[old_version] ||= commits
+        commits = get_commits_since_old_version(org, github_token, old_version, repo_name)
 
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
@@ -68,7 +57,7 @@ module Fastlane
           items = body["items"]
           if items.size == 1
             item = items.first
-            @@prs_by_sha[sha] ||= item
+            @prs_by_sha[sha] ||= item
 
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
@@ -85,7 +74,6 @@ module Fastlane
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
         end
-
         build_changelog_sections(changelog_sections)
       end
 
@@ -291,6 +279,23 @@ module Fastlane
       end
       private
 
+      private_class_method def self.get_commits_since_old_version(org, github_token, old_version, repo_name)
+        return @cached_commits_by_old_version[old_version] if @cached_commits_by_old_version.include?(old_version)
+
+        path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
+
+        # Get all commits from previous version (tag) to HEAD
+        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
+                                            path: path,
+                                            http_method: 'GET',
+                                            body: {},
+                                            api_token: github_token)
+        body = JSON.parse(resp[:body])
+        commits = body["commits"].reverse
+
+        @cached_commits_by_old_version[old_version] ||= commits
+        return commits
+      end
     end
   end
 end
