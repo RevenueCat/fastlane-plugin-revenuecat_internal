@@ -12,6 +12,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:current_version) { '1.12.0' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'release/1.13.0' }
+    let(:labels) { ['next_release'] }
 
     it 'calls all the appropriate methods with appropriate parameters' do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
@@ -39,7 +40,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Version bump for #{new_version}")
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(

@@ -5,6 +5,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
     let(:current_version) { '1.12.0' }
     let(:next_version) { '1.13.0-SNAPSHOT' }
     let(:new_branch_name) { 'bump/1.13.0-SNAPSHOT' }
+    let(:labels) { ['next_release'] }
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
@@ -24,7 +25,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         .with('Preparing for next version')
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with('Prepare next version: 1.13.0-SNAPSHOT', nil, repo_name, new_branch_name, github_pr_token)
+        .with('Prepare next version: 1.13.0-SNAPSHOT', nil, repo_name, new_branch_name, github_pr_token, labels)
         .once
       Fastlane::Actions::CreateNextSnapshotVersionAction.run(
         current_version: current_version,
