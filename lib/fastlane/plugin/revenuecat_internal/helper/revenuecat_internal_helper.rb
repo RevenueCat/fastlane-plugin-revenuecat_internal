@@ -16,6 +16,11 @@ module Fastlane
       @cached_commits_by_old_version = {}
       @pr_resp_items_by_sha = {}
 
+      def self.cleanup_caches
+        @cached_commits_by_old_version = {}
+        @pr_resp_items_by_sha = {}
+      end
+
       def self.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
@@ -28,9 +33,9 @@ module Fastlane
         end
       end
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, current_version)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
         old_version = Actions.sh("git describe --tags --abbrev=0").strip
-        UI.important("Auto-generating changelog since #{old_version}")
+        UI.important("Determining next version after #{old_version}")
         org = "RevenueCat"
 
         commits = get_commits_since_old_version(org, github_token, old_version, repo_name)
@@ -61,8 +66,8 @@ module Fastlane
             UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
           end
         end
-
-        increase_version(current_version, type_of_bump, false)
+        UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
+        increase_version(old_version, type_of_bump, false)
       end
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)

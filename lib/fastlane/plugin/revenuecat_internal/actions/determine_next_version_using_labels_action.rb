@@ -9,9 +9,8 @@ module Fastlane
         repo_name = params[:repo_name]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
-        current_version = params[:current_version]
 
-        Helper::RevenuecatInternalHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, current_version)
+        Helper::RevenuecatInternalHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
       end
 
       def self.description
@@ -39,11 +38,7 @@ module Fastlane
                                        description: "Sets a rate limiter for github requests when creating the changelog",
                                        optional: true,
                                        default_value: 0,
-                                       type: Integer),
-          FastlaneCore::ConfigItem.new(key: :current_version,
-                                       description: "Current version of the sdk",
-                                       optional: false,
-                                       type: String)
+                                       type: Integer)
         ]
       end
 
