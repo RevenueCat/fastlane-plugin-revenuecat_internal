@@ -12,6 +12,7 @@ module Fastlane
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
         version_number = params[:current_version]
+        new_version_number = params[:next_version]
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
         changelog_latest_path = params[:changelog_latest_path]
@@ -21,7 +22,9 @@ module Fastlane
         UI.important("Current version is #{version_number}")
 
         # Ask for new version number
-        new_version_number = UI.input("New version number: ")
+        new_version_number ||= UI.input("New version number: ")
+
+        UI.important("New version is #{new_version_number}")
 
         new_branch_name = "release/#{new_version_number}"
 
@@ -54,7 +57,7 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :current_version,
-                                       description: "Current version of the sdk",
+                                       description: "Current version of the SDK",
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :changelog_latest_path,
@@ -107,6 +110,10 @@ module Fastlane
                                        description: "Allows to override editor to be used when editting the changelog",
                                        optional: true,
                                        default_value: "vim",
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :next_version,
+                                       description: "Next version of the SDK",
+                                       optional: true,
                                        type: String)
         ]
       end

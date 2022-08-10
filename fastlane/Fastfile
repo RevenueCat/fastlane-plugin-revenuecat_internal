@@ -1,6 +1,7 @@
 lane :sample_bump_version_update_changelog_create_pr_action do |options|
   bump_version_update_changelog_create_pr(
     current_version: 'current_version_number',
+    next_version: 'new_sdk_version',
     changelog_latest_path: './path-to/CHANGELOG.latest.md',
     changelog_path: './path-to/CHANGELOG.md',
     files_to_update: ['./file-containing-version-1.txt', './file-containing-version-2.rb'],
@@ -70,5 +71,14 @@ lane :sample_update_hybrids_versions_file_action do |options|
     versions_file_path: './sample-path-to-VERSIONS.md',
     new_sdk_version: 'new-version-of-version-of-sdk',
     hybrid_common_version: 'phc-version'
+  )
+end
+
+lane :sample_determine_next_version_using_labels_action do |options|
+  determine_next_version_using_labels(
+    repo_name: 'repo-name',
+    github_token: 'github-token',
+    github_rate_limit: 0,
+    current_version: 'current_version_number'
   )
 end
