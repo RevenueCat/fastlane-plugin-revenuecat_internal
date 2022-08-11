@@ -36,9 +36,8 @@ module Fastlane
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
         old_version = Actions.sh("git describe --tags --abbrev=0").strip
         UI.important("Determining next version after #{old_version}")
-        org = "RevenueCat"
 
-        commits = get_commits_since_old_version(org, github_token, old_version, repo_name)
+        commits = get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = :patch
 
@@ -46,7 +45,7 @@ module Fastlane
           break if type_of_bump == :major
 
           sha = commit["sha"]
-          items = get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+          items = get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
 
           if items.size == 1
             item = items.first
@@ -68,9 +67,7 @@ module Fastlane
         old_version = Actions.sh("git describe --tags --abbrev=0").strip
         UI.important("Auto-generating changelog since #{old_version}")
 
-        org = "RevenueCat"
-
-        commits = get_commits_since_old_version(org, github_token, old_version, repo_name)
+        commits = get_commits_since_old_version(github_token, old_version, repo_name)
 
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
@@ -78,7 +75,7 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          items = get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+          items = get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
 
           if items.size == 1
             item = items.first
@@ -309,7 +306,7 @@ module Fastlane
         end
       end
 
-      private_class_method def self.get_pr_resp_items_for_sha(sha, github_token, org, rate_limit_sleep, repo_name)
+      private_class_method def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
         return @pr_resp_items_by_sha[sha] if @pr_resp_items_by_sha.include?(sha)
 
         if rate_limit_sleep > 0
@@ -319,7 +316,7 @@ module Fastlane
 
         # Get pull request associate with commit message
         pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                               path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}",
+                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:main+SHA:#{sha}",
                                                http_method: 'GET',
                                                body: {},
                                                api_token: github_token)
@@ -329,10 +326,10 @@ module Fastlane
         return items
       end
 
-      private_class_method def self.get_commits_since_old_version(org, github_token, old_version, repo_name)
+      private_class_method def self.get_commits_since_old_version(github_token, old_version, repo_name)
         return @cached_commits_by_old_version[old_version] if @cached_commits_by_old_version.include?(old_version)
 
-        path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
+        path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...HEAD"
 
         # Get all commits from previous version (tag) to HEAD
         resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
