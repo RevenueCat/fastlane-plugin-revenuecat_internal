@@ -102,7 +102,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'generates changelog automatically from github commits' do
-      setup_stubs
+      setup_commit_search_stubs
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -118,7 +118,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
-      setup_stubs
+      setup_commit_search_stubs
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
       changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -134,7 +134,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'fails if it finds multiple commits with same sha' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
@@ -152,7 +152,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'breaking fix is added to breaking changes section' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -175,7 +175,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'change is classified as Other Changes if pr has no label' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -197,7 +197,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'commits response is cached' do
-      setup_stubs
+      setup_commit_search_stubs
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -229,7 +229,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'pr response is cached' do
-      setup_stubs
+      setup_commit_search_stubs
       pr_resp_items_by_sha = Fastlane::Helper::RevenuecatInternalHelper.instance_variable_get(:@pr_resp_items_by_sha)
       expect(pr_resp_items_by_sha.size).to eq(0)
 
@@ -269,7 +269,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(changelog).to eq(expected_changelog)
     end
 
-    def setup_stubs
+    def setup_commit_search_stubs
       allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
@@ -694,7 +694,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'determines next version as patch correctly' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
@@ -712,7 +712,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'determines next version as minor correctly' do
-      setup_stubs
+      setup_commit_search_stubs
       expect_any_instance_of(Object).not_to receive(:sleep)
       next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -723,7 +723,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'determines next version as major correctly' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -741,7 +741,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
-      setup_stubs
+      setup_commit_search_stubs
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
       next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -752,7 +752,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'fails if it finds multiple commits with same sha' do
-      setup_stubs
+      setup_commit_search_stubs
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
@@ -770,7 +770,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'commits response is cached' do
-      setup_stubs
+      setup_commit_search_stubs
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -796,7 +796,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'pr response is cached' do
-      setup_stubs
+      setup_commit_search_stubs
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -821,7 +821,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(next_version).to eq("1.12.0")
     end
 
-    def setup_stubs
+    def setup_commit_search_stubs
       allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
