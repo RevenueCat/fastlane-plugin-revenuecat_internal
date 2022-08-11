@@ -325,7 +325,7 @@ module Fastlane
                                                api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
-        @pr_resp_items_by_sha[sha] ||= items
+        @pr_resp_items_by_sha[sha] = items
         return items
       end
 
