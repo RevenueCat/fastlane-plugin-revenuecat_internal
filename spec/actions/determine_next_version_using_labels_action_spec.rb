@@ -10,11 +10,12 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
         .and_return(new_version)
         .once
 
-      Fastlane::Actions::DetermineNextVersionUsingLabelsAction.run(
+      calculated_version = Fastlane::Actions::DetermineNextVersionUsingLabelsAction.run(
         repo_name: mock_repo_name,
         github_token: mock_github_token,
         github_rate_limit: 3
       )
+      expect(calculated_version).to eq(new_version)
     end
   end
 
