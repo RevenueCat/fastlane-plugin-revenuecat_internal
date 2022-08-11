@@ -75,7 +75,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
   describe '.auto_generate_changelog' do
     before(:each) do
-      Fastlane::Helper::RevenuecatInternalHelper.cleanup_caches
+      Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
     end
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
@@ -699,7 +699,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     before(:each) do
-      Fastlane::Helper::RevenuecatInternalHelper.cleanup_caches
+      Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
     end
 
     it 'determines next version as patch correctly' do

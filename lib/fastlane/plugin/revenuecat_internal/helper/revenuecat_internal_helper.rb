@@ -16,7 +16,7 @@ module Fastlane
       @cached_commits_by_old_version = {}
       @pr_resp_items_by_sha = {}
 
-      def self.cleanup_caches
+      def self.cleanup_github_commit_caches
         @cached_commits_by_old_version = {}
         @pr_resp_items_by_sha = {}
       end
