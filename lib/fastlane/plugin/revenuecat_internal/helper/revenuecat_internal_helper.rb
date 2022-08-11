@@ -54,11 +54,8 @@ module Fastlane
             types_of_change = get_type_of_change_from_pr_info(item)
 
             type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
-            if type_of_bump_for_change == :major
-              type_of_bump = :major
-            elsif type_of_bump_for_change == :minor && type_of_bump != :major
-              type_of_bump = :minor
-            end
+
+            type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
           else
             UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
           end
