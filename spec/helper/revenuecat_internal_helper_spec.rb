@@ -101,8 +101,14 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/no_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
 
+    hashes_to_responses = {
+      'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
+      '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
+      'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response
+    }
+
     it 'generates changelog automatically from github commits' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -118,7 +124,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
       changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -134,7 +140,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'fails if it finds multiple commits with same sha' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
@@ -152,7 +158,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'breaking fix is added to breaking changes section' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -175,7 +181,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'change is classified as Other Changes if pr has no label' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -197,7 +203,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'commits response is cached' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -229,7 +235,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'pr response is cached' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
       pr_resp_items_by_sha = Fastlane::Helper::RevenuecatInternalHelper.instance_variable_get(:@pr_resp_items_by_sha)
       expect(pr_resp_items_by_sha.size).to eq(0)
 
@@ -267,38 +273,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         0
       )
       expect(changelog).to eq(expected_changelog)
-    end
-
-    def setup_commit_search_stubs
-      allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commits_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commit_1_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commit_2_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:cfdd80f73d8c91121313d72227b4cbe283b57c1e',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commit_3_response)
     end
   end
 
@@ -689,12 +663,22 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/duplicate_items_get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
 
+    hashes_to_responses = {
+      'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_feat_commit_response,
+      '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_fix_commit_response,
+      'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_next_release_commit_response,
+      '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
+      '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
+      '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response
+    }
+
     before(:each) do
       Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
     end
 
     it 'determines next version as patch correctly' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
+
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
@@ -712,7 +696,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'determines next version as minor correctly' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
+
       expect_any_instance_of(Object).not_to receive(:sleep)
       next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -723,7 +708,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'determines next version as major correctly' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
+
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -741,7 +727,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
+
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
       next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -752,7 +739,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'fails if it finds multiple commits with same sha' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
+
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
@@ -770,7 +758,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'commits response is cached' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -796,7 +784,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'pr response is cached' do
-      setup_commit_search_stubs
+      setup_commit_search_stubs(hashes_to_responses)
 
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
@@ -820,58 +808,25 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       )
       expect(next_version).to eq("1.12.0")
     end
+  end
 
-    def setup_commit_search_stubs
-      allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
+  def setup_commit_search_stubs(hashes_to_responses)
+    allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
+    allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+      .with(server_url: server_url,
+            path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+            http_method: http_method,
+            body: {},
+            api_token: 'mock-github-token')
+      .and_return(get_commits_response)
+    hashes_to_responses.each do |hash, response|
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
               http_method: http_method,
               body: {},
               api_token: 'mock-github-token')
-        .and_return(get_commits_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_feat_commit_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:0e67cdb1c7582ce3e2fd00367acc24db6242c6d6',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_fix_commit_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:cfdd80f73d8c91121313d72227b4cbe283b57c1e',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_next_release_commit_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:819dc620db5608fb952c852038a3560554161707',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_ci_commit_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:7d77decbcc9098145d1efd4c2de078b6121c8906',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_build_commit_response)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:6d37c766b6da55dcab67c201c93ba3d4ca538e55',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_refactor_commit_response)
+        .and_return(response)
     end
   end
 end
