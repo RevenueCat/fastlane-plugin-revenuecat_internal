@@ -101,11 +101,13 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/no_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
 
-    hashes_to_responses = {
-      'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
-      '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
-      'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response
-    }
+    let(:hashes_to_responses) do
+      {
+        'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
+        '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
+        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response
+      }
+    end
 
     it 'generates changelog automatically from github commits' do
       setup_commit_search_stubs(hashes_to_responses)
@@ -663,14 +665,16 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/duplicate_items_get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
 
-    hashes_to_responses = {
-      'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_feat_commit_response,
-      '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_fix_commit_response,
-      'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_next_release_commit_response,
-      '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
-      '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
-      '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response
-    }
+    let(:hashes_to_responses) do
+      {
+        'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_feat_commit_response,
+        '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_fix_commit_response,
+        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_next_release_commit_response,
+        '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
+        '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
+        '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response
+      }
+    end
 
     before(:each) do
       Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
