@@ -51,10 +51,7 @@ module Fastlane
           if items.size == 1
             item = items.first
 
-            types_of_change = item["labels"]
-                              .map { |label_info| label_info["name"] }
-                              .select { |label| SUPPORTED_PR_LABELS.include?(label) }
-                              .to_set
+            types_of_change = get_type_of_change_from_pr_info(item)
 
             type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
             if type_of_bump_for_change == :major
@@ -91,10 +88,7 @@ module Fastlane
 
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
-            types_of_change = item["labels"]
-                              .map { |label_info| label_info["name"] }
-                              .select { |label| SUPPORTED_PR_LABELS.include?(label) }
-                              .to_set
+            types_of_change = get_type_of_change_from_pr_info(item)
 
             section = get_section_depending_on_types_of_change(types_of_change)
 
@@ -354,6 +348,13 @@ module Fastlane
 
         @cached_commits_by_old_version[old_version] ||= commits
         return commits
+      end
+
+      private_class_method def self.get_type_of_change_from_pr_info(pr_info)
+        pr_info["labels"]
+          .map { |label_info| label_info["name"] }
+          .select { |label| SUPPORTED_PR_LABELS.include?(label) }
+          .to_set
       end
     end
   end
