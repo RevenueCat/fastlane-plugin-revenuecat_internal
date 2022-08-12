@@ -70,6 +70,30 @@ module Fastlane
         build_changelog_sections(changelog_sections)
       end
 
+      def self.increase_version(current_version, type_of_bump, snapshot)
+        version_split = current_version.split('.')
+        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
+
+        major = version_split[0]
+        minor = version_split[1]
+        patch = version_split[2]
+
+        case type_of_bump
+        when :major
+          next_version = "#{major.to_i + 1}.0.0"
+        when :minor
+          next_version = "#{major}.#{minor.to_i + 1}.0"
+        else
+          next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
+        end
+
+        if snapshot
+          "#{next_version}-SNAPSHOT"
+        else
+          next_version
+        end
+      end
+
       private_class_method def self.build_changelog_sections(changelog_sections)
         changelog_sections.reject { |_, v| v.empty? }.map do |section_name, prs|
           next unless prs.size > 0
@@ -107,30 +131,6 @@ module Fastlane
           :minor
         else
           :patch
-        end
-      end
-
-      def self.increase_version(current_version, type_of_bump, snapshot)
-        version_split = current_version.split('.')
-        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
-
-        major = version_split[0]
-        minor = version_split[1]
-        patch = version_split[2]
-
-        case type_of_bump
-        when :major
-          next_version = "#{major.to_i + 1}.0.0"
-        when :minor
-          next_version = "#{major}.#{minor.to_i + 1}.0"
-        else
-          next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
-        end
-
-        if snapshot
-          "#{next_version}-SNAPSHOT"
-        else
-          next_version
         end
       end
 
