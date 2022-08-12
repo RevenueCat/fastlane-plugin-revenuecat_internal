@@ -11,6 +11,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:edited_changelog) { 'mock-edited-changelog' }
     let(:current_version) { '1.12.0' }
     let(:new_version) { '1.13.0' }
+    let(:new_branch_name) { 'release/1.13.0' }
 
     it 'calls all the appropriate methods with appropriate parameters' do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
@@ -26,7 +27,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(auto_generated_changelog, mock_changelog_latest_path, editor)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
-        .with('release/1.13.0')
+        .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
@@ -38,7 +39,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Version bump for #{new_version}")
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, mock_github_pr_token)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
