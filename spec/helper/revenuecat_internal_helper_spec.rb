@@ -74,9 +74,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   end
 
   describe '.auto_generate_changelog' do
-    before(:each) do
-      Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
-    end
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
     let(:get_commits_response) do
@@ -112,7 +109,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'generates changelog automatically from github commits' do
       setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -128,7 +125,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
         3
@@ -151,7 +148,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(duplicate_items_get_commit_2_response)
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+        Fastlane::Helper::VersioningHelper.auto_generate_changelog(
           'mock-repo-name',
           'mock-github-token',
           0
@@ -169,7 +166,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(breaking_get_commit_1_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -192,7 +189,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(no_label_get_commit_1_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -202,79 +199,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
                               "### Other Changes\n" \
                               "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
-    end
-
-    it 'commits response is cached' do
-      setup_commit_search_stubs(hashes_to_responses)
-
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-        http_method: 'GET',
-        body: {},
-        api_token: 'mock-github-token'
-      ).once
-
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expected_changelog = "### Bugfixes\n" \
-                           "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                           "### New Features\n" \
-                           "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                           "### Other Changes\n" \
-                           "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)"
-      expect(changelog).to eq(expected_changelog)
-
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(changelog).to eq(expected_changelog)
-    end
-
-    it 'pr response is cached' do
-      setup_commit_search_stubs(hashes_to_responses)
-      pr_resp_items_by_sha = Fastlane::Helper::RevenuecatInternalHelper.instance_variable_get(:@pr_resp_items_by_sha)
-      expect(pr_resp_items_by_sha.size).to eq(0)
-
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
-        http_method: 'GET',
-        body: {},
-        api_token: 'mock-github-token'
-      ).once
-
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expected_changelog = "### Bugfixes\n" \
-                           "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                           "### New Features\n" \
-                           "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                           "### Other Changes\n" \
-                           "* Prepare next version: 4.8.0-SNAPSHOT (#1750) via RevenueCat Releases (@revenuecat-ops)"
-      expect(changelog).to eq(expected_changelog)
-
-      pr_resp_items_by_sha = Fastlane::Helper::RevenuecatInternalHelper.instance_variable_get(:@pr_resp_items_by_sha)
-      expect(pr_resp_items_by_sha.size).to eq(3)
-      cached_pr_response = pr_resp_items_by_sha['a72c0435ecf71248f311900475e881cc07ac2eaf']
-
-      body = JSON.parse(get_commit_1_response[:body])
-      expect(cached_pr_response).to eq(body["items"])
-
-      changelog = Fastlane::Helper::RevenuecatInternalHelper.auto_generate_changelog(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(changelog).to eq(expected_changelog)
     end
   end
 
@@ -676,10 +600,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       }
     end
 
-    before(:each) do
-      Fastlane::Helper::RevenuecatInternalHelper.cleanup_github_commit_caches
-    end
-
     it 'determines next version as patch correctly' do
       setup_commit_search_stubs(hashes_to_responses)
 
@@ -691,7 +611,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(get_commits_response_patch)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
+      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -703,7 +623,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       setup_commit_search_stubs(hashes_to_responses)
 
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
+      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -722,7 +642,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(get_breaking_commit_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
+      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
@@ -734,7 +654,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       setup_commit_search_stubs(hashes_to_responses)
 
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
+      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         3
@@ -753,64 +673,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
               api_token: 'mock-github-token')
         .and_return(get_duplicate_items_fix_commit_response)
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
+        Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
           'mock-repo-name',
           'mock-github-token',
           0
         )
       end.to raise_exception(StandardError)
-    end
-
-    it 'commits response is cached' do
-      setup_commit_search_stubs(hashes_to_responses)
-
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-        http_method: 'GET',
-        body: {},
-        api_token: 'mock-github-token'
-      ).once
-
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(next_version).to eq("1.12.0")
-
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(next_version).to eq("1.12.0")
-    end
-
-    it 'pr response is cached' do
-      setup_commit_search_stubs(hashes_to_responses)
-
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
-        http_method: 'GET',
-        body: {},
-        api_token: 'mock-github-token'
-      ).once
-
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(next_version).to eq("1.12.0")
-
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.determine_next_version_using_labels(
-        'mock-repo-name',
-        'mock-github-token',
-        0
-      )
-      expect(next_version).to eq("1.12.0")
     end
   end
 

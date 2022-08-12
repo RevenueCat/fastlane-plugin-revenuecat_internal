@@ -1,6 +1,7 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require_relative '../helper/revenuecat_internal_helper'
+require_relative '../helper/versioning_helper'
 
 module Fastlane
   module Actions
@@ -10,7 +11,7 @@ module Fastlane
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
 
-        Helper::RevenuecatInternalHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
       end
 
       def self.description

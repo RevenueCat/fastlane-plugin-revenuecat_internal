@@ -5,7 +5,7 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
     let(:new_version) { '1.13.0' }
 
     it 'calls all the appropriate methods with appropriate parameters' do
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:determine_next_version_using_labels)
+      expect(Fastlane::Helper::VersioningHelper).to receive(:determine_next_version_using_labels)
         .with(mock_repo_name, mock_github_token, 3)
         .and_return(new_version)
         .once

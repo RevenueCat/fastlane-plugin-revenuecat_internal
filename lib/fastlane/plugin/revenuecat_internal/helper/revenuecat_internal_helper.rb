@@ -6,21 +6,13 @@ require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
 require 'fastlane/actions/set_github_release'
+require_relative 'versioning_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
-  SUPPORTED_PR_LABELS = %w[breaking build ci docs feat fix perf refactor style test].to_set
 
   module Helper
     class RevenuecatInternalHelper
-      @cached_commits_by_old_version = {}
-      @pr_resp_items_by_sha = {}
-
-      def self.cleanup_github_commit_caches
-        @cached_commits_by_old_version = {}
-        @pr_resp_items_by_sha = {}
-      end
-
       def self.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
@@ -31,68 +23,6 @@ module Fastlane
         files_to_update_without_prerelease_modifiers.each do |file_to_update|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update)
         end
-      end
-
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
-        old_version = Actions.sh("git describe --tags --abbrev=0").strip
-        UI.important("Determining next version after #{old_version}")
-
-        commits = get_commits_since_old_version(github_token, old_version, repo_name)
-
-        type_of_bump = :patch
-
-        commits.each do |commit|
-          break if type_of_bump == :major
-
-          sha = commit["sha"]
-          items = get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
-
-          if items.size == 1
-            item = items.first
-
-            types_of_change = get_type_of_change_from_pr_info(item)
-
-            type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
-
-            type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          else
-            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
-          end
-        end
-        UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
-        increase_version(old_version, type_of_bump, false)
-      end
-
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
-        old_version = Actions.sh("git describe --tags --abbrev=0").strip
-        UI.important("Auto-generating changelog since #{old_version}")
-
-        commits = get_commits_since_old_version(github_token, old_version, repo_name)
-
-        changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
-
-        commits.map do |commit|
-          name = commit["commit"]["author"]["name"]
-
-          sha = commit["sha"]
-          items = get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
-
-          if items.size == 1
-            item = items.first
-
-            message = "#{item['title']} (##{item['number']})"
-            username = item["user"]["login"]
-            types_of_change = get_type_of_change_from_pr_info(item)
-
-            section = get_section_depending_on_types_of_change(types_of_change)
-
-            line = "* #{message} via #{name} (@#{username})"
-            changelog_sections[section].push(line)
-          else
-            UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
-          end
-        end
-        build_changelog_sections(changelog_sections)
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -171,7 +101,7 @@ module Fastlane
       end
 
       def self.calculate_next_snapshot_version(current_version)
-        increase_version(current_version, :minor, true)
+        Helper::VersioningHelper.increase_version(current_version, :minor, true)
       end
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
@@ -240,115 +170,6 @@ module Fastlane
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
         end
-      end
-
-      private_class_method def self.build_changelog_sections(changelog_sections)
-        changelog_sections.reject { |_, v| v.empty? }.map do |section_name, prs|
-          next unless prs.size > 0
-
-          case section_name
-          when :breaking_changes
-            title = "### Breaking Changes"
-          when :fixes
-            title = "### Bugfixes"
-          when :new_features
-            title = "### New Features"
-          else
-            title = "### Other Changes"
-          end
-          "#{title}\n#{prs.join("\n")}"
-        end.join("\n")
-      end
-
-      private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        if change_types.include?("breaking")
-          :breaking_changes
-        elsif change_types.include?("feat")
-          :new_features
-        elsif change_types.include?("fix")
-          :fixes
-        else
-          :other
-        end
-      end
-
-      private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
-        if change_types.include?("breaking")
-          :major
-        elsif change_types.include?("feat")
-          :minor
-        else
-          :patch
-        end
-      end
-
-      private_class_method def self.increase_version(current_version, type_of_bump, snapshot)
-        version_split = current_version.split('.')
-        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
-
-        major = version_split[0]
-        minor = version_split[1]
-        patch = version_split[2]
-
-        case type_of_bump
-        when :major
-          next_version = "#{major.to_i + 1}.0.0"
-        when :minor
-          next_version = "#{major}.#{minor.to_i + 1}.0"
-        else
-          next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
-        end
-
-        if snapshot
-          "#{next_version}-SNAPSHOT"
-        else
-          next_version
-        end
-      end
-
-      private_class_method def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
-        return @pr_resp_items_by_sha[sha] if @pr_resp_items_by_sha.include?(sha)
-
-        if rate_limit_sleep > 0
-          UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
-          sleep(rate_limit_sleep)
-        end
-
-        # Get pull request associate with commit message
-        pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:main+SHA:#{sha}",
-                                               http_method: 'GET',
-                                               body: {},
-                                               api_token: github_token)
-        body = JSON.parse(pr_resp[:body])
-        items = body["items"]
-        @pr_resp_items_by_sha[sha] = items
-        return items
-      end
-
-      private_class_method def self.get_commits_since_old_version(github_token, old_version, repo_name)
-        return @cached_commits_by_old_version[old_version] if @cached_commits_by_old_version.include?(old_version)
-
-        path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...HEAD"
-
-        # Get all commits from previous version (tag) to HEAD
-        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                            path: path,
-                                            http_method: 'GET',
-                                            body: {},
-                                            api_token: github_token)
-        body = JSON.parse(resp[:body])
-        commits = body["commits"].reverse
-
-        @cached_commits_by_old_version[old_version] ||= commits
-        return commits
-      end
-
-      private_class_method def self.get_type_of_change_from_pr_info(pr_info)
-        pr_info["labels"]
-          .map { |label_info| label_info["name"] }
-          .select { |label| SUPPORTED_PR_LABELS.include?(label) }
-          .to_set
       end
     end
   end

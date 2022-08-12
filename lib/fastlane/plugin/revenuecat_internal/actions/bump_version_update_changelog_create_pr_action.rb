@@ -1,6 +1,7 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require_relative '../helper/revenuecat_internal_helper'
+require_relative '../helper/versioning_helper'
 
 module Fastlane
   module Actions
@@ -30,7 +31,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
 
-        generated_contents = Helper::RevenuecatInternalHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
         changelog = File.read(changelog_latest_path)
 
