@@ -133,14 +133,14 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr_to_main(title, body, repo_name, github_pr_token)
+      def self.create_pr_to_main(title, body, repo_name, head_branch, github_pr_token)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
           base: 'main',
           body: body,
           repo: "RevenueCat/#{repo_name}",
-          head: Actions.git_branch,
+          head: head_branch,
           api_url: 'https://api.github.com'
         )
       end
@@ -228,7 +228,7 @@ module Fastlane
         end
 
         remote_branches = Actions.sh('git', 'ls-remote', '--heads', 'origin', new_branch)
-        unless remote_branches.empty?
+        if !remote_branches.nil? && remote_branches.include?(new_branch)
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
         end

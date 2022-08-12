@@ -26,7 +26,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Preparing for next version')
 
-        Helper::RevenuecatInternalHelper.create_pr_to_main("Prepare next version: #{next_version_snapshot}", nil, repo_name, github_pr_token)
+        Helper::RevenuecatInternalHelper.create_pr_to_main("Prepare next version: #{next_version_snapshot}", nil, repo_name, new_branch_name, github_pr_token)
       end
 
       def self.description
