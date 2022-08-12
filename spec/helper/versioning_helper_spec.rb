@@ -256,6 +256,33 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
+  describe '.increase_version' do
+    it 'increases patch version number' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :patch, false)
+      expect(next_version).to eq('1.2.4')
+    end
+
+    it 'increases minor version number' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :minor, false)
+      expect(next_version).to eq('1.3.0')
+    end
+
+    it 'increases major version number' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :major, false)
+      expect(next_version).to eq('2.0.0')
+    end
+
+    it 'increases minor snapshot version number' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :minor, true)
+      expect(next_version).to eq('1.3.0-SNAPSHOT')
+    end
+
+    it 'increases major snapshot version number' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :major, true)
+      expect(next_version).to eq('2.0.0-SNAPSHOT')
+    end
+  end
+
   def setup_commit_search_stubs(hashes_to_responses)
     allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
