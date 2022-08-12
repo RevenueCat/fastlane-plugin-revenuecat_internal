@@ -228,7 +228,7 @@ module Fastlane
         end
 
         remote_branches = Actions.sh('git', 'ls-remote', '--heads', 'origin', new_branch)
-        if remote_branches.include?(new_branch)
+        if !remote_branches.nil? && remote_branches.include?(new_branch)
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
         end
