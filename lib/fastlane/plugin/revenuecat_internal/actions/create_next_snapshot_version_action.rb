@@ -14,6 +14,7 @@ module Fastlane
 
         next_version_snapshot = Helper::RevenuecatInternalHelper.calculate_next_snapshot_version(previous_version_number)
         new_branch_name = "bump/#{next_version_snapshot}"
+        label = 'next_release'
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, new_branch_name, github_pr_token)
 
@@ -26,7 +27,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Preparing for next version')
 
-        Helper::RevenuecatInternalHelper.create_pr_to_main("Prepare next version: #{next_version_snapshot}", nil, repo_name, new_branch_name, github_pr_token)
+        Helper::RevenuecatInternalHelper.create_pr_to_main("Prepare next version: #{next_version_snapshot}", nil, repo_name, new_branch_name, github_pr_token, [label])
       end
 
       def self.description

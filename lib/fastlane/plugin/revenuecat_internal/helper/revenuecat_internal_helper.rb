@@ -41,7 +41,7 @@ module Fastlane
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
-        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"].to_set
+        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test", "next_release"].to_set
         changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
 
         commits.map do |commit|
@@ -133,7 +133,7 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr_to_main(title, body, repo_name, head_branch, github_pr_token)
+      def self.create_pr_to_main(title, body, repo_name, head_branch, github_pr_token, labels = [])
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
@@ -141,7 +141,8 @@ module Fastlane
           body: body,
           repo: "RevenueCat/#{repo_name}",
           head: head_branch,
-          api_url: 'https://api.github.com'
+          api_url: 'https://api.github.com',
+          labels: labels
         )
       end
 
