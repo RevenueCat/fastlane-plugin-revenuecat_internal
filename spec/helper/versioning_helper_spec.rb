@@ -1,4 +1,4 @@
-describe Fastlane::Helper::RevenuecatInternalHelper do
+describe Fastlane::Helper::VersioningHelper do
   describe '.auto_generate_changelog' do
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
