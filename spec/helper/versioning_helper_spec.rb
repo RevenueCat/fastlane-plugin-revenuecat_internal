@@ -1,4 +1,4 @@
-describe Fastlane::Helper::RevenuecatInternalHelper do
+describe Fastlane::Helper::VersioningHelper do
   describe '.auto_generate_changelog' do
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
@@ -284,7 +284,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   end
 
   def setup_commit_search_stubs(hashes_to_responses)
-    allow(Fastlane::Actions).to receive(:sh).with('git describe --tags --abbrev=0').and_return('1.11.0')
+    allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags')
+    allow(Fastlane::Actions).to receive(:sh)
+      .with("git describe --tags $(git rev-list --exclude=\"*[a-zA-Z]*\" --tags=\"[0-9]*.[0-9]*.*[0-9]\" --max-count=1)")
+      .and_return('1.11.0')
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
       .with(server_url: server_url,
             path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
