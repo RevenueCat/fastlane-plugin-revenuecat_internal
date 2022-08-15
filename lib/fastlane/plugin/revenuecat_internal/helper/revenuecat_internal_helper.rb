@@ -6,6 +6,7 @@ require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
 require 'fastlane/actions/set_github_release'
+require_relative 'versioning_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -22,64 +23,6 @@ module Fastlane
         files_to_update_without_prerelease_modifiers.each do |file_to_update|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update)
         end
-      end
-
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
-        old_version = Actions.sh("git describe --tags --abbrev=0").strip
-        UI.important("Auto-generating changelog since #{old_version}")
-
-        org = "RevenueCat"
-
-        path = "/repos/#{org}/#{repo_name}/compare/#{old_version}...HEAD"
-
-        # Get all commits from previous version (tag) to HEAD
-        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                            path: path,
-                                            http_method: 'GET',
-                                            body: {},
-                                            api_token: github_token)
-        body = JSON.parse(resp[:body])
-        commits = body["commits"].reverse
-
-        supported_types = ["breaking", "build", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test", "next_release"].to_set
-        changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
-
-        commits.map do |commit|
-          if rate_limit_sleep > 0
-            UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
-            sleep(rate_limit_sleep)
-          end
-
-          name = commit["commit"]["author"]["name"]
-
-          # Get pull request associate with commit message
-          sha = commit["sha"]
-          pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                                 path: "/search/issues?q=repo:#{org}/#{repo_name}+is:pr+base:main+SHA:#{sha}",
-                                                 http_method: 'GET',
-                                                 body: {},
-                                                 api_token: github_token)
-          body = JSON.parse(pr_resp[:body])
-          items = body["items"]
-          if items.size == 1
-            item = items.first
-            message = "#{item['title']} (##{item['number']})"
-            username = item["user"]["login"]
-            types_of_change = item["labels"]
-                              .map { |label_info| label_info["name"] }
-                              .select { |label| supported_types.include?(label) }
-                              .to_set
-
-            section = get_section_depending_on_types_of_change(types_of_change)
-
-            line = "* #{message} via #{name} (@#{username})"
-            changelog_sections[section].push(line)
-          else
-            UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
-          end
-        end
-
-        build_changelog_sections(changelog_sections)
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -159,12 +102,7 @@ module Fastlane
       end
 
       def self.calculate_next_snapshot_version(current_version)
-        version_split = current_version.split('.')
-        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
-        major = version_split[0]
-        minor = version_split[1]
-        next_version = "#{major}.#{minor.to_i + 1}.0"
-        "#{next_version}-SNAPSHOT"
+        Helper::VersioningHelper.increase_version(current_version, :minor, true)
       end
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
@@ -232,36 +170,6 @@ module Fastlane
         if !remote_branches.nil? && remote_branches.include?(new_branch)
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
-        end
-      end
-
-      private_class_method def self.build_changelog_sections(changelog_sections)
-        changelog_sections.reject { |k, v| v.empty? }.map do |section_name, prs|
-          next unless prs.size > 0
-
-          case section_name
-          when :breaking_changes
-            title = "### Breaking Changes"
-          when :fixes
-            title = "### Bugfixes"
-          when :new_features
-            title = "### New Features"
-          when :other
-            title = "### Other Changes"
-          end
-          "#{title}\n#{prs.join("\n")}"
-        end.join("\n")
-      end
-
-      private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        if change_types.include?("breaking")
-          :breaking_changes
-        elsif change_types.include?("feat")
-          :new_features
-        elsif change_types.include?("fix")
-          :fixes
-        else
-          :other
         end
       end
     end

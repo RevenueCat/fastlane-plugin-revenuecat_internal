@@ -1,0 +1,446 @@
+{
+  "url": "https://api.github.com/repos/RevenueCat/purchases-ios/compare/4.10.0...HEAD",
+  "html_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD",
+  "permalink_url": "https://github.com/RevenueCat/purchases-ios/compare/RevenueCat:7ff1261...RevenueCat:6d37c76",
+  "diff_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD.diff",
+  "patch_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD.patch",
+  "base_commit": {
+    "sha": "7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "node_id": "C_kwDOBnB8hdoAKDdmZjEyNjFkN2JiYmY1MWU3NjAxMGI0YzQ4YWJhMjgyNzM1MGEyZjU",
+    "commit": {
+      "author": {
+        "name": "Josh Holtz",
+        "email": "me@joshholtz.com",
+        "date": "2022-08-08T18:56:52Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-08-08T18:56:52Z"
+      },
+      "message": "Release/4.10.0 (#1800)\n\n* Version bump for 4.10.0\r\n\r\n* Update RevenueCat-Swift.h for version 4.10.0\r\n\r\n* Update changelog\r\n\r\n* Using replace_in from plugin helper\r\n\r\n* [ci skip] Updating CHANGELOG.md",
+      "tree": {
+        "sha": "b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi8Vx0CRBK7hj4Ov3rIwAApPUIAIsVItEMVkBTzd3lwjMGcVtL\n2eIyoCtZ9bd6+YN3ZPkWMHGxSEp/CFukQQNEuKafe7q4rR4c0Ldmq26UsYFNUhmk\n8CeMEXElXwGd7C++dHY/AJHCEwGgWH+tO3et+fhDIgf/zBjEluBNSdvm0E8b2xju\n1vk0v+sQUzIGMsLkxb32g2bKYqyTwWnSKWyLUbibE3XXbcRnRsR8baF+kqZDm0T4\nV6r4y2SPY7Fl0qL9D13D/TBzzV/zSWULuxkU+pgm0Ukw7fcfGk99usXwE7H5SUhD\nFJ9B3pCKbvWQkepUg972uKQqp451LmIJWsCDbeh5wD4eU2fbWr0pflqT7DZVLvI=\n=rTju\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b\nparent 6ef32be560c2ec22338e3a0ccfc84a54cde3d526\nauthor Josh Holtz <me@joshholtz.com> 1659985012 -0500\ncommitter GitHub <noreply@github.com> 1659985012 -0500\n\nRelease/4.10.0 (#1800)\n\n* Version bump for 4.10.0\r\n\r\n* Update RevenueCat-Swift.h for version 4.10.0\r\n\r\n* Update changelog\r\n\r\n* Using replace_in from plugin helper\r\n\r\n* [ci skip] Updating CHANGELOG.md"
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5/comments",
+    "author": {
+      "login": "joshdholtz",
+      "id": 401294,
+      "node_id": "MDQ6VXNlcjQwMTI5NA==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/401294?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/joshdholtz",
+      "html_url": "https://github.com/joshdholtz",
+      "followers_url": "https://api.github.com/users/joshdholtz/followers",
+      "following_url": "https://api.github.com/users/joshdholtz/following{/other_user}",
+      "gists_url": "https://api.github.com/users/joshdholtz/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/joshdholtz/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/joshdholtz/subscriptions",
+      "organizations_url": "https://api.github.com/users/joshdholtz/orgs",
+      "repos_url": "https://api.github.com/users/joshdholtz/repos",
+      "events_url": "https://api.github.com/users/joshdholtz/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/joshdholtz/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "6ef32be560c2ec22338e3a0ccfc84a54cde3d526",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/6ef32be560c2ec22338e3a0ccfc84a54cde3d526",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/6ef32be560c2ec22338e3a0ccfc84a54cde3d526"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "node_id": "C_kwDOBnB8hdoAKDdmZjEyNjFkN2JiYmY1MWU3NjAxMGI0YzQ4YWJhMjgyNzM1MGEyZjU",
+    "commit": {
+      "author": {
+        "name": "Josh Holtz",
+        "email": "me@joshholtz.com",
+        "date": "2022-08-08T18:56:52Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-08-08T18:56:52Z"
+      },
+      "message": "Release/4.10.0 (#1800)\n\n* Version bump for 4.10.0\r\n\r\n* Update RevenueCat-Swift.h for version 4.10.0\r\n\r\n* Update changelog\r\n\r\n* Using replace_in from plugin helper\r\n\r\n* [ci skip] Updating CHANGELOG.md",
+      "tree": {
+        "sha": "b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi8Vx0CRBK7hj4Ov3rIwAApPUIAIsVItEMVkBTzd3lwjMGcVtL\n2eIyoCtZ9bd6+YN3ZPkWMHGxSEp/CFukQQNEuKafe7q4rR4c0Ldmq26UsYFNUhmk\n8CeMEXElXwGd7C++dHY/AJHCEwGgWH+tO3et+fhDIgf/zBjEluBNSdvm0E8b2xju\n1vk0v+sQUzIGMsLkxb32g2bKYqyTwWnSKWyLUbibE3XXbcRnRsR8baF+kqZDm0T4\nV6r4y2SPY7Fl0qL9D13D/TBzzV/zSWULuxkU+pgm0Ukw7fcfGk99usXwE7H5SUhD\nFJ9B3pCKbvWQkepUg972uKQqp451LmIJWsCDbeh5wD4eU2fbWr0pflqT7DZVLvI=\n=rTju\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree b8ff25bcf47e90255ed8b606fa1e8b039d1f9f1b\nparent 6ef32be560c2ec22338e3a0ccfc84a54cde3d526\nauthor Josh Holtz <me@joshholtz.com> 1659985012 -0500\ncommitter GitHub <noreply@github.com> 1659985012 -0500\n\nRelease/4.10.0 (#1800)\n\n* Version bump for 4.10.0\r\n\r\n* Update RevenueCat-Swift.h for version 4.10.0\r\n\r\n* Update changelog\r\n\r\n* Using replace_in from plugin helper\r\n\r\n* [ci skip] Updating CHANGELOG.md"
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5/comments",
+    "author": {
+      "login": "joshdholtz",
+      "id": 401294,
+      "node_id": "MDQ6VXNlcjQwMTI5NA==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/401294?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/joshdholtz",
+      "html_url": "https://github.com/joshdholtz",
+      "followers_url": "https://api.github.com/users/joshdholtz/followers",
+      "following_url": "https://api.github.com/users/joshdholtz/following{/other_user}",
+      "gists_url": "https://api.github.com/users/joshdholtz/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/joshdholtz/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/joshdholtz/subscriptions",
+      "organizations_url": "https://api.github.com/users/joshdholtz/orgs",
+      "repos_url": "https://api.github.com/users/joshdholtz/repos",
+      "events_url": "https://api.github.com/users/joshdholtz/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/joshdholtz/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "6ef32be560c2ec22338e3a0ccfc84a54cde3d526",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/6ef32be560c2ec22338e3a0ccfc84a54cde3d526",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/6ef32be560c2ec22338e3a0ccfc84a54cde3d526"
+      }
+    ]
+  },
+  "status": "ahead",
+  "ahead_by": 3,
+  "behind_by": 0,
+  "total_commits": 3,
+  "commits": [
+    {
+      "sha": "819dc620db5608fb952c852038a3560554161707",
+      "node_id": "C_kwDOBnB8hdoAKDgxOWRjNjIwZGI1NjA4ZmI5NTJjODUyMDM4YTM1NjA1NTQxNjE3MDc",
+      "commit": {
+        "author": {
+          "name": "Toni Rico",
+          "email": "antonio.rico.diez@revenuecat.com",
+          "date": "2022-08-09T16:31:38Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-08-09T16:31:38Z"
+        },
+        "message": "Replace usages of replace_in with replace_text_in_files action (#1803)",
+        "tree": {
+          "sha": "1e44a64e811d4462c2445a9e95669962726c7fc2",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/1e44a64e811d4462c2445a9e95669962726c7fc2"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/819dc620db5608fb952c852038a3560554161707",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi8ovqCRBK7hj4Ov3rIwAAw9MIAGKbp1P/2nMcW8FtnubMVfT2\nuww41tWEgQKb+MYPrnyRZAtOHescHTMIjbyae5POI6IFj6Jp7zj7scQ//hE3ncu5\n3GMmEZAfQEfB/R/IamLy/coW6XHDyt7OcDJyNCFEKPOlZbFY30Zla5nrh++Wbtk8\ngtxSyohrwDDCvJsc/p7h7rbmmNeSw8AflJOe671qvixSfaHriiy8RJmriRqIIDFM\nsexg7DGLlRP96eMnVVf1X1ZwnbcxTDyMSAX5frAqpgpn+fC1p5Pp6IaDz/RTc1LM\nEYiOU6CgkUkj4BA18Msmtp6WXh2J71hpwjYTcd/RmZXVr466CG0X1hTzZWR0toI=\n=jVyP\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree 1e44a64e811d4462c2445a9e95669962726c7fc2\nparent 7ff1261d7bbbf51e76010b4c48aba2827350a2f5\nauthor Toni Rico <antonio.rico.diez@revenuecat.com> 1660062698 +0200\ncommitter GitHub <noreply@github.com> 1660062698 +0200\n\nReplace usages of replace_in with replace_text_in_files action (#1803)\n\n"
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/819dc620db5608fb952c852038a3560554161707",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/commit/819dc620db5608fb952c852038a3560554161707",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/819dc620db5608fb952c852038a3560554161707/comments",
+      "author": {
+        "login": "tonidero",
+        "id": 808417,
+        "node_id": "MDQ6VXNlcjgwODQxNw==",
+        "avatar_url": "https://avatars.githubusercontent.com/u/808417?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/tonidero",
+        "html_url": "https://github.com/tonidero",
+        "followers_url": "https://api.github.com/users/tonidero/followers",
+        "following_url": "https://api.github.com/users/tonidero/following{/other_user}",
+        "gists_url": "https://api.github.com/users/tonidero/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/tonidero/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/tonidero/subscriptions",
+        "organizations_url": "https://api.github.com/users/tonidero/orgs",
+        "repos_url": "https://api.github.com/users/tonidero/repos",
+        "events_url": "https://api.github.com/users/tonidero/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/tonidero/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7ff1261d7bbbf51e76010b4c48aba2827350a2f5",
+          "html_url": "https://github.com/RevenueCat/purchases-ios/commit/7ff1261d7bbbf51e76010b4c48aba2827350a2f5"
+        }
+      ]
+    },
+    {
+      "sha": "7d77decbcc9098145d1efd4c2de078b6121c8906",
+      "node_id": "C_kwDOBnB8hdoAKDdkNzdkZWNiY2M5MDk4MTQ1ZDFlZmQ0YzJkZTA3OGI2MTIxYzg5MDY",
+      "commit": {
+        "author": {
+          "name": "Joshua Liebowitz",
+          "email": "taquitos@users.noreply.github.com",
+          "date": "2022-08-09T16:42:31Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-08-09T16:42:31Z"
+        },
+        "message": "Updates (#1791)",
+        "tree": {
+          "sha": "fdfd149d2067ce7cc8aea7133e5e27b9119cdba7",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/fdfd149d2067ce7cc8aea7133e5e27b9119cdba7"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/7d77decbcc9098145d1efd4c2de078b6121c8906",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi8o53CRBK7hj4Ov3rIwAA28sIAEhrf966Y/X9Ja1pfr4yitDq\nUuuypQJNRV+f0Ycinvg7/B6leC7PEo2diOzTsUxW3cR4O+YX6qSrL05q7BNdaafT\nA9PI9vL4tvJk4KEl5xHYSGpzX0P4va3qGLdNyPS+UW1kFgU8OC7eqOQeUXctB8hI\n3Er+eUD7z5w2HM48VvHxigoB9Un8YDTbfOAIXlnSuNanXy5hUd9e6VQ6i08LAEdD\nzkbTpycSGCnoFoLg8+b5taUIZYKL8behGAdi9KmAm7O+5YxdP0936frWy77cg/1Y\n6ibI1P1llV+sSnJy9eLLR+8Ky69/xvk+DBa5a0Dojd8rliYVRKTyvJIk/Mm4Va4=\n=YqdF\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree fdfd149d2067ce7cc8aea7133e5e27b9119cdba7\nparent 819dc620db5608fb952c852038a3560554161707\nauthor Joshua Liebowitz <taquitos@users.noreply.github.com> 1660063351 -0700\ncommitter GitHub <noreply@github.com> 1660063351 -0700\n\nUpdates (#1791)\n\n"
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7d77decbcc9098145d1efd4c2de078b6121c8906",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/commit/7d77decbcc9098145d1efd4c2de078b6121c8906",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7d77decbcc9098145d1efd4c2de078b6121c8906/comments",
+      "author": {
+        "login": "taquitos",
+        "id": 1304821,
+        "node_id": "MDQ6VXNlcjEzMDQ4MjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1304821?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/taquitos",
+        "html_url": "https://github.com/taquitos",
+        "followers_url": "https://api.github.com/users/taquitos/followers",
+        "following_url": "https://api.github.com/users/taquitos/following{/other_user}",
+        "gists_url": "https://api.github.com/users/taquitos/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/taquitos/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/taquitos/subscriptions",
+        "organizations_url": "https://api.github.com/users/taquitos/orgs",
+        "repos_url": "https://api.github.com/users/taquitos/repos",
+        "events_url": "https://api.github.com/users/taquitos/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/taquitos/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "819dc620db5608fb952c852038a3560554161707",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/819dc620db5608fb952c852038a3560554161707",
+          "html_url": "https://github.com/RevenueCat/purchases-ios/commit/819dc620db5608fb952c852038a3560554161707"
+        }
+      ]
+    },
+    {
+      "sha": "6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "node_id": "C_kwDOBnB8hdoAKDZkMzdjNzY2YjZkYTU1ZGNhYjY3YzIwMWM5M2JhM2Q0Y2E1MzhlNTU",
+      "commit": {
+        "author": {
+          "name": "NachoSoto",
+          "email": "NachoSoto@users.noreply.github.com",
+          "date": "2022-08-09T20:43:03Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-08-09T20:43:03Z"
+        },
+        "message": "`SwiftLint`: fixed deprecation warning (#1809)\n\nI noticed this new warning in the `pre-commit` hook:\r\n> warning: The --path option is deprecated. Pass the path(s) to lint last to the swiftlint command.\r\n\r\nThis fixes that.",
+        "tree": {
+          "sha": "169240394104185056529f5ce9b6be80f63dbc8f",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/169240394104185056529f5ce9b6be80f63dbc8f"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi8sbXCRBK7hj4Ov3rIwAA5jsIAFX1yeXpTN37wP+HbsVEi2vX\nYBHAqxihB8cubYiqiYnMOHAd1HaWtN1HcSYYAq3Twgra01xpclptmRahV+XUuk8l\nXBO0V0OiDBXPufH0Hisz/7tILddm893iuVt4k7jIj2FINkuEAWEm+tAOenCvK/5H\nAymvSRrRnpWVdAetmyDosA04mGeu1W4h3vd9PiPpQ2yQzacOBivBj3khtEUva7oE\n5BHLau+3os/IuAnEevVdf7wSw1olbZdAaibuxqwYNURBSfcHQ8VKFjJckIYN1icj\nrlrrD5XhRhySTdm0wpU1XRIbSyaob0fygbjU0m39ANY0WXmozgJY7YZe0APAyZE=\n=Cdw+\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree 169240394104185056529f5ce9b6be80f63dbc8f\nparent 7d77decbcc9098145d1efd4c2de078b6121c8906\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1660077783 -0700\ncommitter GitHub <noreply@github.com> 1660077783 -0700\n\n`SwiftLint`: fixed deprecation warning (#1809)\n\nI noticed this new warning in the `pre-commit` hook:\r\n> warning: The --path option is deprecated. Pass the path(s) to lint last to the swiftlint command.\r\n\r\nThis fixes that."
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/commit/6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/6d37c766b6da55dcab67c201c93ba3d4ca538e55/comments",
+      "author": {
+        "login": "NachoSoto",
+        "id": 685609,
+        "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+        "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/NachoSoto",
+        "html_url": "https://github.com/NachoSoto",
+        "followers_url": "https://api.github.com/users/NachoSoto/followers",
+        "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+        "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+        "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+        "repos_url": "https://api.github.com/users/NachoSoto/repos",
+        "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "7d77decbcc9098145d1efd4c2de078b6121c8906",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/7d77decbcc9098145d1efd4c2de078b6121c8906",
+          "html_url": "https://github.com/RevenueCat/purchases-ios/commit/7d77decbcc9098145d1efd4c2de078b6121c8906"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "715f72949bf02e8f438081932759e426e1145908",
+      "filename": "Gemfile.lock",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 6,
+      "changes": 12,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/6d37c766b6da55dcab67c201c93ba3d4ca538e55/Gemfile.lock",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/6d37c766b6da55dcab67c201c93ba3d4ca538e55/Gemfile.lock",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Gemfile.lock?ref=6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "patch": "@@ -1,6 +1,6 @@\n GIT\n   remote: https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal\n-  revision: 4082cf43e9a21b61adbb53456e4692bb1e4257bf\n+  revision: 805c34fc9b7e13047a83d6d6411e87fc787143ba\n   specs:\n     fastlane-plugin-revenuecat_internal (0.1.0)\n \n@@ -23,8 +23,8 @@ GEM\n     artifactory (3.0.15)\n     atomos (0.1.3)\n     aws-eventstream (1.2.0)\n-    aws-partitions (1.615.0)\n-    aws-sdk-core (3.131.6)\n+    aws-partitions (1.616.0)\n+    aws-sdk-core (3.132.0)\n       aws-eventstream (~> 1, >= 1.0.2)\n       aws-partitions (~> 1, >= 1.525.0)\n       aws-sigv4 (~> 1.1)\n@@ -112,7 +112,7 @@ GEM\n     ethon (0.15.0)\n       ffi (>= 1.15.0)\n     excon (0.92.4)\n-    faraday (1.10.0)\n+    faraday (1.10.1)\n       faraday-em_http (~> 1.0)\n       faraday-em_synchrony (~> 1.0)\n       faraday-excon (~> 1.1)\n@@ -130,7 +130,7 @@ GEM\n     faraday-em_http (1.0.0)\n     faraday-em_synchrony (1.0.0)\n     faraday-excon (1.1.0)\n-    faraday-http-cache (2.4.0)\n+    faraday-http-cache (2.4.1)\n       faraday (>= 0.8)\n     faraday-httpclient (1.0.1)\n     faraday-multipart (1.0.4)\n@@ -347,4 +347,4 @@ DEPENDENCIES\n   jazzy\n \n BUNDLED WITH\n-   2.3.14\n+   2.3.17"
+    },
+    {
+      "sha": "04c4b43f06b9404ffa7226d9e8f931e424485411",
+      "filename": "fastlane/Fastfile",
+      "status": "modified",
+      "additions": 13,
+      "deletions": 6,
+      "changes": 19,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/6d37c766b6da55dcab67c201c93ba3d4ca538e55/fastlane%2FFastfile",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/6d37c766b6da55dcab67c201c93ba3d4ca538e55/fastlane%2FFastfile",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/fastlane%2FFastfile?ref=6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "patch": "@@ -320,8 +320,8 @@ platform :ios do\n   desc \"Update swift package commit\"\n   lane :update_swift_package_commit do\n     project_file_locations = [\n-      '../Tests/InstallationTests/SPMInstallation/SPMInstallation.xcodeproj/project.pbxproj',\n-      '../Examples/MagicWeather/MagicWeather.xcodeproj/project.pbxproj'\n+      './Tests/InstallationTests/SPMInstallation/SPMInstallation.xcodeproj/project.pbxproj',\n+      './Examples/MagicWeather/MagicWeather.xcodeproj/project.pbxproj'\n     ]\n \n     old_kind_line = \"kind = branch;\"\n@@ -331,10 +331,17 @@ platform :ios do\n     old_branch_line = \"branch = main;\"\n     new_revision_line = \"revision = #{commit_hash};\"\n \n-    project_file_locations.each { |project_file_location|\n-      Fastlane::Helper::RevenuecatInternalHelper.replace_in(old_kind_line, new_kind_line, project_file_location)\n-      Fastlane::Helper::RevenuecatInternalHelper.replace_in(old_branch_line, new_revision_line, project_file_location)\n-    }\n+    replace_text_in_files(\n+      previous_text: old_kind_line,\n+      new_text: new_kind_line,\n+      paths_of_files_to_update: project_file_locations\n+    )\n+\n+    replace_text_in_files(\n+      previous_text: old_branch_line,\n+      new_text: new_revision_line,\n+      paths_of_files_to_update: project_file_locations\n+    )\n   end\n \n   desc \"Preview docs\""
+    },
+    {
+      "sha": "b091174294daf0dd5b3d998d06a6c844d8a9bd29",
+      "filename": "scripts/pre-commit.sh",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/6d37c766b6da55dcab67c201c93ba3d4ca538e55/scripts%2Fpre-commit.sh",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/6d37c766b6da55dcab67c201c93ba3d4ca538e55/scripts%2Fpre-commit.sh",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/scripts%2Fpre-commit.sh?ref=6d37c766b6da55dcab67c201c93ba3d4ca538e55",
+      "patch": "@@ -18,13 +18,13 @@ run_swiftlint() {\n   local filename=\"${1}\"\n   if [[ \"${filename##*.}\" == \"swift\" ]]; then\n     if [[ \"${filename#*.}\" != \"generated.swift\" ]]; then\n-    ${SWIFT_LINT} --strict --path \"${filename}\"\n+    ${SWIFT_LINT} --strict \"${filename}\"\n     retVal=$?\n     if [ $retVal -ne 0 ]; then\n       SHOULD_FAIL_PRECOMMIT=$retVal\n     fi\n \n-    ${SWIFT_LINT} --autocorrect --strict --path \"${filename}\"\n+    ${SWIFT_LINT} --autocorrect --strict \"${filename}\"\n     fi\n   fi\n }"
+    }
+  ]
+}

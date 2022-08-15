@@ -1,0 +1,87 @@
+{
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+    {
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791",
+      "repository_url": "https://api.github.com/repos/RevenueCat/purchases-ios",
+      "labels_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791/labels{/name}",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791/comments",
+      "events_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791/events",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/pull/1791",
+      "id": 1325043542,
+      "node_id": "PR_kwDOBnB8hc48dp6U",
+      "number": 1791,
+      "title": "Update gems",
+      "user": {
+        "login": "taquitos",
+        "id": 1304821,
+        "node_id": "MDQ6VXNlcjEzMDQ4MjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1304821?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/taquitos",
+        "html_url": "https://github.com/taquitos",
+        "followers_url": "https://api.github.com/users/taquitos/followers",
+        "following_url": "https://api.github.com/users/taquitos/following{/other_user}",
+        "gists_url": "https://api.github.com/users/taquitos/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/taquitos/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/taquitos/subscriptions",
+        "organizations_url": "https://api.github.com/users/taquitos/orgs",
+        "repos_url": "https://api.github.com/users/taquitos/repos",
+        "events_url": "https://api.github.com/users/taquitos/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/taquitos/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "labels": [
+        {
+          "id": 4353486896,
+          "node_id": "LA_kwDOBnB8hc8AAAABA3zwMA",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/build",
+          "name": "build",
+          "color": "7E1B8C",
+          "default": false,
+          "description": "Changes that affect the build system or external dependencies"
+        }
+      ],
+      "state": "closed",
+      "locked": false,
+      "assignee": null,
+      "assignees": [
+
+      ],
+      "milestone": null,
+      "comments": 1,
+      "created_at": "2022-08-01T22:15:56Z",
+      "updated_at": "2022-08-09T16:42:32Z",
+      "closed_at": "2022-08-09T16:42:31Z",
+      "author_association": "CONTRIBUTOR",
+      "active_lock_reason": null,
+      "draft": false,
+      "pull_request": {
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/pulls/1791",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/pull/1791",
+        "diff_url": "https://github.com/RevenueCat/purchases-ios/pull/1791.diff",
+        "patch_url": "https://github.com/RevenueCat/purchases-ios/pull/1791.patch",
+        "merged_at": "2022-08-09T16:42:31Z"
+      },
+      "body": null,
+      "reactions": {
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1791/timeline",
+      "performed_via_github_app": null,
+      "state_reason": null,
+      "score": 1.0
+    }
+  ]
+}

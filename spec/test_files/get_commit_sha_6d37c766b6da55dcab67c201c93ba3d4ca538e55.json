@@ -1,0 +1,87 @@
+{
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+    {
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809",
+      "repository_url": "https://api.github.com/repos/RevenueCat/purchases-ios",
+      "labels_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809/labels{/name}",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809/comments",
+      "events_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809/events",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/pull/1809",
+      "id": 1333744626,
+      "node_id": "PR_kwDOBnB8hc486Zkg",
+      "number": 1809,
+      "title": "`SwiftLint`: fixed deprecation warning",
+      "user": {
+        "login": "NachoSoto",
+        "id": 685609,
+        "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+        "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/NachoSoto",
+        "html_url": "https://github.com/NachoSoto",
+        "followers_url": "https://api.github.com/users/NachoSoto/followers",
+        "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+        "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+        "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+        "repos_url": "https://api.github.com/users/NachoSoto/repos",
+        "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "labels": [
+        {
+          "id": 4396681492,
+          "node_id": "LA_kwDOBnB8hc8AAAABBhAJFA",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/refactor",
+          "name": "refactor",
+          "color": "e99695",
+          "default": false,
+          "description": "A code change that neither fixes a bug nor adds a feature"
+        }
+      ],
+      "state": "closed",
+      "locked": false,
+      "assignee": null,
+      "assignees": [
+
+      ],
+      "milestone": null,
+      "comments": 0,
+      "created_at": "2022-08-09T20:21:55Z",
+      "updated_at": "2022-08-09T20:43:04Z",
+      "closed_at": "2022-08-09T20:43:03Z",
+      "author_association": "COLLABORATOR",
+      "active_lock_reason": null,
+      "draft": false,
+      "pull_request": {
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/pulls/1809",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/pull/1809",
+        "diff_url": "https://github.com/RevenueCat/purchases-ios/pull/1809.diff",
+        "patch_url": "https://github.com/RevenueCat/purchases-ios/pull/1809.patch",
+        "merged_at": "2022-08-09T20:43:03Z"
+      },
+      "body": "I noticed this new warning in the `pre-commit` hook:\r\n> warning: The --path option is deprecated. Pass the path(s) to lint last to the swiftlint command.\r\n\r\nThis fixes that.",
+      "reactions": {
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/1809/timeline",
+      "performed_via_github_app": null,
+      "state_reason": null,
+      "score": 1.0
+    }
+  ]
+}
