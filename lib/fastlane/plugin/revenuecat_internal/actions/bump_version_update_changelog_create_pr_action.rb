@@ -44,7 +44,8 @@ module Fastlane
         Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Release/#{new_version_number}"
-        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, changelog, repo_name, github_pr_token)
+        label = 'next_release'
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, changelog, repo_name, new_branch_name, github_pr_token, [label])
       end
 
       def self.description

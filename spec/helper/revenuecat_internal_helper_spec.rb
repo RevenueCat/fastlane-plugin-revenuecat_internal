@@ -183,7 +183,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
   describe '.create_pr_to_main' do
     it 'creates pr' do
-      allow(Fastlane::Actions).to receive(:git_branch).and_return('fake-current-branch')
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
         .with(
           api_token: 'fake-github-pr-token',
@@ -191,10 +190,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           base: 'main',
           body: 'fake-changelog',
           repo: 'RevenueCat/fake-repo-name',
-          head: 'fake-current-branch',
-          api_url: 'https://api.github.com'
+          head: 'fake-branch',
+          api_url: 'https://api.github.com',
+          labels: ['label_1', 'label_2']
         ).once
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr_to_main('fake-title', 'fake-changelog', 'fake-repo-name', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr_to_main('fake-title', 'fake-changelog', 'fake-repo-name', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
     end
   end
 
@@ -232,6 +232,13 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect do
         Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
       end.to raise_exception(StandardError)
+    end
+
+    it 'works if git returns ssh warning' do
+      expect(Fastlane::Actions).to receive(:sh)
+        .with('git', 'ls-remote', '--heads', 'origin', 'new-branch')
+        .and_return("Warning: Permanently added the ECDSA host key for IP address 'xxx.xxx.xxx.xxx' to the list of known hosts.")
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures new branch does not exist remotely' do
