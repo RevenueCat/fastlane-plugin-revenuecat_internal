@@ -16,7 +16,7 @@ module Fastlane
         new_branch_name = "bump/#{next_version_snapshot}"
         label = 'next_release'
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, new_branch_name, github_pr_token)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
         Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
 

@@ -202,26 +202,25 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with('git', 'branch', '--list', 'new-branch').and_return('')
       allow(Fastlane::Actions).to receive(:sh).with('git', 'ls-remote', '--heads', 'origin', 'new-branch').and_return('')
-      allow(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch')
       allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
     end
 
     it 'fails if github_pr_token is nil' do
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', nil)
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', nil)
       end.to raise_exception(StandardError)
     end
 
     it 'fails if github_pr_token is empty' do
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', '')
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', '')
       end.to raise_exception(StandardError)
     end
 
     it 'fails if new branch exists locally' do
       expect(Fastlane::Actions).to receive(:sh).with('git', 'branch', '--list', 'new-branch').and_return('new-branch').once
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
       end.to raise_exception(StandardError)
     end
 
@@ -230,7 +229,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         .with('git', 'ls-remote', '--heads', 'origin', 'new-branch')
         .and_return('59f7273ae446cef04eb402b9708f0772389c59c4  refs/heads/new-branch')
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+        Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
       end.to raise_exception(StandardError)
     end
 
@@ -238,27 +237,17 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Actions).to receive(:sh)
         .with('git', 'ls-remote', '--heads', 'origin', 'new-branch')
         .and_return("Warning: Permanently added the ECDSA host key for IP address 'xxx.xxx.xxx.xxx' to the list of known hosts.")
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures new branch does not exist remotely' do
       expect(Fastlane::Actions).to receive(:sh).with('git', 'ls-remote', '--heads', 'origin', 'new-branch').once
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
-    end
-
-    it 'ensures repo is in specified branch' do
-      expect(Fastlane::Actions::EnsureGitBranchAction).to receive(:run).with(branch: 'fake-branch').once
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
-    end
-
-    it 'does not check repo is in specific branch if none passed' do
-      expect(Fastlane::Actions::EnsureGitBranchAction).not_to receive(:run)
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(nil, 'new-branch', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures repo is in a clean state' do
       expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
   end
 

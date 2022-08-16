@@ -10,7 +10,6 @@ lane :sample_bump_version_update_changelog_create_pr_action do |options|
     github_pr_token: 'github-api-token', # This can also be obtained from ENV GITHUB_PULL_REQUEST_API_TOKEN
     github_token: 'github-token',
     github_rate_limit: 0,
-    branch: 'main',
     editor: 'vim'
   )
 end
