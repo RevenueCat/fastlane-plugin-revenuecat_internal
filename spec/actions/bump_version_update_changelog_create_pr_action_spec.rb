@@ -15,6 +15,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with('release/1.13.0', mock_github_pr_token)
@@ -54,6 +55,24 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_rate_limit: 3,
         editor: editor
       )
+    end
+
+    it 'fails if selected no during prompt validating current branch' do
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
+      expect do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          files_to_update: ['./test_file.sh', './test_file2.rb'],
+          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          github_token: mock_github_token,
+          github_rate_limit: 3,
+          editor: editor
+        )
+      end.to raise_exception(StandardError)
     end
   end
 

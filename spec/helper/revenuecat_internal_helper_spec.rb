@@ -237,7 +237,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Actions).to receive(:sh)
         .with('git', 'ls-remote', '--heads', 'origin', 'new-branch')
         .and_return("Warning: Permanently added the ECDSA host key for IP address 'xxx.xxx.xxx.xxx' to the list of known hosts.")
-      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('fake-branch', 'new-branch', 'fake-github-pr-token')
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
 
     it 'ensures new branch does not exist remotely' do
