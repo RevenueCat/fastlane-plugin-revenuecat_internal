@@ -5,7 +5,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:mock_repo_name) { 'mock-repo-name' }
     let(:mock_changelog_latest_path) { './fake-changelog-latest-path/CHANGELOG.latest.md' }
     let(:mock_changelog_path) { './fake-changelog-path/CHANGELOG.md' }
-    let(:branch) { 'main' }
     let(:editor) { 'vim' }
     let(:auto_generated_changelog) { 'mock-auto-generated-changelog' }
     let(:edited_changelog) { 'mock-edited-changelog' }
@@ -18,7 +17,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(branch, 'release/1.13.0', mock_github_pr_token)
+        .with('release/1.13.0', mock_github_pr_token)
         .once
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
         .with(mock_repo_name, mock_github_token, 3)
@@ -53,7 +52,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        branch: branch,
         editor: editor
       )
     end
@@ -61,7 +59,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(12)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(11)
     end
   end
 end

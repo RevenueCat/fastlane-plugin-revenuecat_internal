@@ -7,7 +7,6 @@ module Fastlane
   module Actions
     class BumpVersionUpdateChangelogCreatePrAction < Action
       def self.run(params)
-        branch = params[:branch]
         repo_name = params[:repo_name]
         github_pr_token = params[:github_pr_token]
         github_token = params[:github_token]
@@ -20,6 +19,11 @@ module Fastlane
         changelog_path = params[:changelog_path]
         editor = params[:editor]
 
+        current_branch = Actions.git_branch
+        unless UI.prompt(text: "Current branch is #{current_branch}. Are you sure this is the base branch for your bump?", boolean: true)
+          UI.user_error!("Cancelled during branch confirmation")
+        end
+
         UI.important("Current version is #{version_number}")
 
         # Ask for new version number
@@ -29,7 +33,7 @@ module Fastlane
 
         new_branch_name = "release/#{new_version_number}"
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(branch, new_branch_name, github_pr_token)
+        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
         generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
@@ -102,11 +106,6 @@ module Fastlane
                                        optional: true,
                                        default_value: 0,
                                        type: Integer),
-          FastlaneCore::ConfigItem.new(key: :branch,
-                                       description: "Allows to execute the action from the given branch",
-                                       optional: true,
-                                       default_value: "main",
-                                       type: String),
           FastlaneCore::ConfigItem.new(key: :editor,
                                        env_name: "RC_INTERNAL_FASTLANE_EDITOR",
                                        description: "Allows to override editor to be used when editting the changelog",
