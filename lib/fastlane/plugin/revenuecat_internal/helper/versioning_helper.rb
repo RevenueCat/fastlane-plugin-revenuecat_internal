@@ -97,8 +97,11 @@ module Fastlane
 
       private_class_method def self.latest_non_prerelease_version_number
         Actions
-          .sh("git describe --tags $(git rev-list --exclude=\"*[a-zA-Z]*\" --tags=\"[0-9]*.[0-9]*.*[0-9]\" --max-count=1)")
+          .sh("git tag", log: false)
           .strip
+          .split("\n")
+          .select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+          .max_by { |tag| Gem::Version.new(tag) }
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)

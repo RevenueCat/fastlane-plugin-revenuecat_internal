@@ -286,8 +286,8 @@ describe Fastlane::Helper::VersioningHelper do
   def setup_commit_search_stubs(hashes_to_responses)
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags')
     allow(Fastlane::Actions).to receive(:sh)
-      .with("git describe --tags $(git rev-list --exclude=\"*[a-zA-Z]*\" --tags=\"[0-9]*.[0-9]*.*[0-9]\" --max-count=1)")
-      .and_return('1.11.0')
+      .with("git tag")
+      .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
       .with(server_url: server_url,
             path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
