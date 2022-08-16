@@ -9,7 +9,7 @@ module Fastlane
   module Helper
     class VersioningHelper
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
-        old_version = Actions.sh("git describe --tags --abbrev=0").strip
+        old_version = latest_non_prerelease_version_number
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -39,7 +39,8 @@ module Fastlane
       end
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
-        old_version = Actions.sh("git describe --tags --abbrev=0").strip
+        Actions.sh("git fetch --tags")
+        old_version = latest_non_prerelease_version_number
         UI.important("Auto-generating changelog since #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -92,6 +93,15 @@ module Fastlane
         else
           next_version
         end
+      end
+
+      private_class_method def self.latest_non_prerelease_version_number
+        Actions
+          .sh("git tag", log: false)
+          .strip
+          .split("\n")
+          .select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+          .max_by { |tag| Gem::Version.new(tag) }
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
