@@ -35,7 +35,7 @@ module Fastlane
           end
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
-        increase_version(old_version, type_of_bump, false)
+        return increase_version(old_version, type_of_bump, false), type_of_bump
       end
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)

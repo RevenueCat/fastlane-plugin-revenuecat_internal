@@ -15,7 +15,7 @@ module Fastlane
       end
 
       def self.description
-        "Determines next version using the labels of the pull requests merged since the last release"
+        "Determines next version using the labels of the pull requests merged since the last release. Returns the next version number along with the type of bump."
       end
 
       def self.authors

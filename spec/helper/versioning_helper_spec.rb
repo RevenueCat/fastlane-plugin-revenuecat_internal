@@ -185,24 +185,26 @@ describe Fastlane::Helper::VersioningHelper do
               api_token: 'mock-github-token')
         .and_return(get_commits_response_patch)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
       )
       expect(next_version).to eq("1.11.1")
+      expect(type_of_bump).to eq(:patch)
     end
 
     it 'determines next version as minor correctly' do
       setup_commit_search_stubs(hashes_to_responses)
 
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
       )
       expect(next_version).to eq("1.12.0")
+      expect(type_of_bump).to eq(:minor)
     end
 
     it 'determines next version as major correctly' do
@@ -216,24 +218,26 @@ describe Fastlane::Helper::VersioningHelper do
               api_token: 'mock-github-token')
         .and_return(get_breaking_commit_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         0
       )
       expect(next_version).to eq("2.0.0")
+      expect(type_of_bump).to eq(:major)
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
 
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
-      next_version = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',
         3
       )
       expect(next_version).to eq("1.12.0")
+      expect(type_of_bump).to eq(:minor)
     end
 
     it 'fails if it finds multiple commits with same sha' do
