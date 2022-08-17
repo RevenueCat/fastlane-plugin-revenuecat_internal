@@ -14,6 +14,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:labels) { ['next_release'] }
 
     it 'calls all the appropriate methods with appropriate parameters' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
@@ -58,6 +59,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     end
 
     it 'fails if selected no during prompt validating current branch' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
       expect do
         Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
