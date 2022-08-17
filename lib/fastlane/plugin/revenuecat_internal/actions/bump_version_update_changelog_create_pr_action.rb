@@ -20,10 +20,8 @@ module Fastlane
         editor = params[:editor]
 
         current_branch = Actions.git_branch
-        if UI.interactive?
-          unless UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
-            UI.user_error!("Cancelled during branch confirmation")
-          end
+        if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
+          UI.user_error!("Cancelled during branch confirmation")
         end
 
         UI.important("Current version is #{version_number}")
