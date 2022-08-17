@@ -29,6 +29,7 @@ module Fastlane
         # Ask for new version number
         new_version_number ||= UI.input("New version number: ")
 
+        UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
         UI.important("New version is #{new_version_number}")
 
         new_branch_name = "release/#{new_version_number}"
