@@ -72,20 +72,29 @@ module Fastlane
       end
 
       def self.increase_version(current_version, type_of_bump, snapshot)
-        version_split = current_version.split('.')
-        UI.user_error("Invalid version number: #{current_version}. Expected 3 numbers separated by '.'") if version_split.size != 3
+        is_prerelease = %w(alpha beta rc).any? { |prerelease| current_version.include?(prerelease) }
+        is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?$")
+
+        UI.user_error!("Invalid version number: #{current_version}. Expected 3 numbers separated by '.' with an optional prerelease modifier") unless is_valid_version
+
+        delimiters = ['.', '-']
+        version_split = current_version.split(Regexp.union(delimiters))
 
         major = version_split[0]
         minor = version_split[1]
         patch = version_split[2]
 
-        case type_of_bump
-        when :major
-          next_version = "#{major.to_i + 1}.0.0"
-        when :minor
-          next_version = "#{major}.#{minor.to_i + 1}.0"
+        if is_prerelease
+          next_version = "#{major}.#{minor}.#{patch}"
         else
-          next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
+          case type_of_bump
+          when :major
+            next_version = "#{major.to_i + 1}.0.0"
+          when :minor
+            next_version = "#{major}.#{minor.to_i + 1}.0"
+          else
+            next_version = "#{major}.#{minor}.#{patch.to_i + 1}"
+          end
         end
 
         if snapshot

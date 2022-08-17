@@ -257,9 +257,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(next_version).to eq('1.12.0-SNAPSHOT')
     end
 
-    it 'calculates next version correctly with snapshot version' do
-      next_version = Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11.1-SNAPSHOT')
-      expect(next_version).to eq('1.12.0-SNAPSHOT')
+    it 'calculates next version correctly with prerelease version' do
+      next_version = Fastlane::Helper::RevenuecatInternalHelper.calculate_next_snapshot_version('1.11.1-alpha.1')
+      expect(next_version).to eq('1.11.1-SNAPSHOT')
     end
 
     it 'calculates next version correctly with major relase' do
