@@ -59,6 +59,7 @@ module Fastlane
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
             types_of_change = get_type_of_change_from_pr_info(item)
+            next if types_of_change.include?("next_release")
 
             section = get_section_depending_on_types_of_change(types_of_change)
 
