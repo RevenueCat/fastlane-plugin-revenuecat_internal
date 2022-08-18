@@ -18,6 +18,7 @@ module Fastlane
         changelog_latest_path = params[:changelog_latest_path]
         changelog_path = params[:changelog_path]
         editor = params[:editor]
+        automatic_release = params[:automatic_release]
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -53,7 +54,14 @@ module Fastlane
 
         pr_title = "Release/#{new_version_number}"
         label = 'next_release'
-        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, changelog, repo_name, new_branch_name, github_pr_token, [label])
+        body = changelog
+
+        if automatic_release
+          body = "This is an automatic release.\n\n#{body}"
+          pr_title = "[AUTOMATIC] #{pr_title}"
+        end
+
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, [label])
       end
 
       def self.description
@@ -118,6 +126,10 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :next_version,
                                        description: "Next version of the SDK",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :automatic_release,
+                                       description: "If this is an automatic release",
                                        optional: true,
                                        type: String)
         ]
