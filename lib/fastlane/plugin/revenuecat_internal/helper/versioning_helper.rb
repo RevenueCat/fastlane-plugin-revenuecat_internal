@@ -8,35 +8,40 @@ module Fastlane
 
   module Helper
     class VersioningHelper
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
+      # rubocop:disable Metrics/CyclomaticComplexity
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, skip_if_no_public_changes)
         old_version = latest_non_prerelease_version_number
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = :patch
-
+        should_skip_release = true
         commits.each do |commit|
           break if type_of_bump == :major
 
           sha = commit["sha"]
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
 
-          if items.size == 1
-            item = items.first
+          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}") if items.size != 1
 
-            types_of_change = get_type_of_change_from_pr_info(item)
+          item = items.first
+          types_of_change = get_type_of_change_from_pr_info(item)
+          type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
+          type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
+          changes_are_public = (types_of_change & %w[breaking build docs feat fix perf refactor]).size > 0
 
-            type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
-
-            type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          else
-            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
-          end
+          should_skip_release = false if should_skip_release && changes_are_public
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
+
+        if should_skip_release && skip_if_no_public_changes
+          return old_version, :skip
+        end
+
         return increase_version(old_version, type_of_bump, false), type_of_bump
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Actions.sh("git fetch --tags")

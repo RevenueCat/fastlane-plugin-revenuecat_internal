@@ -10,8 +10,9 @@ module Fastlane
         repo_name = params[:repo_name]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
+        skip_if_no_public_changes = params[:skip_if_no_public_changes]
 
-        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, skip_if_no_public_changes)
       end
 
       def self.description
@@ -39,7 +40,13 @@ module Fastlane
                                        description: "Sets a rate limiter for github requests when creating the changelog",
                                        optional: true,
                                        default_value: 0,
-                                       type: Integer)
+                                       type: Integer),
+          FastlaneCore::ConfigItem.new(key: :skip_if_no_public_changes,
+                                       env_name: "RC_INTERNAL_SKIP_IF_NO_PUBLIC_CHANGES",
+                                       description: "Skip next version if no public changes have been commited to the repo. For example, if the only changes have been changes to CI, there shouldn't be a next release",
+                                       optional: true,
+                                       default_value: false,
+                                       type: Boolean)
         ]
       end
 
