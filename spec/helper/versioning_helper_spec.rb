@@ -285,6 +285,38 @@ describe Fastlane::Helper::VersioningHelper do
       next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :major, true)
       expect(next_version).to eq('2.0.0-SNAPSHOT')
     end
+
+    it 'keeps version with snapshot but removing alpha modifier if it appears' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-alpha.1', :major, true)
+      expect(next_version).to eq('1.2.3-SNAPSHOT')
+    end
+
+    it 'keeps version with snapshot but removing beta modifier if it appears' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :minor, true)
+      expect(next_version).to eq('1.2.3-SNAPSHOT')
+    end
+
+    it 'keeps version with snapshot but removing rc modifier if it appears' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :patch, true)
+      expect(next_version).to eq('1.2.3-SNAPSHOT')
+    end
+
+    it 'keeps version but removing rc modifier if it appears' do
+      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :patch, false)
+      expect(next_version).to eq('1.2.3')
+    end
+
+    it 'fails if given snapshot version to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.increase_version('1.2.3-SNAPSHOT', :patch, false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given unsupported version to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.increase_version('1.2.3-alpha', :patch, false)
+      end.to raise_exception(StandardError)
+    end
   end
 
   def setup_commit_search_stubs(hashes_to_responses)
