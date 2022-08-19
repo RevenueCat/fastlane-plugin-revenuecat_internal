@@ -15,7 +15,8 @@ module Fastlane
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = :patch
-        should_skip_release = true
+        has_public_changes = false
+        public_change_labels = %w[breaking docs feat fix perf]
         commits.each do |commit|
           break if type_of_bump == :major
 
@@ -28,13 +29,14 @@ module Fastlane
           types_of_change = get_type_of_change_from_pr_info(item)
           type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
           type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          changes_are_public = (types_of_change & %w[breaking docs feat fix perf]).size > 0
+          puts "types_of_change #{types_of_change}"
+          changes_are_public = (types_of_change & public_change_labels).size > 0
 
-          should_skip_release = false if should_skip_release && changes_are_public
+          has_public_changes = true if !has_public_changes && changes_are_public
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
-        if should_skip_release
+        unless has_public_changes
           return old_version, :skip
         end
 
