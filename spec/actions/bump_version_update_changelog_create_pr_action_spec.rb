@@ -13,6 +13,29 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:new_branch_name) { 'release/1.13.0' }
     let(:labels) { ['next_release'] }
 
+    it 'fails if version is invalid' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return('')
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with('Version number cannot be empty')
+        .once
+        .and_throw(:expected_error)
+
+      catch :expected_error do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          github_token: mock_github_token,
+          editor: editor
+        )
+      end
+    end
+
     it 'calls all the appropriate methods with appropriate parameters' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
