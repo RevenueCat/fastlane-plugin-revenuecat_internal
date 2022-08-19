@@ -50,8 +50,6 @@ module Fastlane
       end
 
       def self.prepare_changelog(prepopulated_changelog, changelog_latest_path)
-        changelog_filename = File.basename(changelog_latest_path)
-
         UI.user_error!("Pre populated content for changelog was empty") if prepopulated_changelog.empty?
 
         UI.message("Using pre populated contents:\n#{prepopulated_changelog}")
