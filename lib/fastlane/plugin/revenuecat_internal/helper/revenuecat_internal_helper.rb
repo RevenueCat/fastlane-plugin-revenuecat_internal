@@ -49,6 +49,16 @@ module Fastlane
         end
       end
 
+      def self.prepare_changelog(prepopulated_changelog, changelog_latest_path)
+        changelog_filename = File.basename(changelog_latest_path)
+
+        UI.user_error!("Pre populated content for changelog was empty") if prepopulated_changelog.empty?
+
+        UI.message("Using pre populated contents:\n#{prepopulated_changelog}")
+
+        File.write(changelog_latest_path, prepopulated_changelog)
+      end
+
       def self.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
         current_changelog = File.open(changelog_latest_path, 'r')
         master_changelog = File.open(changelog_path, 'r')
