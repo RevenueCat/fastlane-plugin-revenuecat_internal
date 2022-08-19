@@ -8,8 +8,7 @@ module Fastlane
 
   module Helper
     class VersioningHelper
-      # rubocop:disable Metrics/CyclomaticComplexity
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, skip_if_no_public_changes)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
         old_version = latest_non_prerelease_version_number
         UI.important("Determining next version after #{old_version}")
 
@@ -35,13 +34,12 @@ module Fastlane
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
-        if should_skip_release && skip_if_no_public_changes
+        if should_skip_release
           return old_version, :skip
         end
 
         return increase_version(old_version, type_of_bump, false), type_of_bump
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
         Actions.sh("git fetch --tags")
