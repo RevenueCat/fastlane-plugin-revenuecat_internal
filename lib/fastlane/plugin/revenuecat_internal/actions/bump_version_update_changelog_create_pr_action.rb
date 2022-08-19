@@ -131,7 +131,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :automatic_release,
                                        description: "If this is an automatic release",
                                        optional: true,
-                                       type: String)
+                                       type: Boolean)
         ]
       end
 
