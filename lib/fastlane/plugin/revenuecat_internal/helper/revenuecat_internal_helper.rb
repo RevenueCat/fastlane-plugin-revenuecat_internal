@@ -54,7 +54,8 @@ module Fastlane
 
         UI.message("Using pre populated contents:\n#{prepopulated_changelog}")
 
-        File.write(changelog_latest_path, prepopulated_changelog)
+        # An extra line at the end needs to be added. Vim adds it automatically.
+        File.write(changelog_latest_path, "#{prepopulated_changelog}\n")
       end
 
       def self.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
