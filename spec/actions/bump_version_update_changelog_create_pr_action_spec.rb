@@ -17,7 +17,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return('')
-      
+
       expect(FastlaneCore::UI).to receive(:user_error!)
         .with('Version number cannot be empty')
         .once
