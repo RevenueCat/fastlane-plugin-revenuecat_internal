@@ -171,7 +171,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Version bump for #{new_version}")
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("[AUTOMATIC] Release/1.13.0", "This is an automatic release.\n\nmock-edited-changelog", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,

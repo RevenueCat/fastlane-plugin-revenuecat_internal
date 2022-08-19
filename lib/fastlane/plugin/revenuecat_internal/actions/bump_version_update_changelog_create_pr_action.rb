@@ -57,7 +57,7 @@ module Fastlane
         body = changelog
 
         if automatic_release
-          body = "This is an automatic release.\n\n#{body}"
+          body = "**This is an automatic release.**\n\n#{body}"
           pr_title = "[AUTOMATIC] #{pr_title}"
         end
 
