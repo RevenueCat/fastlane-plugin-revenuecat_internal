@@ -127,6 +127,32 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
+  describe '.write_changelog' do
+    let(:prepopulated_changelog) { 'mock prepopulated changelog' }
+    let(:changelog_latest_path) { './tmp_test_files/CHANGELOG.latest.md' }
+
+    before(:each) do
+      Dir.mkdir('./tmp_test_files')
+      File.write(changelog_latest_path, 'Old changelog')
+    end
+
+    after(:each) do
+      FileUtils.rm_rf('./tmp_test_files')
+    end
+
+    it 'writes prepopulated changelog to latest changelog file' do
+      Fastlane::Helper::RevenuecatInternalHelper.write_changelog(prepopulated_changelog, changelog_latest_path)
+      expect(File.read(changelog_latest_path)).to eq("#{prepopulated_changelog}\n")
+    end
+
+    it 'fails if prepopulated changelog is empty' do
+      expect(File).not_to receive(:write)
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.write_changelog('', changelog_latest_path)
+      end.to raise_exception(StandardError)
+    end
+  end
+
   describe '.attach_changelog_to_master' do
     require 'fileutils'
 

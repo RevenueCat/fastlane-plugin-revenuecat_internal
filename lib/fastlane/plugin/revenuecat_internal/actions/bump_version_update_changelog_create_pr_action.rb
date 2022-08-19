@@ -39,6 +39,8 @@ module Fastlane
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
+        else
+          Helper::RevenuecatInternalHelper.write_changelog(generated_contents, changelog_latest_path)
         end
 
         changelog = File.read(changelog_latest_path)
