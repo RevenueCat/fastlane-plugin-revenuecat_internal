@@ -121,7 +121,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       setup_stubs
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
-                                                              .with(auto_generated_changelog, mock_changelog_latest_path)
+        .with(auto_generated_changelog, mock_changelog_latest_path)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:edit_changelog)
                                                                   .with(auto_generated_changelog, mock_changelog_latest_path, editor))
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -170,7 +170,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(mock_repo_name, mock_github_token, 3)
         .and_return(auto_generated_changelog)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
-                                                             .with(auto_generated_changelog, mock_changelog_latest_path)
+        .with(auto_generated_changelog, mock_changelog_latest_path)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with(new_branch_name)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
