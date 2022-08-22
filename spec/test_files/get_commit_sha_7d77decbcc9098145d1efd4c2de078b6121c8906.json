@@ -35,13 +35,13 @@
       },
       "labels": [
         {
-          "id": 4353486896,
-          "node_id": "LA_kwDOBnB8hc8AAAABA3zwMA",
-          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/build",
-          "name": "build",
-          "color": "7E1B8C",
+          "id": 4352868120,
+          "node_id": "LB_kwDOBnB8hc8AABACA3N_HQ",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/fix",
+          "name": "fix",
+          "color": "8E3E6B",
           "default": false,
-          "description": "Changes that affect the build system or external dependencies"
+          "description": ""
         }
       ],
       "state": "closed",

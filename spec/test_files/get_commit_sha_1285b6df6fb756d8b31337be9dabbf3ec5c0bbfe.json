@@ -1,0 +1,87 @@
+{
+    "total_count": 1,
+    "incomplete_results": false,
+    "items": [
+        {
+            "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209",
+            "repository_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common",
+            "labels_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209/labels{/name}",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209/comments",
+            "events_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209/events",
+            "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/pull/209",
+            "id": 1343899604,
+            "node_id": "PR_kwDOC8VU_c49bxhj",
+            "number": 209,
+            "title": "Release/4.1.3",
+            "user": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "labels": [
+                {
+                    "id": 2141594729,
+                    "node_id": "MDU6TGFiZWwyMTQxNTk0NzI5",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/labels/next_release",
+                    "name": "next_release",
+                    "color": "e11d21",
+                    "default": false,
+                    "description": null
+                }
+            ],
+            "state": "closed",
+            "locked": false,
+            "assignee": null,
+            "assignees": [
+
+            ],
+            "milestone": null,
+            "comments": 7,
+            "created_at": "2022-08-19T03:47:18Z",
+            "updated_at": "2022-08-22T09:44:13Z",
+            "closed_at": "2022-08-22T09:44:13Z",
+            "author_association": "COLLABORATOR",
+            "active_lock_reason": null,
+            "draft": false,
+            "pull_request": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/pulls/209",
+                "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/pull/209",
+                "diff_url": "https://github.com/RevenueCat/purchases-hybrid-common/pull/209.diff",
+                "patch_url": "https://github.com/RevenueCat/purchases-hybrid-common/pull/209.patch",
+                "merged_at": "2022-08-22T09:44:13Z"
+            },
+            "body": "### Other Changes\r\n* `automaticAppleSearchAdsAttributionCollection`: changed implementation to call method directly (#199) via NachoSoto (@NachoSoto)\r\n * Release train (#202) via Cesar de la Vega (@vegaro)\r\n * Adds Danger (#204) via Cesar de la Vega (@vegaro)\r\n * Upgrade iOS to 4.10.2 (#207) (@NachoSoto)",
+            "reactions": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209/reactions",
+                "total_count": 0,
+                "+1": 0,
+                "-1": 0,
+                "laugh": 0,
+                "hooray": 0,
+                "confused": 0,
+                "heart": 0,
+                "rocket": 0,
+                "eyes": 0
+            },
+            "timeline_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/issues/209/timeline",
+            "performed_via_github_app": null,
+            "state_reason": null,
+            "score": 1.0
+        }
+    ]
+}

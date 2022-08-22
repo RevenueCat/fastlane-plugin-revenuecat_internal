@@ -15,26 +15,30 @@ module Fastlane
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = :patch
-
+        has_public_changes = false
+        public_change_labels = %w[breaking docs feat fix perf dependencies]
         commits.each do |commit|
           break if type_of_bump == :major
 
           sha = commit["sha"]
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
 
-          if items.size == 1
-            item = items.first
+          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}") if items.size != 1
 
-            types_of_change = get_type_of_change_from_pr_info(item)
+          item = items.first
+          types_of_change = get_type_of_change_from_pr_info(item)
+          type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
+          type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
+          changes_are_public = (types_of_change & public_change_labels).size > 0
 
-            type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
-
-            type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          else
-            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
-          end
+          has_public_changes = true if !has_public_changes && changes_are_public
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
+
+        unless has_public_changes
+          return old_version, :skip
+        end
+
         return increase_version(old_version, type_of_bump, false), type_of_bump
       end
 
