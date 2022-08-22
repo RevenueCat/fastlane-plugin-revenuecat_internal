@@ -16,7 +16,7 @@ module Fastlane
 
         type_of_bump = :patch
         has_public_changes = false
-        public_change_labels = %w[breaking docs feat fix perf]
+        public_change_labels = %w[breaking docs feat fix perf dependencies]
         commits.each do |commit|
           break if type_of_bump == :major
 
