@@ -1,0 +1,360 @@
+{
+  "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/compare/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf...1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+  "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/compare/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf...1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+  "permalink_url": "https://github.com/RevenueCat/purchases-hybrid-common/compare/RevenueCat:375e9b9...RevenueCat:1285b6d",
+  "diff_url": "https://github.com/RevenueCat/purchases-hybrid-common/compare/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf...1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe.diff",
+  "patch_url": "https://github.com/RevenueCat/purchases-hybrid-common/compare/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf...1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe.patch",
+  "base_commit": {
+    "sha": "375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "node_id": "C_kwDOC8VU_doAKDM3NWU5Yjk3YTRkZTZmNmU0OWQ0OWM3MWM3NjY2YmJlZDRhZTJhY2Y",
+    "commit": {
+      "author": {
+        "name": "NachoSoto",
+        "email": "NachoSoto@users.noreply.github.com",
+        "date": "2022-08-19T20:39:43Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-08-19T20:39:43Z"
+      },
+      "message": "`IntegrationTests`: actually fail test if tests aren't configured (#210)\n\nLooks like calling `XCTFail` followed by throwing an error was making the test continue for some reason, which was then making it crash instead because `Purchases.shared` isn't set.\r\nBy removing the `XCTFail`, `XCTest` now correctly sees this as a test failure and doesn't run the tests.",
+      "tree": {
+        "sha": "cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/trees/cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi//UPCRBK7hj4Ov3rIwAAcuYIAJhQb8KAKiNwJEEIa9T/+GZ4\nqJSmUCkMuzg/FXpCDAirbqEHioXiOhqrk/vfPgJaKaSdXQGDwxYMldbKri8CBTSD\ndggudIt10LquvnxBIgE4+zf0SWZJpYPu5QSiFsvYls7wK2KZz0o6GPNJfTTykfM5\nb4/Zw/k7us3m3weApNss+ulnM9+MMeZi9arR26dnkqF9uzkwaBdd+8/bFoqdL8Ua\nMYJ0XYBrkia32pAs7kl6EqiGD+YPE/ZA6bUj/c8cW7hpJYGX30gY3U2T9WoQ0TMe\nOtGSCpBzvLYYuumGjndkZ8GebUpsPqC9Xz4zvhcKsmfRRvfjcg7M9vJBikfvRdM=\n=+dn4\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f\nparent 1731317bcc6fca7c36001b2d8a5c4ccd420013a9\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1660941583 -0700\ncommitter GitHub <noreply@github.com> 1660941583 -0700\n\n`IntegrationTests`: actually fail test if tests aren't configured (#210)\n\nLooks like calling `XCTFail` followed by throwing an error was making the test continue for some reason, which was then making it crash instead because `Purchases.shared` isn't set.\r\nBy removing the `XCTFail`, `XCTest` now correctly sees this as a test failure and doesn't run the tests."
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf/comments",
+    "author": {
+      "login": "NachoSoto",
+      "id": 685609,
+      "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/NachoSoto",
+      "html_url": "https://github.com/NachoSoto",
+      "followers_url": "https://api.github.com/users/NachoSoto/followers",
+      "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+      "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+      "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+      "repos_url": "https://api.github.com/users/NachoSoto/repos",
+      "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1731317bcc6fca7c36001b2d8a5c4ccd420013a9",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/1731317bcc6fca7c36001b2d8a5c4ccd420013a9",
+        "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/1731317bcc6fca7c36001b2d8a5c4ccd420013a9"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "node_id": "C_kwDOC8VU_doAKDM3NWU5Yjk3YTRkZTZmNmU0OWQ0OWM3MWM3NjY2YmJlZDRhZTJhY2Y",
+    "commit": {
+      "author": {
+        "name": "NachoSoto",
+        "email": "NachoSoto@users.noreply.github.com",
+        "date": "2022-08-19T20:39:43Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-08-19T20:39:43Z"
+      },
+      "message": "`IntegrationTests`: actually fail test if tests aren't configured (#210)\n\nLooks like calling `XCTFail` followed by throwing an error was making the test continue for some reason, which was then making it crash instead because `Purchases.shared` isn't set.\r\nBy removing the `XCTFail`, `XCTest` now correctly sees this as a test failure and doesn't run the tests.",
+      "tree": {
+        "sha": "cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/trees/cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJi//UPCRBK7hj4Ov3rIwAAcuYIAJhQb8KAKiNwJEEIa9T/+GZ4\nqJSmUCkMuzg/FXpCDAirbqEHioXiOhqrk/vfPgJaKaSdXQGDwxYMldbKri8CBTSD\ndggudIt10LquvnxBIgE4+zf0SWZJpYPu5QSiFsvYls7wK2KZz0o6GPNJfTTykfM5\nb4/Zw/k7us3m3weApNss+ulnM9+MMeZi9arR26dnkqF9uzkwaBdd+8/bFoqdL8Ua\nMYJ0XYBrkia32pAs7kl6EqiGD+YPE/ZA6bUj/c8cW7hpJYGX30gY3U2T9WoQ0TMe\nOtGSCpBzvLYYuumGjndkZ8GebUpsPqC9Xz4zvhcKsmfRRvfjcg7M9vJBikfvRdM=\n=+dn4\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree cf5eb1bea5ee72eca5826b45df5bcbb84d4eca8f\nparent 1731317bcc6fca7c36001b2d8a5c4ccd420013a9\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1660941583 -0700\ncommitter GitHub <noreply@github.com> 1660941583 -0700\n\n`IntegrationTests`: actually fail test if tests aren't configured (#210)\n\nLooks like calling `XCTFail` followed by throwing an error was making the test continue for some reason, which was then making it crash instead because `Purchases.shared` isn't set.\r\nBy removing the `XCTFail`, `XCTest` now correctly sees this as a test failure and doesn't run the tests."
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf/comments",
+    "author": {
+      "login": "NachoSoto",
+      "id": 685609,
+      "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/NachoSoto",
+      "html_url": "https://github.com/NachoSoto",
+      "followers_url": "https://api.github.com/users/NachoSoto/followers",
+      "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+      "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+      "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+      "repos_url": "https://api.github.com/users/NachoSoto/repos",
+      "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1731317bcc6fca7c36001b2d8a5c4ccd420013a9",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/1731317bcc6fca7c36001b2d8a5c4ccd420013a9",
+        "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/1731317bcc6fca7c36001b2d8a5c4ccd420013a9"
+      }
+    ]
+  },
+  "status": "ahead",
+  "ahead_by": 1,
+  "behind_by": 0,
+  "total_commits": 1,
+  "commits": [
+    {
+      "sha": "1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "node_id": "C_kwDOC8VU_doAKDEyODViNmRmNmZiNzU2ZDhiMzEzMzdiZTlkYWJiZjNlYzVjMGJiZmU",
+      "commit": {
+        "author": {
+          "name": "RevenueCat Git Bot",
+          "email": "72824662+RCGitBot@users.noreply.github.com",
+          "date": "2022-08-22T09:44:12Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-08-22T09:44:12Z"
+        },
+        "message": "Release/4.1.3 (#209)\n\nCo-authored-by: Cesar de la Vega <cesarvegaro@gmail.com>\r\nCo-authored-by: NachoSoto <ignaciosoto90@gmail.com>",
+        "tree": {
+          "sha": "a3f478da33b1cfe60e96340d7d6cdb643a0481f3",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/trees/a3f478da33b1cfe60e96340d7d6cdb643a0481f3"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/commits/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjA0/sCRBK7hj4Ov3rIwAAr1UIAH3nwQpCfCYaFceNimLJafPI\nPqMui/i+51Fdw6Yjm0W5XHy+nGA0LWRIZIqeBrKyuDtbiu0pO2Xk4ZdXDx4wAGuZ\nO+uuAkR3PkJoLsrxHqLtcNOnJr0vVwlOh0p7gl/bCFXACZceG5E/bWm8q45816/V\nPIquPELkPxw9lmmZzdN936S+AR+/KdSX4Lxet4cKtxmCM1VthGIQA70ze5qFtgl1\nUPYuPHr8fDl1vBQMvWoHj9T+zRJ9ZR6Dk4oqSMpBgllVm4x4FRXuBAgJ7aJmtBph\nRnrjC2yDyYrEj5B8U4nDcn0R8/u+EJayXNdfM41r2COJd7+Q5WVdqUf6zB9X8fQ=\n=oWc1\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree a3f478da33b1cfe60e96340d7d6cdb643a0481f3\nparent 375e9b97a4de6f6e49d49c71c7666bbed4ae2acf\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1661161452 +0200\ncommitter GitHub <noreply@github.com> 1661161452 +0200\n\nRelease/4.1.3 (#209)\n\nCo-authored-by: Cesar de la Vega <cesarvegaro@gmail.com>\r\nCo-authored-by: NachoSoto <ignaciosoto90@gmail.com>"
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/comments",
+      "author": {
+        "login": "RCGitBot",
+        "id": 72824662,
+        "node_id": "MDQ6VXNlcjcyODI0NjYy",
+        "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/RCGitBot",
+        "html_url": "https://github.com/RCGitBot",
+        "followers_url": "https://api.github.com/users/RCGitBot/followers",
+        "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+        "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+        "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+        "repos_url": "https://api.github.com/users/RCGitBot/repos",
+        "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/commits/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf",
+          "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/commit/375e9b97a4de6f6e49d49c71c7666bbed4ae2acf"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "8c7fafd365322ec4dd915a53003816c4b5977662",
+      "filename": ".version",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/.version",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/.version",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/.version?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -1 +1 @@\n-4.1.2\n\\ No newline at end of file\n+4.1.3\n\\ No newline at end of file"
+    },
+    {
+      "sha": "34982bcd2ed16f34ca825d4415091b5b209aea66",
+      "filename": "CHANGELOG.latest.md",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 1,
+      "changes": 5,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/CHANGELOG.latest.md",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/CHANGELOG.latest.md",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/CHANGELOG.latest.md?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -1,2 +1,5 @@\n ### Other Changes\n-* Upgrade iOS to 4.10.1 (#201) via RevenueCat Git Bot (@RCGitBot)\n+* `automaticAppleSearchAdsAttributionCollection`: changed implementation to call method directly (#199) via NachoSoto (@NachoSoto)\n+* Release train (#202) via Cesar de la Vega (@vegaro)\n+* Adds Danger (#204) via Cesar de la Vega (@vegaro)\n+* Upgrade iOS to 4.10.2 (#207) (@NachoSoto)"
+    },
+    {
+      "sha": "1bcf0670b9ff73a08195bfbc952dcdcdb66a3600",
+      "filename": "CHANGELOG.md",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/CHANGELOG.md",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/CHANGELOG.md",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/CHANGELOG.md?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -1,3 +1,10 @@\n+## 4.1.3\n+### Other Changes\n+* `automaticAppleSearchAdsAttributionCollection`: changed implementation to call method directly (#199) via NachoSoto (@NachoSoto)\n+* Release train (#202) via Cesar de la Vega (@vegaro)\n+* Adds Danger (#204) via Cesar de la Vega (@vegaro)\n+* Upgrade iOS to 4.10.2 (#207) (@NachoSoto)\n+\n ## 4.1.2\n ### Other Changes\n * Upgrade iOS to 4.10.1 (#201) via RevenueCat Git Bot (@RCGitBot)"
+    },
+    {
+      "sha": "86e50ccef655993da81d120c96fffff84dc61d89",
+      "filename": "PurchasesHybridCommon.podspec",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/PurchasesHybridCommon.podspec",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/PurchasesHybridCommon.podspec",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/PurchasesHybridCommon.podspec?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -1,6 +1,6 @@\n Pod::Spec.new do |s|\n   s.name             = \"PurchasesHybridCommon\"\n-  s.version          = \"4.1.2\"\n+  s.version          = \"4.1.3\"\n   s.summary          = \"Common files for hybrid SDKs for RevenueCat's Subscription and in-app-purchase backend service.\"\n \n   s.description      = <<-DESC"
+    },
+    {
+      "sha": "2cc7ed480fce893e2d20489d625f50e47dd1863a",
+      "filename": "android/build.gradle",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/android%2Fbuild.gradle",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/android%2Fbuild.gradle",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/android%2Fbuild.gradle?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -47,7 +47,7 @@ android {\n         minSdkVersion 14\n         targetSdkVersion 32\n         versionCode 1\n-        versionName \"4.1.2\"\n+        versionName \"4.1.3\"\n \n         consumerProguardFiles 'consumer-rules.pro'\n     }"
+    },
+    {
+      "sha": "2cca4a4d08ed70e5c8cc4864ec39656c146f3118",
+      "filename": "android/gradle.properties",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/android%2Fgradle.properties",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/android%2Fgradle.properties",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/android%2Fgradle.properties?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -22,7 +22,7 @@ kotlin.code.style=official\n \n # Maven\n GROUP=com.revenuecat.purchases\n-VERSION_NAME=4.1.2\n+VERSION_NAME=4.1.3\n POM_NAME=purchases-hybrid-common\n POM_PACKAGING=aar\n POM_ARTIFACT_ID=purchases-hybrid-common"
+    },
+    {
+      "sha": "fe1da4e0f7783a57a4c23c1ad218cd6cadea5410",
+      "filename": "fastlane/Fastfile",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/fastlane%2FFastfile",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/fastlane%2FFastfile",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/fastlane%2FFastfile?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -363,3 +363,9 @@ end\n def get_root_folder\n   File.expand_path('../../', __FILE__)\n end\n+\n+def check_no_git_tag_exists(version_number)\n+  if git_tag_exists(tag: version_number, remote: true, remote_name: 'origin')\n+    raise \"git tag with version #{version_number} already exists!\"\n+  end\n+end"
+    },
+    {
+      "sha": "576faffb7735c36c1ce2627abebb30e17b06c349",
+      "filename": "ios/PurchasesHybridCommon/Info.plist",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/ios%2FPurchasesHybridCommon%2FInfo.plist",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/ios%2FPurchasesHybridCommon%2FInfo.plist",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/ios%2FPurchasesHybridCommon%2FInfo.plist?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -15,7 +15,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.1.2</string>\n+\t<string>4.1.3</string>\n \t<key>CFBundleVersion</key>\n \t<string>$(CURRENT_PROJECT_VERSION)</string>\n </dict>"
+    },
+    {
+      "sha": "c9a33f7c426f19a3bc6727e5f47dcd958a16f7c0",
+      "filename": "ios/PurchasesHybridCommon/PurchasesHybridCommonTests/Info.plist",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/ios%2FPurchasesHybridCommon%2FPurchasesHybridCommonTests%2FInfo.plist",
+      "raw_url": "https://github.com/RevenueCat/purchases-hybrid-common/raw/1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe/ios%2FPurchasesHybridCommon%2FPurchasesHybridCommonTests%2FInfo.plist",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/ios%2FPurchasesHybridCommon%2FPurchasesHybridCommonTests%2FInfo.plist?ref=1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe",
+      "patch": "@@ -15,7 +15,7 @@\n \t<key>CFBundlePackageType</key>\n \t<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>\n \t<key>CFBundleShortVersionString</key>\n-\t<string>4.1.2</string>\n+\t<string>4.1.3</string>\n \t<key>CFBundleVersion</key>\n \t<string>1</string>\n </dict>"
+    }
+  ]
+}

@@ -131,6 +131,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commits_response_patch) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_patch_changes.json") }
     end
+    let(:get_commits_response_skip) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_skip_release.json") }
+    end
     let(:get_feat_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
@@ -155,6 +158,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_duplicate_items_fix_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/duplicate_items_get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
+    let(:get_release_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe.json") }
+    end
 
     let(:hashes_to_responses) do
       {
@@ -163,7 +169,8 @@ describe Fastlane::Helper::VersioningHelper do
         'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_next_release_commit_response,
         '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
         '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
-        '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response
+        '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response,
+        '1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe' => get_release_commit_response
       }
     end
 
@@ -185,6 +192,26 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(next_version).to eq("1.11.1")
       expect(type_of_bump).to eq(:patch)
+    end
+
+    it 'skips next version if no release is needed' do
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_skip)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(next_version).to eq("1.11.0")
+      expect(type_of_bump).to eq(:skip)
     end
 
     it 'determines next version as minor correctly' do
