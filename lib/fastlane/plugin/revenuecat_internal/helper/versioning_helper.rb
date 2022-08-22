@@ -29,7 +29,6 @@ module Fastlane
           types_of_change = get_type_of_change_from_pr_info(item)
           type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
           type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          puts "types_of_change #{types_of_change}"
           changes_are_public = (types_of_change & public_change_labels).size > 0
 
           has_public_changes = true if !has_public_changes && changes_are_public
