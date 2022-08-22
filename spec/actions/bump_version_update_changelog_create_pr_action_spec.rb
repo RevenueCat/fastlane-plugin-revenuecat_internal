@@ -101,6 +101,65 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     end
 
     it 'does not prompt for branch confirmation if UI is not interactive' do
+      setup_stubs
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: ['./test_file.sh', './test_file2.rb'],
+        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor
+      )
+    end
+
+    it 'does not edit changelog if UI is not interactive' do
+      setup_stubs
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
+        .with(auto_generated_changelog, mock_changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:edit_changelog)
+                                                                  .with(auto_generated_changelog, mock_changelog_latest_path, editor))
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: ['./test_file.sh', './test_file2.rb'],
+        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor
+      )
+    end
+
+    it 'adds important label to title and body' do
+      setup_stubs
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
+        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: ['./test_file.sh', './test_file2.rb'],
+        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        automatic_release: true
+      )
+    end
+
+    def setup_stubs
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
@@ -122,64 +181,12 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Version bump for #{new_version}")
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
         .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
-
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-        current_version: current_version,
-        changelog_latest_path: mock_changelog_latest_path,
-        changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
-        repo_name: mock_repo_name,
-        github_pr_token: mock_github_pr_token,
-        github_token: mock_github_token,
-        github_rate_limit: 3,
-        editor: editor
-      )
-    end
-
-    it 'does not edit changelog if UI is not interactive' do
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
-      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with('release/1.13.0', mock_github_pr_token)
-      allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3)
-        .and_return(auto_generated_changelog)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
-        .with(new_branch_name)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
-        .with(new_version, mock_changelog_latest_path, mock_changelog_path)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
-        .with("Version bump for #{new_version}")
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
-
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
-        .with(auto_generated_changelog, mock_changelog_latest_path)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:edit_changelog)
-                                                                  .with(auto_generated_changelog, mock_changelog_latest_path, editor))
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-        current_version: current_version,
-        changelog_latest_path: mock_changelog_latest_path,
-        changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
-        repo_name: mock_repo_name,
-        github_pr_token: mock_github_pr_token,
-        github_token: mock_github_token,
-        github_rate_limit: 3,
-        editor: editor
-      )
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(11)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(12)
     end
   end
 end
