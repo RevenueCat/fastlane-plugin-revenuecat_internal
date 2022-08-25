@@ -43,7 +43,7 @@ module Fastlane
       end
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
-        Actions.sh("git fetch --tags")
+        Actions.sh("git fetch --tags -f")
         old_version = latest_non_prerelease_version_number
         UI.important("Auto-generating changelog since #{old_version}")
 
