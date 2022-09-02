@@ -29,8 +29,7 @@ lane :sample_create_next_snapshot_version_action do |options|
     repo_name: 'repo-name',
     github_pr_token: 'github-api-token', # This can also be obtained from ENV GITHUB_PULL_REQUEST_API_TOKEN
     files_to_update: ['./file-containing-version-1.txt', './file-containing-version-2.rb'],
-    files_to_update_without_prerelease_modifiers: [],
-    branch: 'main'
+    files_to_update_without_prerelease_modifiers: []
   )
 end
 

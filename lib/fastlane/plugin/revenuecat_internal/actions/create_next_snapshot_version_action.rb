@@ -12,6 +12,11 @@ module Fastlane
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
 
+        if previous_version_number =~ /^.*-SNAPSHOT/
+          UI.message("Skipping since current version is already a SNAPSHOT version.")
+          return
+        end
+
         next_version_snapshot = Helper::RevenuecatInternalHelper.calculate_next_snapshot_version(previous_version_number)
         new_branch_name = "bump/#{next_version_snapshot}"
         label = 'next_release'
