@@ -36,7 +36,7 @@ module Fastlane
       end
 
       def self.description
-        "Bumps minor version and adds -SNAPSHOT suffix to version. Creates a PR with the changes"
+        "If version is not a SNAPSHOT, it bumps minor version and adds -SNAPSHOT suffix to version. Creates a PR with the changes. If SNAPSHOT version, no-op."
       end
 
       def self.authors

@@ -18,7 +18,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 
 - `bump_version_update_changelog_create_pr`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter). It also fetches the list of commits since the last tag in the given repo and generates a changelog using those, allowing the user to edit the result. Finally, it creates a release branch in the form of `release/NEW_VERSION_NUMBER`, commits and pushes all changes to `origin` and creates a release PR.
 - `replace_version_number`: This action asks for a new version number and updates all occurences of the old version number (passed as a parameter) in the list of files to update (also passed as a parameter).
-- `create_next_snapshot_version`: This action creates bumps the version to the next minor with a `-SNAPSHOT` suffix and creates a PR with the changes.
+- `create_next_snapshot_version`: This action bumps the version to the next minor with a `-SNAPSHOT` suffix and creates a PR with the changes. This action will be a no-op if the current version already is a `-SNAPSHOT`.
 - `create_github_release`: This action will create a github release with the given version number as name and tag and the contents of the CHANGELOG.latest.md file as description. It can also upload files to the release if needed.
 - `replace_text_in_files`: This action will replace all the occurences of the old text with new text in the list of given paths to files.
 - `commit_current_changes`: This action will commit all currently modified files into the current branch in the local repository. (This will not include untracked files)
