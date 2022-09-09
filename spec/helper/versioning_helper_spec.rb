@@ -40,10 +40,10 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-github-token',
         0
       )
-      expect(changelog).to eq("### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### New Features\n" \
-                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+      expect(changelog).to eq("### New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "### Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
@@ -54,10 +54,10 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-github-token',
         3
       )
-      expect(changelog).to eq("### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### New Features\n" \
-                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+      expect(changelog).to eq("### New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "### Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
     end
 
     it 'fails if it finds multiple commits with same sha' do

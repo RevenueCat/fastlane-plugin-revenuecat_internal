@@ -49,7 +49,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], fixes: [], new_features: [], other: [] }
+        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], other: [] }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
