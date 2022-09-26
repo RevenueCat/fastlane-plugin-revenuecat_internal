@@ -60,7 +60,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
@@ -138,7 +138,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    it 'adds important label to title and body' do
+    it 'adds automatic label to title and body' do
       setup_stubs
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
@@ -177,7 +177,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
         .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)

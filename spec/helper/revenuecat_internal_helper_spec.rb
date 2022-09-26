@@ -193,17 +193,17 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'stages files' do
       expect(Fastlane::Actions).to receive(:sh).with('git add -u').once
-      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch('Fastlane test commit message')
     end
 
     it 'commits files with correct message' do
       expect(Fastlane::Actions).to receive(:sh).with("git commit -m 'Fastlane test commit message'").once
-      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch('Fastlane test commit message')
     end
 
     it 'pushes to remote' do
       expect(Fastlane::Actions::PushToGitRemoteAction).to receive(:run).with(remote: 'origin').once
-      Fastlane::Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Fastlane test commit message')
+      Fastlane::Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch('Fastlane test commit message')
     end
   end
 

@@ -30,7 +30,7 @@ module Fastlane
                                                                 files_to_update,
                                                                 files_to_update_without_prerelease_modifiers)
 
-        Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch('Preparing for next version')
+        Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch('Preparing for next version')
 
         Helper::RevenuecatInternalHelper.create_pr_to_main("Prepare next version: #{next_version_snapshot}", nil, repo_name, new_branch_name, github_pr_token, [label])
       end
