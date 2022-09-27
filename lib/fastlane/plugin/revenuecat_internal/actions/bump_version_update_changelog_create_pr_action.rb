@@ -53,7 +53,7 @@ module Fastlane
                                                                 files_to_update,
                                                                 files_to_update_without_prerelease_modifiers)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
-        Helper::RevenuecatInternalHelper.commmit_changes_and_push_current_branch("Version bump for #{new_version_number}")
+        Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Release/#{new_version_number}"
         label = 'next_release'
@@ -134,7 +134,8 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :automatic_release,
                                        description: "If this is an automatic release",
                                        optional: true,
-                                       is_string: false)
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 

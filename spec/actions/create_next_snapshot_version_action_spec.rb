@@ -22,7 +22,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version, next_version, ['./test_file.sh', './test_file2.rb'], ['./test_file4.swift', './test_file5.kt'])
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commmit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with('Preparing for next version')
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
@@ -42,7 +42,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:calculate_next_snapshot_version)
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_new_branch_and_checkout)
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:replace_version_number)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:commmit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:commit_changes_and_push_current_branch)
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_pr_to_main)
       Fastlane::Actions::CreateNextSnapshotVersionAction.run(
         current_version: current_version_snapshot,

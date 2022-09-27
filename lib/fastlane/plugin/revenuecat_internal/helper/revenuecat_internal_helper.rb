@@ -80,7 +80,7 @@ module Fastlane
         Actions.sh("git checkout -b '#{branch_name}'")
       end
 
-      def self.commmit_changes_and_push_current_branch(commit_message)
+      def self.commit_changes_and_push_current_branch(commit_message)
         commit_current_changes(commit_message)
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
