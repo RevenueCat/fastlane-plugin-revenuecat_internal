@@ -5,7 +5,7 @@ require_relative '../helper/versioning_helper'
 
 module Fastlane
   module Actions
-    class BumpPhcVersionCreatePrAction < Action
+    class BumpPhcVersionAction < Action
       def self.run(params)
         version_number = params[:current_version]
         files_to_update = params[:files_to_update]

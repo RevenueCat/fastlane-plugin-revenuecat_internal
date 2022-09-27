@@ -1,4 +1,4 @@
-describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
+describe Fastlane::Actions::BumpPhcVersionAction do
   describe '#run' do
     let(:mock_github_pr_token) { 'mock-github-pr-token' }
     let(:mock_github_token) { 'mock-github-token' }
@@ -22,7 +22,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
         .and_throw(:expected_error)
 
       catch :expected_error do
-        Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+        Fastlane::Actions::BumpPhcVersionAction.run(
           current_version: current_version,
           repo_name: mock_repo_name,
           github_pr_token: mock_github_pr_token,
@@ -52,7 +52,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
         .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
         .once
 
-      Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+      Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
@@ -66,7 +66,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
       expect do
-        Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+        Fastlane::Actions::BumpPhcVersionAction.run(
           current_version: current_version,
           repo_name: mock_repo_name,
           github_pr_token: mock_github_pr_token,
@@ -81,7 +81,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
     it 'does not prompt for branch confirmation if UI is not interactive' do
       setup_stubs
 
-      Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+      Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
@@ -99,7 +99,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
         .with("[AUTOMATIC] #{message}", "**This is an automatic release.**\n\n#{message}", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
 
-      Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+      Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
@@ -128,7 +128,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
         .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], [])
         .once
 
-      Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+      Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
@@ -160,7 +160,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
         .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
         .once
 
-      Fastlane::Actions::BumpPhcVersionCreatePrAction.run(
+      Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
@@ -191,7 +191,7 @@ describe Fastlane::Actions::BumpPhcVersionCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpPhcVersionCreatePrAction.available_options.size).to eq(7)
+      expect(Fastlane::Actions::BumpPhcVersionAction.available_options.size).to eq(7)
     end
   end
 end
