@@ -93,11 +93,13 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :automatic_release,
                                        description: "If this is an automatic release",
                                        optional: true,
-                                       is_string: false),
+                                       is_string: false,
+                                       default_value: false),
           FastlaneCore::ConfigItem.new(key: :open_pr,
                                        description: "If a branch should be created and a new PR should be opened with the dependency update",
                                        optional: true,
-                                       is_string: false)
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 
