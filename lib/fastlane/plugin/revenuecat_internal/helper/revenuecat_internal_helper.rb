@@ -94,7 +94,8 @@ module Fastlane
           repo: "RevenueCat/#{repo_name}",
           head: head_branch,
           api_url: 'https://api.github.com',
-          labels: labels
+          labels: labels,
+          reviewers: 'RevenueCat/core-sdk'
         )
       end
 

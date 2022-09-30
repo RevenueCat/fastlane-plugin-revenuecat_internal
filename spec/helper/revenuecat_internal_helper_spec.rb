@@ -218,7 +218,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           repo: 'RevenueCat/fake-repo-name',
           head: 'fake-branch',
           api_url: 'https://api.github.com',
-          labels: ['label_1', 'label_2']
+          labels: ['label_1', 'label_2'],
+          reviewers: 'RevenueCat/core-sdk'
         ).once
       Fastlane::Helper::RevenuecatInternalHelper.create_pr_to_main('fake-title', 'fake-changelog', 'fake-repo-name', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
     end
