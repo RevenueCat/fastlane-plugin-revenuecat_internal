@@ -95,7 +95,7 @@ module Fastlane
           head: head_branch,
           api_url: 'https://api.github.com',
           labels: labels,
-          reviewers: ['RevenueCat/core-sdk']
+          team_reviewers: ['core-sdk']
         )
       end
 
