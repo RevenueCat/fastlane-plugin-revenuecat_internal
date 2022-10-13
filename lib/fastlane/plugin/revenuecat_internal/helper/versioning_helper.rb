@@ -25,7 +25,7 @@ module Fastlane
           
           if items.size == 0
             # consider change as patch and no public changes
-            UI.warning("There is no pull request associated with #{sha}")
+            UI.important("There is no pull request associated with #{sha}")
             next
           end
 
@@ -76,7 +76,7 @@ module Fastlane
             line = "* #{message} via #{name} (@#{username})"
             changelog_sections[section].push(line)
           elsif items.size == 0
-            UI.warning("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
+            UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
             message = commit["message"]
             name = commit["commit"]["author"]["name"]
             username = commit["author"]["login"]
