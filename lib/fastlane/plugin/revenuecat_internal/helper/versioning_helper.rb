@@ -22,8 +22,14 @@ module Fastlane
 
           sha = commit["sha"]
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+          
+          if items.size == 0
+            # consider change as patch and no public changes
+            UI.warning("There is no pull request associated with #{sha}")
+            next
+          end
 
-          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}") if items.size != 1
+          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}") if items.size > 1
 
           item = items.first
           types_of_change = get_type_of_change_from_pr_info(item)
@@ -69,6 +75,13 @@ module Fastlane
 
             line = "* #{message} via #{name} (@#{username})"
             changelog_sections[section].push(line)
+          elsif items.size == 0
+            UI.warning("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
+            message = commit["message"]
+            name = commit["commit"]["author"]["name"]
+            username = commit["author"]["login"]
+            line = "* #{message} via #{name} (@#{username})"
+            changelog_sections[:other].push(line)
           else
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
