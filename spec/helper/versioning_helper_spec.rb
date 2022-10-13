@@ -23,6 +23,12 @@ describe Fastlane::Helper::VersioningHelper do
     let(:no_label_get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/no_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_commits_response_no_pr) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_commit_with_no_pr.json") }
+    end
+    let(:get_commit_no_items) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4ceaceb20e700b92197daf8904f5c4e226625d8a.json") }
+    end
 
     let(:hashes_to_responses) do
       {
@@ -118,6 +124,34 @@ describe Fastlane::Helper::VersioningHelper do
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### Other Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+    end
+
+    it 'change is classified as Other Changes if commit has no pr' do
+      setup_tag_stubs
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_no_pr)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:4ceaceb20e700b92197daf8904f5c4e226625d8a',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commit_no_items)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(changelog).to eq("### Other Changes\n" \
+                              "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")
     end
   end
 
@@ -396,11 +430,15 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
-  def setup_commit_search_stubs(hashes_to_responses)
+  def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
       .with("git tag", log: false)
       .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
+  end
+
+  def setup_commit_search_stubs(hashes_to_responses)
+    setup_tag_stubs
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
       .with(server_url: server_url,
             path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
