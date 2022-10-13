@@ -22,9 +22,10 @@ module Fastlane
 
           sha = commit["sha"]
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
-          
+
           if items.size == 0
-            # consider change as patch and no public changes
+            # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump
+            # if there are no more commits, we'll skip the version bump
             UI.important("There is no pull request associated with #{sha}")
             next
           end
@@ -37,6 +38,7 @@ module Fastlane
           type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
           changes_are_public = (types_of_change & public_change_labels).size > 0
 
+          # if there are no public changes, we should skip the next version
           has_public_changes = true if !has_public_changes && changes_are_public
         end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
@@ -63,7 +65,8 @@ module Fastlane
           sha = commit["sha"]
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
 
-          if items.size == 1
+          case items.size
+          when 1
             item = items.first
 
             message = "#{item['title']} (##{item['number']})"
@@ -75,7 +78,7 @@ module Fastlane
 
             line = "* #{message} via #{name} (@#{username})"
             changelog_sections[section].push(line)
-          elsif items.size == 0
+          when 0
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
             message = commit["commit"]["message"]
             name = commit["commit"]["author"]["name"]
