@@ -77,7 +77,7 @@ module Fastlane
             changelog_sections[section].push(line)
           elsif items.size == 0
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-            message = commit["message"]
+            message = commit["commit"]["message"]
             name = commit["commit"]["author"]["name"]
             username = commit["author"]["login"]
             line = "* #{message} via #{name} (@#{username})"
