@@ -146,6 +146,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_breaking_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/breaking_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_minor_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/minor_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
     let(:get_ci_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_819dc620db5608fb952c852038a3560554161707.json") }
     end
@@ -217,6 +220,26 @@ describe Fastlane::Helper::VersioningHelper do
     it 'determines next version as minor correctly' do
       setup_commit_search_stubs(hashes_to_responses)
 
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(next_version).to eq("1.12.0")
+      expect(type_of_bump).to eq(:minor)
+    end
+
+    it 'forces a minor update if labeled as minor' do
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_minor_label_commit_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
       next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
