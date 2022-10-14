@@ -5,6 +5,13 @@ require_relative 'github_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
+  PUBLIC_CHANGE_LABELS = %w[breaking docs feat fix perf dependencies]
+  BUMP_VALUES = {
+    skip: 0,
+    patch: 1,
+    minor: 2,
+    major: 3
+  }
 
   module Helper
     class VersioningHelper
@@ -14,38 +21,11 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = :patch
-        has_public_changes = false
-        public_change_labels = %w[breaking docs feat fix perf dependencies]
-        commits.each do |commit|
-          break if type_of_bump == :major
+        type_of_bump = :skip
 
-          sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)
 
-          if items.size == 0
-            # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump
-            # if there are no more commits, we'll skip the version bump
-            UI.important("There is no pull request associated with #{sha}")
-            next
-          end
-
-          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}") if items.size > 1
-
-          item = items.first
-          types_of_change = get_type_of_change_from_pr_info(item)
-          type_of_bump_for_change = get_type_of_bump_from_types_of_change(types_of_change)
-          type_of_bump = type_of_bump_for_change unless type_of_bump_for_change == :patch
-          changes_are_public = (types_of_change & public_change_labels).size > 0
-
-          # if there are no public changes, we should skip the next version
-          has_public_changes = true if !has_public_changes && changes_are_public
-        end
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
-
-        unless has_public_changes
-          return old_version, :skip
-        end
 
         return increase_version(old_version, type_of_bump, false), type_of_bump
       end
@@ -93,6 +73,8 @@ module Fastlane
       end
 
       def self.increase_version(current_version, type_of_bump, snapshot)
+        return current_version if type_of_bump == :skip
+
         is_prerelease = %w(alpha beta rc).any? { |prerelease| current_version.include?(prerelease) }
         is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?$")
 
@@ -118,11 +100,7 @@ module Fastlane
           end
         end
 
-        if snapshot
-          "#{next_version}-SNAPSHOT"
-        else
-          next_version
-        end
+        snapshot ? "#{next_version}-SNAPSHOT" : next_version
       end
 
       private_class_method def self.latest_non_prerelease_version_number
@@ -169,8 +147,10 @@ module Fastlane
           :major
         elsif change_types.include?("feat")
           :minor
-        else
+        elsif (change_types & PUBLIC_CHANGE_LABELS).size > 0
           :patch
+        else
+          :skip
         end
       end
 
@@ -179,6 +159,34 @@ module Fastlane
           .map { |label_info| label_info["name"] }
           .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) }
           .to_set
+      end
+
+      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)
+        commits.each do |commit|
+          break if type_of_bump == :major
+
+          sha = commit["sha"]
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+
+          if items.size == 0
+            # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump
+            # if there are no more commits, we'll skip the version bump
+            UI.important("There is no pull request associated with #{sha}")
+            next
+          elsif items.size > 1
+            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
+          end
+
+          item = items.first
+          commit_supported_labels = get_type_of_change_from_pr_info(item)
+          type_of_bump_for_commit = get_type_of_bump_from_types_of_change(commit_supported_labels)
+
+          puts("type_of_bump_for_commit #{type_of_bump_for_commit}")
+          puts("type_of_bump #{type_of_bump}")
+
+          type_of_bump = BUMP_VALUES.key([BUMP_VALUES[type_of_bump_for_commit], BUMP_VALUES[type_of_bump]].max)
+        end
+        type_of_bump
       end
     end
   end
