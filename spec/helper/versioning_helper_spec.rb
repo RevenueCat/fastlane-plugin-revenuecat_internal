@@ -230,7 +230,7 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:minor)
     end
 
-    it 'forces a minor update if labeled as minor' do
+    it 'determine next version as minor if labeled as minor' do
       setup_commit_search_stubs(hashes_to_responses)
 
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
