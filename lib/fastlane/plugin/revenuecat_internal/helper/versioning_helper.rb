@@ -5,12 +5,18 @@ require_relative 'github_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
-  PUBLIC_CHANGE_LABELS = %w[breaking docs feat fix perf dependencies]
   BUMP_VALUES = {
     skip: 0,
     patch: 1,
     minor: 2,
     major: 3
+  }
+
+  BUMP_PER_LABEL = {
+    major: %w[breaking].to_set,
+    minor: %w[feat minor].to_set,
+    patch: %w[docs fix perf dependencies].to_set,
+    skip: %w[build ci refactor style test next_release].to_set
   }
 
   module Helper
@@ -20,8 +26,6 @@ module Fastlane
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
-
-        type_of_bump = :skip
 
         type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)
 
@@ -143,11 +147,11 @@ module Fastlane
       end
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
-        if change_types.include?("breaking")
+        if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
           :major
-        elsif change_types.include?("feat")
+        elsif change_types.intersection(BUMP_PER_LABEL[:minor]).size > 0
           :minor
-        elsif (change_types & PUBLIC_CHANGE_LABELS).size > 0
+        elsif change_types.intersection(BUMP_PER_LABEL[:patch]).size > 0
           :patch
         else
           :skip
@@ -161,7 +165,8 @@ module Fastlane
           .to_set
       end
 
-      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)
+      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)]
+        type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
 
