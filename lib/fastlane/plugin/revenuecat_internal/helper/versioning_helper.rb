@@ -6,6 +6,13 @@ require_relative 'github_helper'
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
+  BUMP_PER_LABEL = {
+    major: %w[breaking].to_set,
+    minor: %w[feat minor].to_set,
+    patch: %w[docs fix perf dependencies].to_set,
+    skip: %w[build ci refactor style test next_release].to_set
+  }
+
   module Helper
     class VersioningHelper
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
@@ -16,7 +23,7 @@ module Fastlane
 
         type_of_bump = :patch
         has_public_changes = false
-        public_change_labels = %w[breaking docs feat fix perf dependencies]
+        public_change_labels = %w[breaking docs feat fix perf dependencies minor]
         commits.each do |commit|
           break if type_of_bump == :major
 
@@ -149,9 +156,9 @@ module Fastlane
       end
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
-        if change_types.include?("breaking")
+        if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
           :major
-        elsif change_types.include?("feat")
+        elsif change_types.intersection(BUMP_PER_LABEL[:minor]).size > 0
           :minor
         else
           :patch
