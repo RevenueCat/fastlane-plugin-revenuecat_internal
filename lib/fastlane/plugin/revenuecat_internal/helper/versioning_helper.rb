@@ -27,7 +27,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
 
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
@@ -165,7 +165,7 @@ module Fastlane
           .to_set
       end
 
-      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, type_of_bump)]
+      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
         type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
