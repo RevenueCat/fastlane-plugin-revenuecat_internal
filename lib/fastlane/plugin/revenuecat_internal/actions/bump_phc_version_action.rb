@@ -46,15 +46,17 @@ module Fastlane
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
-        label = 'dependencies'
+        type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
+        labels = ['dependencies']
+        labels << 'minor' if type_of_bump == :minor
         body = pr_title
 
         if automatic_release
-          body = "**This is an automatic release.**\n\n#{body}"
-          pr_title = "[AUTOMATIC] #{pr_title}"
+          body = "**This is an automatic bump.**\n\n#{body}"
+          pr_title = "[AUTOMATIC BUMP] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, [label])
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, labels)
       end
 
       def self.description

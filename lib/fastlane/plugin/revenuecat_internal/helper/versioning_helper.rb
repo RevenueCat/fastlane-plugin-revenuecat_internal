@@ -107,6 +107,44 @@ module Fastlane
         snapshot ? "#{next_version}-SNAPSHOT" : next_version
       end
 
+      def detect_bump_type(a, b)
+        if a == b
+          return :none
+        end
+
+        version_a = Gem::Version.new(a)
+        version_b = Gem::Version.new(b)
+
+        same_major = version_a.canonical_segments[0] == version_b.canonical_segments[0]
+        same_minor = version_a.canonical_segments[1] == version_b.canonical_segments[1]
+        if same_major && same_minor
+          return :patch
+        elsif same_major
+          return :minor
+        else
+          return :major
+        end
+      end
+
+      def detect_bump_type(a, b)
+        if a == b
+          return :none
+        end
+
+        version_a = Gem::Version.new(a)
+        version_b = Gem::Version.new(b)
+
+        same_major = version_a.canonical_segments[0] == version_b.canonical_segments[0]
+        same_minor = version_a.canonical_segments[1] == version_b.canonical_segments[1]
+        if same_major && same_minor
+          return :patch
+        elsif same_major
+          return :minor
+        else
+          return :major
+        end
+      end
+
       private_class_method def self.latest_non_prerelease_version_number
         Actions
           .sh("git tag", log: false)
