@@ -111,7 +111,7 @@ module Fastlane
       end
 
       def self.calculate_next_snapshot_version(current_version)
-        Helper::VersioningHelper.increase_version(current_version, :minor, true)
+        Helper::VersioningHelper.calculate_next_version(current_version, :minor, true)
       end
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)

@@ -27,7 +27,7 @@ module Fastlane
 
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
-        return increase_version(old_version, type_of_bump, false), type_of_bump
+        return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
@@ -72,7 +72,7 @@ module Fastlane
         build_changelog_sections(changelog_sections)
       end
 
-      def self.increase_version(current_version, type_of_bump, snapshot)
+      def self.calculate_next_version(current_version, type_of_bump, snapshot)
         return current_version if type_of_bump == :skip
 
         is_prerelease = %w(alpha beta rc).any? { |prerelease| current_version.include?(prerelease) }
