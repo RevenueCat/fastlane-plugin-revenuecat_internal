@@ -1,0 +1,463 @@
+{
+  "url": "https://api.github.com/repos/RevenueCat/purchases-ios/compare/4.10.0...HEAD",
+  "html_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD",
+  "permalink_url": "https://github.com/RevenueCat/purchases-ios/compare/RevenueCat:36dff60...RevenueCat:4ceaceb",
+  "diff_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD.diff",
+  "patch_url": "https://github.com/RevenueCat/purchases-ios/compare/4.10.0...HEAD.patch",
+  "base_commit": {
+    "sha": "36dff6064e94222f50c1c7e23a79ab541407673a",
+    "node_id": "C_kwDOBnB8hdoAKDM2ZGZmNjA2NGU5NDIyMmY1MGMxYzdlMjNhNzlhYjU0MTQwNzY3M2E",
+    "commit": {
+      "author": {
+        "name": "NachoSoto",
+        "email": "NachoSoto@users.noreply.github.com",
+        "date": "2022-10-11T20:07:30Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-11T20:07:30Z"
+      },
+      "message": "`OfferingsManager`: added ability to fail if any product is not found (#1976)\n\nThe default behavior is unchanged: if any products aren't found, those\r\nare logged, but an `Offerings` value is returned with the found\r\nproducts.\r\n\r\nThis introduces a new `OfferingsManager.FetchPolicy` that allows\r\nreceiving an error if any product is not found. For the time being, this\r\nis `internal` only, and will be used for [CSDK-451], since we don't want\r\nto ignore those errors when using this new SDK tester.\r\n\r\n[CSDK-451]:\r\nhttps://revenuecats.atlassian.net/browse/CSDK-451?atlOrigin=eyJpIjoiNWRkNTljNzYxNjVmNDY3MDlhMDU5Y2ZhYzA5YTRkZjUiLCJwIjoiZ2l0aHViLWNvbS1KU1cifQ",
+      "tree": {
+        "sha": "9e903d7b9ac7964c51469b34517e6eb7c4118dee",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/9e903d7b9ac7964c51469b34517e6eb7c4118dee"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/36dff6064e94222f50c1c7e23a79ab541407673a",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjRc0CCRBK7hj4Ov3rIwAAI+cIAA/WA2GAgQHnwwO/pPhqDtk4\n7mo2Ec6oEv55kUhYCGFcnvFj37we4p/rr80Iwv8OW8wmjT28p/vjtZ7FWKsJUrC7\nWqXHe0oat0KiPL5kTEyUwhbtkM76yNws/bJYDcXXp281hW/eCTmVBmLsXnZGiFpn\nARHDE53dUVFB7PUKkrQ18tq1YDOGIu4hNCMNv4xjsddtU2y69BJmMSMzGL5eFwEI\nolAJbRxgGN1hvk808/ZL62MmCUSzdCI2Hx6lcyh4pbu462K4Lvud4R8G84RhdTtM\n7VE59wc8dPwBEvRDtSoQLSUpTgFZZx3R20UvNJ8XaLcWtAN2jCPsnz3DXpd7g2M=\n=h5Fb\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 9e903d7b9ac7964c51469b34517e6eb7c4118dee\nparent 5be8f91e870df871dafcc1c13c5cbbe6bf8baf30\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1665518850 -0700\ncommitter GitHub <noreply@github.com> 1665518850 -0700\n\n`OfferingsManager`: added ability to fail if any product is not found (#1976)\n\nThe default behavior is unchanged: if any products aren't found, those\r\nare logged, but an `Offerings` value is returned with the found\r\nproducts.\r\n\r\nThis introduces a new `OfferingsManager.FetchPolicy` that allows\r\nreceiving an error if any product is not found. For the time being, this\r\nis `internal` only, and will be used for [CSDK-451], since we don't want\r\nto ignore those errors when using this new SDK tester.\r\n\r\n[CSDK-451]:\r\nhttps://revenuecats.atlassian.net/browse/CSDK-451?atlOrigin=eyJpIjoiNWRkNTljNzYxNjVmNDY3MDlhMDU5Y2ZhYzA5YTRkZjUiLCJwIjoiZ2l0aHViLWNvbS1KU1cifQ"
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/36dff6064e94222f50c1c7e23a79ab541407673a",
+    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/36dff6064e94222f50c1c7e23a79ab541407673a",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/36dff6064e94222f50c1c7e23a79ab541407673a/comments",
+    "author": {
+      "login": "NachoSoto",
+      "id": 685609,
+      "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/NachoSoto",
+      "html_url": "https://github.com/NachoSoto",
+      "followers_url": "https://api.github.com/users/NachoSoto/followers",
+      "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+      "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+      "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+      "repos_url": "https://api.github.com/users/NachoSoto/repos",
+      "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "5be8f91e870df871dafcc1c13c5cbbe6bf8baf30",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/5be8f91e870df871dafcc1c13c5cbbe6bf8baf30",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/5be8f91e870df871dafcc1c13c5cbbe6bf8baf30"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "36dff6064e94222f50c1c7e23a79ab541407673a",
+    "node_id": "C_kwDOBnB8hdoAKDM2ZGZmNjA2NGU5NDIyMmY1MGMxYzdlMjNhNzlhYjU0MTQwNzY3M2E",
+    "commit": {
+      "author": {
+        "name": "NachoSoto",
+        "email": "NachoSoto@users.noreply.github.com",
+        "date": "2022-10-11T20:07:30Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-11T20:07:30Z"
+      },
+      "message": "`OfferingsManager`: added ability to fail if any product is not found (#1976)\n\nThe default behavior is unchanged: if any products aren't found, those\r\nare logged, but an `Offerings` value is returned with the found\r\nproducts.\r\n\r\nThis introduces a new `OfferingsManager.FetchPolicy` that allows\r\nreceiving an error if any product is not found. For the time being, this\r\nis `internal` only, and will be used for [CSDK-451], since we don't want\r\nto ignore those errors when using this new SDK tester.\r\n\r\n[CSDK-451]:\r\nhttps://revenuecats.atlassian.net/browse/CSDK-451?atlOrigin=eyJpIjoiNWRkNTljNzYxNjVmNDY3MDlhMDU5Y2ZhYzA5YTRkZjUiLCJwIjoiZ2l0aHViLWNvbS1KU1cifQ",
+      "tree": {
+        "sha": "9e903d7b9ac7964c51469b34517e6eb7c4118dee",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/9e903d7b9ac7964c51469b34517e6eb7c4118dee"
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/36dff6064e94222f50c1c7e23a79ab541407673a",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjRc0CCRBK7hj4Ov3rIwAAI+cIAA/WA2GAgQHnwwO/pPhqDtk4\n7mo2Ec6oEv55kUhYCGFcnvFj37we4p/rr80Iwv8OW8wmjT28p/vjtZ7FWKsJUrC7\nWqXHe0oat0KiPL5kTEyUwhbtkM76yNws/bJYDcXXp281hW/eCTmVBmLsXnZGiFpn\nARHDE53dUVFB7PUKkrQ18tq1YDOGIu4hNCMNv4xjsddtU2y69BJmMSMzGL5eFwEI\nolAJbRxgGN1hvk808/ZL62MmCUSzdCI2Hx6lcyh4pbu462K4Lvud4R8G84RhdTtM\n7VE59wc8dPwBEvRDtSoQLSUpTgFZZx3R20UvNJ8XaLcWtAN2jCPsnz3DXpd7g2M=\n=h5Fb\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 9e903d7b9ac7964c51469b34517e6eb7c4118dee\nparent 5be8f91e870df871dafcc1c13c5cbbe6bf8baf30\nauthor NachoSoto <NachoSoto@users.noreply.github.com> 1665518850 -0700\ncommitter GitHub <noreply@github.com> 1665518850 -0700\n\n`OfferingsManager`: added ability to fail if any product is not found (#1976)\n\nThe default behavior is unchanged: if any products aren't found, those\r\nare logged, but an `Offerings` value is returned with the found\r\nproducts.\r\n\r\nThis introduces a new `OfferingsManager.FetchPolicy` that allows\r\nreceiving an error if any product is not found. For the time being, this\r\nis `internal` only, and will be used for [CSDK-451], since we don't want\r\nto ignore those errors when using this new SDK tester.\r\n\r\n[CSDK-451]:\r\nhttps://revenuecats.atlassian.net/browse/CSDK-451?atlOrigin=eyJpIjoiNWRkNTljNzYxNjVmNDY3MDlhMDU5Y2ZhYzA5YTRkZjUiLCJwIjoiZ2l0aHViLWNvbS1KU1cifQ"
+      }
+    },
+    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/36dff6064e94222f50c1c7e23a79ab541407673a",
+    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/36dff6064e94222f50c1c7e23a79ab541407673a",
+    "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/36dff6064e94222f50c1c7e23a79ab541407673a/comments",
+    "author": {
+      "login": "NachoSoto",
+      "id": 685609,
+      "node_id": "MDQ6VXNlcjY4NTYwOQ==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/685609?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/NachoSoto",
+      "html_url": "https://github.com/NachoSoto",
+      "followers_url": "https://api.github.com/users/NachoSoto/followers",
+      "following_url": "https://api.github.com/users/NachoSoto/following{/other_user}",
+      "gists_url": "https://api.github.com/users/NachoSoto/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/NachoSoto/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/NachoSoto/subscriptions",
+      "organizations_url": "https://api.github.com/users/NachoSoto/orgs",
+      "repos_url": "https://api.github.com/users/NachoSoto/repos",
+      "events_url": "https://api.github.com/users/NachoSoto/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/NachoSoto/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "5be8f91e870df871dafcc1c13c5cbbe6bf8baf30",
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/5be8f91e870df871dafcc1c13c5cbbe6bf8baf30",
+        "html_url": "https://github.com/RevenueCat/purchases-ios/commit/5be8f91e870df871dafcc1c13c5cbbe6bf8baf30"
+      }
+    ]
+  },
+  "status": "ahead",
+  "ahead_by": 2,
+  "behind_by": 0,
+  "total_commits": 2,
+  "commits": [
+    {
+      "sha": "a72c0435ecf71248f311900475e881cc07ac2eaf",
+      "node_id": "C_kwDOBnB8hdoAKGE3MmMwNDM1ZWNmNzEyNDhmMzExOTAwNDc1ZTg4MWNjMDdhYzJlYWY",
+      "commit": {
+        "author": {
+          "name": "aboedo",
+          "email": "andresboedo@gmail.com",
+          "date": "2022-07-04T14:36:41Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-07-04T14:36:41Z"
+        },
+        "message": "added log when setting `autoSyncPurchases` to false (#1749)",
+        "tree": {
+          "sha": "051c6736cff89107bd32cb3b8baa64627c7eac8a",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/051c6736cff89107bd32cb3b8baa64627c7eac8a"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiwvr5CRBK7hj4Ov3rIwAAaHoIAGNCSoN7wVbeuBBMMr0PutDS\n4m2wl5q6is2hXgjFVZTDAToX6K+6c8FbHtmnOwgzjjEdY3T+ewIWNQ1IZFGDcarx\nzAxbk1r5jsyrrs2wGb53XK/HvT87IpWTARh5g1h+NUCT0/jmyIIReHgxNgSzUzhr\nGlM2MowmwE2qrlV062L33A7NIFP267lIfyriTPUHfmpfKkZN/EKdIcGX+2dtOX49\nFMpVxF1AFsp+GTiDLr6N1LIIByevGRliaQWcGYNvQWoeqG/h7bU87gq9ZeitMCEH\nVizJTA2YiGl4mGIBocTicWAoqauHBrPZmqHd1N4rcW0c3LQLEAIyFX5xk8V24Do=\n=7PGO\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree 051c6736cff89107bd32cb3b8baa64627c7eac8a\nparent bb8687d51190e42cd48e6cdd8039392f208601c3\nauthor aboedo <andresboedo@gmail.com> 1656945401 -0300\ncommitter GitHub <noreply@github.com> 1656945401 -0300\n\nadded log when setting `autoSyncPurchases` to false (#1749)\n\n"
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf/comments",
+      "author": {
+        "login": "aboedo",
+        "id": 3922667,
+        "node_id": "MDQ6VXNlcjM5MjI2Njc=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/3922667?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/aboedo",
+        "html_url": "https://github.com/aboedo",
+        "followers_url": "https://api.github.com/users/aboedo/followers",
+        "following_url": "https://api.github.com/users/aboedo/following{/other_user}",
+        "gists_url": "https://api.github.com/users/aboedo/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/aboedo/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/aboedo/subscriptions",
+        "organizations_url": "https://api.github.com/users/aboedo/orgs",
+        "repos_url": "https://api.github.com/users/aboedo/repos",
+        "events_url": "https://api.github.com/users/aboedo/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/aboedo/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "bb8687d51190e42cd48e6cdd8039392f208601c3",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+          "html_url": "https://github.com/RevenueCat/purchases-ios/commit/bb8687d51190e42cd48e6cdd8039392f208601c3"
+        }
+      ]
+    },
+    {
+      "sha": "4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "node_id": "C_kwDOBnB8hdoAKDRjZWFjZWIyMGU3MDBiOTIxOTdkYWY4OTA0ZjVjNGUyMjY2MjVkOGE",
+      "commit": {
+        "author": {
+          "name": "Miguel José Carranza Guisado",
+          "email": "miguel@miguelcarranza.es",
+          "date": "2022-10-11T21:59:31Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-10-11T21:59:31Z"
+        },
+        "message": "Updating great support link",
+        "tree": {
+          "sha": "ff87c48a652cbe977d066f5883754c54ab0ea033",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/ff87c48a652cbe977d066f5883754c54ab0ea033"
+        },
+        "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/4ceaceb20e700b92197daf8904f5c4e226625d8a",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjRedDCRBK7hj4Ov3rIwAAEw0IAKE7uY3gSTzWCBcudTpr3Lf1\naBjWH7bAFZ9yfGIEdQ27jBEu0ZqF2Cgo5elOloPdUaZVTljZnuGrjQPsykobMtid\na7o0+/7+O9QRO4Z9O8VjZ19yOFNwSTPvxtt42eb+NVvVZMdN9YLoiRqp+B/NuAON\n5eGZ6+Ddh2AQvWN4QRgYTeLMciy9dp2/VfGEKYlQl30nNXoxz71/Hn9+txZ8SCRA\npDwtPoT0ZVRqRyy2qYQg2l/JcE3EZFN3VAVdOUSOymPBOLuHacrV5RIYopzv96Z3\nu7SWu28YBPQasv5aiocRTcRFn88CRhS5NpT6NvdTXU74SEcjEBjNXhFAffc77sc=\n=/J2q\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree ff87c48a652cbe977d066f5883754c54ab0ea033\nparent a72c0435ecf71248f311900475e881cc07ac2eaf\nauthor Miguel José Carranza Guisado <miguel@miguelcarranza.es> 1665525571 -0700\ncommitter GitHub <noreply@github.com> 1665525571 -0700\n\nUpdating great support link"
+        }
+      },
+      "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "html_url": "https://github.com/RevenueCat/purchases-ios/commit/4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/4ceaceb20e700b92197daf8904f5c4e226625d8a/comments",
+      "author": {
+        "login": "MiguelCarranza",
+        "id": 1735203,
+        "node_id": "MDQ6VXNlcjE3MzUyMDM=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1735203?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/MiguelCarranza",
+        "html_url": "https://github.com/MiguelCarranza",
+        "followers_url": "https://api.github.com/users/MiguelCarranza/followers",
+        "following_url": "https://api.github.com/users/MiguelCarranza/following{/other_user}",
+        "gists_url": "https://api.github.com/users/MiguelCarranza/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/MiguelCarranza/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/MiguelCarranza/subscriptions",
+        "organizations_url": "https://api.github.com/users/MiguelCarranza/orgs",
+        "repos_url": "https://api.github.com/users/MiguelCarranza/repos",
+        "events_url": "https://api.github.com/users/MiguelCarranza/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/MiguelCarranza/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "a72c0435ecf71248f311900475e881cc07ac2eaf",
+          "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+          "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "81d7ead4eeeb9d9e5a65171ef8ee6384184424a1",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/README.md",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/README.md",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/README.md?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -38,7 +38,7 @@ Sign up to [get started for free](https://app.revenuecat.com/signup).\n 📝 | [Online documentation](https://docs.revenuecat.com/docs) and [SDK Reference](http://revenuecat.github.io/purchases-ios-docs/) up to date\n 🔀 | [Integrations](https://www.revenuecat.com/integrations) - over a dozen integrations to easily send purchase data where you need it\n 💯 | Well maintained - [frequent releases](https://github.com/RevenueCat/purchases-ios/releases)\n-📮 | Great support - [Help Center](https://community.revenuecat.com)\n+📮 | Great support - [Contact us](https://revenuecat.com/support)\n \n ## Getting Started\n For more detailed information, you can view our complete documentation at [docs.revenuecat.com](https://docs.revenuecat.com/docs)."
+    },
+    {
+      "sha": "8a74d21c895ba462e281d240768fdbc56d2691c9",
+      "filename": "Sources/Logging/Strings/PurchaseStrings.swift",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 5,
+      "changes": 9,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FLogging%2FStrings%2FPurchaseStrings.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FLogging%2FStrings%2FPurchaseStrings.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FLogging%2FStrings%2FPurchaseStrings.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -20,7 +20,7 @@ enum PurchaseStrings {\n \n     case cannot_purchase_product_appstore_configuration_error\n     case entitlements_revoked_syncing_purchases(productIdentifiers: [String])\n-    case finishing_transaction(transaction: SKPaymentTransaction)\n+    case finishing_transaction(StoreTransaction)\n     case purchasing_with_observer_mode_and_finish_transactions_false_warning\n     case paymentqueue_removedtransaction(transaction: SKPaymentTransaction)\n     case paymentqueue_revoked_entitlements_for_product_identifiers(productIdentifiers: [String])\n@@ -80,10 +80,9 @@ extension PurchaseStrings: CustomStringConvertible {\n             return \"Entitlements revoked for product \" +\n             \"identifiers: \\(productIdentifiers). \\nsyncing purchases\"\n \n-        case .finishing_transaction(let transaction):\n-            return \"Finishing transaction \\(transaction.payment.productIdentifier) \" +\n-            \"\\(transaction.transactionIdentifier ?? \"\") \" +\n-            \"(\\(transaction.original?.transactionIdentifier ?? \"\"))\"\n+        case let .finishing_transaction(transaction):\n+            return \"Finishing transaction '\\(transaction.transactionIdentifier)' \" +\n+            \"for product '\\(transaction.productIdentifier)'\"\n \n         case .purchasing_with_observer_mode_and_finish_transactions_false_warning:\n             return \"Observer mode is active (finishTransactions is set to false) and \" +"
+    },
+    {
+      "sha": "8447d2108f9eab5a314a8db5ff65c23bdff2d03d",
+      "filename": "Sources/Misc/Deprecations.swift",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FMisc%2FDeprecations.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FMisc%2FDeprecations.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FMisc%2FDeprecations.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -403,8 +403,8 @@ extension CustomerInfo {\n             self.quantity = 1\n         }\n \n-        func finish(_ wrapper: PaymentQueueWrapperType) {\n-            // Nothing to do\n+        func finish(_ wrapper: PaymentQueueWrapperType, completion: @escaping @Sendable () -> Void) {\n+            completion()\n         }\n \n     }"
+    },
+    {
+      "sha": "912d74ed8be648324b98771eabbf16a49364bf8b",
+      "filename": "Sources/Purchasing/Purchases/PurchasesOrchestrator.swift",
+      "status": "modified",
+      "additions": 28,
+      "deletions": 8,
+      "changes": 36,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FPurchases%2FPurchasesOrchestrator.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FPurchases%2FPurchasesOrchestrator.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FPurchasing%2FPurchases%2FPurchasesOrchestrator.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -734,7 +734,7 @@ private extension PurchasesOrchestrator {\n             }\n         }\n \n-        self.finishTransactionIfNeeded(storeTransaction)\n+        self.finishTransactionIfNeeded(storeTransaction, completion: {})\n     }\n \n     func handleDeferredTransaction(_ transaction: SKPaymentTransaction) {\n@@ -899,23 +899,30 @@ private extension PurchasesOrchestrator {\n                                     error: result.error)\n \n             let completion = self.getAndRemovePurchaseCompletedCallback(forTransaction: transaction)\n+\n             let error = result.error\n             let finishable = error?.finishable ?? false\n \n             switch result {\n             case let .success(customerInfo):\n                 self.customerInfoManager.cache(customerInfo: customerInfo, appUserID: appUserID)\n-                completion?(transaction, customerInfo, nil, false)\n \n-                self.finishTransactionIfNeeded(transaction)\n+                self.finishTransactionIfNeeded(transaction) {\n+                    completion?(transaction, customerInfo, nil, false)\n+                }\n \n             case let .failure(error):\n                 let purchasesError = error.asPublicError\n \n-                completion?(transaction, nil, purchasesError, false)\n+                @MainActor\n+                func complete() {\n+                    completion?(transaction, nil, purchasesError, false)\n+                }\n \n                 if finishable {\n-                    self.finishTransactionIfNeeded(transaction)\n+                    self.finishTransactionIfNeeded(transaction) { complete() }\n+                } else {\n+                    complete()\n                 }\n             }\n         }\n@@ -1044,10 +1051,23 @@ private extension PurchasesOrchestrator {\n         self.offeringsManager.invalidateAndReFetchCachedOfferingsIfAppropiate(appUserID: self.appUserID)\n     }\n \n-    func finishTransactionIfNeeded(_ transaction: StoreTransaction) {\n-        if self.finishTransactions {\n-            transaction.finish(self.paymentQueueWrapper.paymentQueueWrapperType)\n+    func finishTransactionIfNeeded(\n+        _ transaction: StoreTransaction,\n+        completion: @escaping @Sendable @MainActor () -> Void\n+    ) {\n+        @Sendable\n+        func complete() {\n+            self.operationDispatcher.dispatchOnMainActor(completion)\n         }\n+\n+        guard self.finishTransactions else {\n+            complete()\n+            return\n+        }\n+\n+        Logger.purchase(Strings.purchase.finishing_transaction(transaction))\n+\n+        transaction.finish(self.paymentQueueWrapper.paymentQueueWrapperType, completion: complete)\n     }\n \n }"
+    },
+    {
+      "sha": "952bc9906592266012e52bbed3293768bf5bd35c",
+      "filename": "Sources/Purchasing/StoreKitAbstractions/SK1StoreTransaction.swift",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK1StoreTransaction.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK1StoreTransaction.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK1StoreTransaction.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -31,8 +31,9 @@ internal struct SK1StoreTransaction: StoreTransactionType {\n     let transactionIdentifier: String\n     let quantity: Int\n \n-    func finish(_ wrapper: PaymentQueueWrapperType) {\n+    func finish(_ wrapper: PaymentQueueWrapperType, completion: @escaping @Sendable () -> Void) {\n         wrapper.finishTransaction(self.underlyingSK1Transaction)\n+        completion()\n     }\n \n }"
+    },
+    {
+      "sha": "b3d847884f8fa24dc0ba12691ac97619d45e227d",
+      "filename": "Sources/Purchasing/StoreKitAbstractions/SK2StoreTransaction.swift",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK2StoreTransaction.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK2StoreTransaction.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FPurchasing%2FStoreKitAbstractions%2FSK2StoreTransaction.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -32,8 +32,8 @@ internal struct SK2StoreTransaction: StoreTransactionType {\n     let transactionIdentifier: String\n     let quantity: Int\n \n-    func finish(_ wrapper: PaymentQueueWrapperType) {\n-        _ = Task<Void, Never> {\n+    func finish(_ wrapper: PaymentQueueWrapperType, completion: @escaping @Sendable () -> Void) {\n+        Async.call(with: completion) {\n             await self.underlyingSK2Transaction.finish()\n         }\n     }"
+    },
+    {
+      "sha": "62f65f41a3bc051a3788b99b794b1123335cbbdd",
+      "filename": "Sources/Purchasing/StoreKitAbstractions/StoreTransaction.swift",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 3,
+      "changes": 6,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FStoreTransaction.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Sources%2FPurchasing%2FStoreKitAbstractions%2FStoreTransaction.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Sources%2FPurchasing%2FStoreKitAbstractions%2FStoreTransaction.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -42,8 +42,8 @@ public typealias SK2Transaction = StoreKit.Transaction\n     @objc public var transactionIdentifier: String { self.transaction.transactionIdentifier }\n     @objc public var quantity: Int { self.transaction.quantity }\n \n-    func finish(_ wrapper: PaymentQueueWrapperType) {\n-        self.transaction.finish(wrapper)\n+    func finish(_ wrapper: PaymentQueueWrapperType, completion: @escaping @Sendable () -> Void) {\n+        self.transaction.finish(wrapper, completion: completion)\n     }\n \n     // swiftlint:enable missing_docs\n@@ -87,7 +87,7 @@ internal protocol StoreTransactionType: Sendable {\n \n     /// Indicates to the App Store that the app delivered the purchased content\n     /// or enabled the service to finish the transaction.\n-    func finish(_ wrapper: PaymentQueueWrapperType)\n+    func finish(_ wrapper: PaymentQueueWrapperType, completion: @escaping @Sendable () -> Void)\n \n }\n "
+    },
+    {
+      "sha": "0d9992277688f2fb600f3a4ad2846c2f601efce6",
+      "filename": "Tests/BackendIntegrationTests/StoreKitIntegrationTests.swift",
+      "status": "modified",
+      "additions": 59,
+      "deletions": 0,
+      "changes": 59,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FBackendIntegrationTests%2FStoreKitIntegrationTests.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FBackendIntegrationTests%2FStoreKitIntegrationTests.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FBackendIntegrationTests%2FStoreKitIntegrationTests.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -68,6 +68,47 @@ class StoreKit1IntegrationTests: BaseBackendIntegrationTests {\n         try await self.purchaseMonthlyProduct()\n     }\n \n+    func testCanPurchaseConsumable() async throws {\n+        let info = try await self.purchaseConsumablePackage().customerInfo\n+\n+        expect(info.allPurchasedProductIdentifiers).to(contain(Self.consumable10Coins))\n+    }\n+\n+    func testCanPurchaseConsumableMultipleTimes() async throws {\n+        // See https://revenuecats.atlassian.net/browse/TRIAGE-134\n+        try XCTSkipIf(Self.storeKit2Setting == .disabled, \"This test is not currently passing on SK1\")\n+\n+        let count = 2\n+\n+        for _ in 0..<count {\n+            try await self.purchaseConsumablePackage()\n+        }\n+\n+        let info = try await Purchases.shared.customerInfo()\n+        expect(info.nonSubscriptions).to(haveCount(count))\n+        expect(info.nonSubscriptions.map(\\.productIdentifier)) == [\n+            Self.consumable10Coins,\n+            Self.consumable10Coins\n+        ]\n+    }\n+\n+    func testCanPurchaseConsumableWithMultipleUsers() async throws {\n+        func verifyPurchase(_ info: CustomerInfo) {\n+            expect(info.nonSubscriptions).to(haveCount(1))\n+            expect(info.nonSubscriptions.onlyElement?.productIdentifier) == Self.consumable10Coins\n+        }\n+\n+        _ = try await Purchases.shared.logIn(\"user_1.\\(UUID().uuidString)\")\n+        let info1 = try await self.purchaseConsumablePackage().customerInfo\n+        verifyPurchase(info1)\n+\n+        let user2 = try await Purchases.shared.logIn(\"user_1.\\(UUID().uuidString)\").customerInfo\n+        expect(user2.nonSubscriptions).to(beEmpty())\n+\n+        let info2 = try await self.purchaseConsumablePackage().customerInfo\n+        verifyPurchase(info2)\n+    }\n+\n     func testSubscriptionIsSandbox() async throws {\n         let info = try await self.purchaseMonthlyOffering().customerInfo\n \n@@ -394,6 +435,7 @@ class StoreKit1IntegrationTests: BaseBackendIntegrationTests {\n private extension StoreKit1IntegrationTests {\n \n     static let entitlementIdentifier = \"premium\"\n+    static let consumable10Coins = \"consumable.10_coins\"\n \n     private var currentOffering: Offering {\n         get async throws {\n@@ -466,6 +508,23 @@ private extension StoreKit1IntegrationTests {\n         return data\n     }\n \n+    @discardableResult\n+    func purchaseConsumablePackage(\n+        file: FileString = #file,\n+        line: UInt = #line\n+    ) async throws -> PurchaseResultData {\n+        let offering = try await XCTAsyncUnwrap(\n+            try await Purchases.shared.offerings().offering(identifier: \"coins\"),\n+            file: file, line: line\n+        )\n+        let package = try XCTUnwrap(\n+            offering.package(identifier: \"10.coins\"),\n+            file: file, line: line\n+        )\n+\n+        return try await Purchases.shared.purchase(package: package)\n+    }\n+\n     @discardableResult\n     func verifyEntitlementWentThrough(\n         _ customerInfo: CustomerInfo,"
+    },
+    {
+      "sha": "871b9872b059952bd774103faf774d28c6a496a3",
+      "filename": "Tests/TestingApps/PurchaseTester/RevenueCat_IntegrationPurchaseTesterConfiguration.storekit",
+      "status": "modified",
+      "additions": 15,
+      "deletions": 0,
+      "changes": 15,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FTestingApps%2FPurchaseTester%2FRevenueCat_IntegrationPurchaseTesterConfiguration.storekit",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FTestingApps%2FPurchaseTester%2FRevenueCat_IntegrationPurchaseTesterConfiguration.storekit",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FTestingApps%2FPurchaseTester%2FRevenueCat_IntegrationPurchaseTesterConfiguration.storekit?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -18,6 +18,21 @@\n       \"productID\" : \"lifetime\",\n       \"referenceName\" : \"lifetime\",\n       \"type\" : \"NonConsumable\"\n+    },\n+    {\n+      \"displayPrice\" : \"0.99\",\n+      \"familyShareable\" : false,\n+      \"internalID\" : \"67E2FE0B\",\n+      \"localizations\" : [\n+        {\n+          \"description\" : \"10 Coins\",\n+          \"displayName\" : \"10 Coins\",\n+          \"locale\" : \"en_US\"\n+        }\n+      ],\n+      \"productID\" : \"consumable.10_coins\",\n+      \"referenceName\" : \"10 coins\",\n+      \"type\" : \"Consumable\"\n     }\n   ],\n   \"settings\" : {"
+    },
+    {
+      "sha": "69bffa176204a20f89211d82af8a4a4416737ee3",
+      "filename": "Tests/UnitTests/Mocks/MockStoreKit1Wrapper.swift",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "changes": 4,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FUnitTests%2FMocks%2FMockStoreKit1Wrapper.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FUnitTests%2FMocks%2FMockStoreKit1Wrapper.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FUnitTests%2FMocks%2FMockStoreKit1Wrapper.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -26,9 +26,11 @@ class MockStoreKit1Wrapper: StoreKit1Wrapper {\n     }\n \n     var finishCalled = false\n+    var finishProductIdentifier: String?\n \n     override func finishTransaction(_ transaction: SKPaymentTransaction) {\n-        finishCalled = true\n+        self.finishCalled = true\n+        self.finishProductIdentifier = transaction.productIdentifier\n     }\n \n     weak var mockDelegate: StoreKit1WrapperDelegate?"
+    },
+    {
+      "sha": "7551ae5d3d53b401e7a909a29621639e74c06a52",
+      "filename": "Tests/UnitTests/Purchasing/Purchases/PurchasesPurchasingTests.swift",
+      "status": "modified",
+      "additions": 30,
+      "deletions": 9,
+      "changes": 39,
+      "blob_url": "https://github.com/RevenueCat/purchases-ios/blob/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FUnitTests%2FPurchasing%2FPurchases%2FPurchasesPurchasingTests.swift",
+      "raw_url": "https://github.com/RevenueCat/purchases-ios/raw/4ceaceb20e700b92197daf8904f5c4e226625d8a/Tests%2FUnitTests%2FPurchasing%2FPurchases%2FPurchasesPurchasingTests.swift",
+      "contents_url": "https://api.github.com/repos/RevenueCat/purchases-ios/contents/Tests%2FUnitTests%2FPurchasing%2FPurchases%2FPurchasesPurchasingTests.swift?ref=4ceaceb20e700b92197daf8904f5c4e226625d8a",
+      "patch": "@@ -98,13 +98,23 @@ class PurchasesPurchasingTests: BasePurchasesTests {\n     }\n \n     func testFinishesTransactionsIfSentToBackendCorrectly() throws {\n-        let product = StoreProduct(sk1Product: MockSK1Product(mockProductIdentifier: \"com.product.id1\"))\n-        self.purchases.purchase(product: product) { (_, _, _, _) in }\n+        var finished = true\n+\n+        let productID = \"com.product.id1\"\n+        let product = StoreProduct(sk1Product: MockSK1Product(mockProductIdentifier: productID))\n+\n+        self.purchases.purchase(product: product) { (_, _, _, _) in\n+            // Transactions must be finished by the time the callback is invoked.\n+            expect(self.storeKit1Wrapper.finishCalled) == true\n+            expect(self.storeKit1Wrapper.finishProductIdentifier) == productID\n+\n+            finished = true\n+        }\n \n         let transaction = MockTransaction()\n         transaction.mockPayment = try XCTUnwrap(self.storeKit1Wrapper.payment)\n+        transaction.mockState = .purchasing\n \n-        transaction.mockState = SKPaymentTransactionState.purchasing\n         self.storeKit1Wrapper.delegate?.storeKit1Wrapper(self.storeKit1Wrapper, updatedTransaction: transaction)\n \n         self.backend.postReceiptResult = .success(try CustomerInfo(data: Self.emptyCustomerInfoData))\n@@ -113,7 +123,7 @@ class PurchasesPurchasingTests: BasePurchasesTests {\n         self.storeKit1Wrapper.delegate?.storeKit1Wrapper(self.storeKit1Wrapper, updatedTransaction: transaction)\n \n         expect(self.backend.postReceiptDataCalled) == true\n-        expect(self.storeKit1Wrapper.finishCalled).toEventually(beTrue())\n+        expect(finished).toEventually(beTrue())\n     }\n \n     func testDoesntFinishTransactionsIfFinishingDisabled() throws {\n@@ -157,11 +167,22 @@ class PurchasesPurchasingTests: BasePurchasesTests {\n     }\n \n     func testAfterSendingFinishesFromBackendErrorIfAppropriate() throws {\n-        let product = StoreProduct(sk1Product: MockSK1Product(mockProductIdentifier: \"com.product.id1\"))\n-        self.purchases.purchase(product: product) { (_, _, _, _) in }\n+        var finished = false\n+\n+        let productID = \"com.product.id1\"\n+        let product = StoreProduct(sk1Product: MockSK1Product(mockProductIdentifier: productID))\n+\n+        self.purchases.purchase(product: product) { (_, _, _, _) in\n+            // Transactions must be finished by the time the callback is invoked.\n+            expect(self.storeKit1Wrapper.finishCalled) == true\n+            expect(self.storeKit1Wrapper.finishProductIdentifier) == productID\n+\n+            finished = true\n+        }\n \n         let transaction = MockTransaction()\n         transaction.mockPayment = try XCTUnwrap(self.storeKit1Wrapper.payment)\n+        transaction.mockState = .purchased\n \n         self.backend.postReceiptResult = .failure(\n             .networkError(.errorResponse(\n@@ -170,11 +191,10 @@ class PurchasesPurchasingTests: BasePurchasesTests {\n             ))\n         )\n \n-        transaction.mockState = SKPaymentTransactionState.purchased\n         self.storeKit1Wrapper.delegate?.storeKit1Wrapper(self.storeKit1Wrapper, updatedTransaction: transaction)\n \n         expect(self.backend.postReceiptDataCalled) == true\n-        expect(self.storeKit1Wrapper.finishCalled).toEventually(beTrue())\n+        expect(finished).toEventually(beTrue())\n     }\n \n     func testNotifiesIfTransactionFailsFromBackend() throws {\n@@ -525,10 +545,11 @@ class PurchasesPurchasingTests: BasePurchasesTests {\n                     receivedError = error as NSError?\n                     secondCompletionCalled = true\n                 }\n+\n+                self.performTransaction()\n             }\n \n             self.performTransaction()\n-            self.performTransaction()\n         }\n \n         expect(secondCompletionCalled).toEventually(beTrue(), timeout: .seconds(10))"
+    }
+  ]
+}

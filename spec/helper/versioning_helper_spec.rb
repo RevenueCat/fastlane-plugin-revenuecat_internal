@@ -23,6 +23,12 @@ describe Fastlane::Helper::VersioningHelper do
     let(:no_label_get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/no_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_commits_response_no_pr) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_commit_with_no_pr.json") }
+    end
+    let(:get_commit_no_items) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4ceaceb20e700b92197daf8904f5c4e226625d8a.json") }
+    end
 
     let(:hashes_to_responses) do
       {
@@ -119,6 +125,34 @@ describe Fastlane::Helper::VersioningHelper do
                               "### Other Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
+
+    it 'change is classified as Other Changes if commit has no pr' do
+      setup_tag_stubs
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_no_pr)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:4ceaceb20e700b92197daf8904f5c4e226625d8a',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commit_no_items)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(changelog).to eq("### Other Changes\n" \
+                              "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")
+    end
   end
 
   describe '.determine_next_version_using_labels' do
@@ -133,6 +167,12 @@ describe Fastlane::Helper::VersioningHelper do
     end
     let(:get_commits_response_skip) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_skip_release.json") }
+    end
+    let(:get_commits_response_no_pr) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_commit_with_no_pr.json") }
+    end
+    let(:get_commits_response_no_pr_more_commits) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_commit_with_no_pr_with_more_commits.json") }
     end
     let(:get_feat_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
@@ -164,6 +204,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_release_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe.json") }
     end
+    let(:get_commit_no_items) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4ceaceb20e700b92197daf8904f5c4e226625d8a.json") }
+    end
 
     let(:hashes_to_responses) do
       {
@@ -173,7 +216,8 @@ describe Fastlane::Helper::VersioningHelper do
         '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
         '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
         '6d37c766b6da55dcab67c201c93ba3d4ca538e55' => get_refactor_commit_response,
-        '1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe' => get_release_commit_response
+        '1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe' => get_release_commit_response,
+        '4ceaceb20e700b92197daf8904f5c4e226625d8a' => get_commit_no_items
       }
     end
 
@@ -301,72 +345,123 @@ describe Fastlane::Helper::VersioningHelper do
         )
       end.to raise_exception(StandardError)
     end
+
+    it 'skips if it finds commit without a pr associated' do
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_no_pr)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(next_version).to eq("1.11.0")
+      expect(type_of_bump).to eq(:skip)
+    end
+
+    it 'ignores commits without associated prs' do
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_no_pr_more_commits)
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_breaking_commit_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0
+      )
+      expect(next_version).to eq("2.0.0")
+      expect(type_of_bump).to eq(:major)
+    end
   end
 
   describe '.increase_version' do
     it 'increases patch version number' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :patch, false)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3', :patch, false)
       expect(next_version).to eq('1.2.4')
     end
 
     it 'increases minor version number' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :minor, false)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3', :minor, false)
       expect(next_version).to eq('1.3.0')
     end
 
     it 'increases major version number' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :major, false)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3', :major, false)
       expect(next_version).to eq('2.0.0')
     end
 
     it 'increases minor snapshot version number' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :minor, true)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3', :minor, true)
       expect(next_version).to eq('1.3.0-SNAPSHOT')
     end
 
     it 'increases major snapshot version number' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3', :major, true)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3', :major, true)
       expect(next_version).to eq('2.0.0-SNAPSHOT')
     end
 
     it 'keeps version with snapshot but removing alpha modifier if it appears' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-alpha.1', :major, true)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha.1', :major, true)
       expect(next_version).to eq('1.2.3-SNAPSHOT')
     end
 
     it 'keeps version with snapshot but removing beta modifier if it appears' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :minor, true)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-beta.1', :minor, true)
       expect(next_version).to eq('1.2.3-SNAPSHOT')
     end
 
     it 'keeps version with snapshot but removing rc modifier if it appears' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :patch, true)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-beta.1', :patch, true)
       expect(next_version).to eq('1.2.3-SNAPSHOT')
     end
 
     it 'keeps version but removing rc modifier if it appears' do
-      next_version = Fastlane::Helper::VersioningHelper.increase_version('1.2.3-beta.1', :patch, false)
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-beta.1', :patch, false)
       expect(next_version).to eq('1.2.3')
     end
 
     it 'fails if given snapshot version to bump' do
       expect do
-        Fastlane::Helper::VersioningHelper.increase_version('1.2.3-SNAPSHOT', :patch, false)
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-SNAPSHOT', :patch, false)
       end.to raise_exception(StandardError)
     end
 
     it 'fails if given unsupported version to bump' do
       expect do
-        Fastlane::Helper::VersioningHelper.increase_version('1.2.3-alpha', :patch, false)
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha', :patch, false)
       end.to raise_exception(StandardError)
     end
   end
 
-  def setup_commit_search_stubs(hashes_to_responses)
+  def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
       .with("git tag", log: false)
       .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
+  end
+
+  def setup_commit_search_stubs(hashes_to_responses)
+    setup_tag_stubs
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
       .with(server_url: server_url,
             path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
