@@ -23,13 +23,13 @@ module Fastlane
         UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
         UI.important("New version is #{new_version_number}")
 
+        new_branch_name = "bump-phc/#{new_version_number}"
+
         if open_pr
           current_branch = Actions.git_branch
           if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
             UI.user_error!("Cancelled during branch confirmation")
           end
-
-          new_branch_name = "bump-phc/#{new_version_number}"
 
           Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
@@ -43,20 +43,7 @@ module Fastlane
 
         return unless open_pr
 
-        Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
-
-        pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
-        type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
-        labels = ['dependencies']
-        labels << 'minor' if type_of_bump == :minor
-        body = pr_title
-
-        if automatic_release
-          body = "**This is an automatic bump.**\n\n#{body}"
-          pr_title = "[AUTOMATIC BUMP] #{pr_title}"
-        end
-
-        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, labels)
+        open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number)
       end
 
       def self.description
@@ -107,6 +94,23 @@ module Fastlane
 
       def self.is_supported?(platform)
         true
+      end
+
+      private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number)
+        Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
+
+        pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
+        type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
+        labels = ['dependencies']
+        labels << 'minor' if type_of_bump == :minor
+        body = pr_title
+
+        if automatic_release
+          body = "**This is an automatic bump.**\n\n#{body}"
+          pr_title = "[AUTOMATIC BUMP] #{pr_title}"
+        end
+
+        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, labels)
       end
     end
   end
