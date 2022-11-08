@@ -453,6 +453,23 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
+  describe '.detect_bump_type' do
+    it 'correctly detects patch bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2.4')
+      expect(bump_type).to eq(:patch)
+    end
+
+    it 'correctly detects minor bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.3.0')
+      expect(bump_type).to eq(:minor)
+    end
+
+    it 'correctly detects major bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '2.0.0')
+      expect(bump_type).to eq(:major)
+    end
+  end
+
   def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
