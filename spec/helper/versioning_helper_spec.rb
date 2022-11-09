@@ -473,6 +473,22 @@ describe Fastlane::Helper::VersioningHelper do
       bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2.3')
       expect(bump_type).to eq(:none)
     end
+
+    it 'fails if incompatible versions' do
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Can't detect bump type because version 1.2.3 and 1.2 have a different format")
+        .once
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2')
+      expect(bump_type).to eq(:none)
+    end
+
+    it 'fails if versions don\'t have 3 segments' do
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Can't detect bump type because versions don't follow format x.y.z")
+        .once
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.3', '1.2')
+      expect(bump_type).to eq(:none)
+    end
   end
 
   def setup_tag_stubs

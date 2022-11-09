@@ -115,6 +115,19 @@ module Fastlane
         version_a = Gem::Version.new(version_name_a)
         version_b = Gem::Version.new(version_name_b)
 
+        version_a_number_segments = version_name_a.to_s.split('.').length
+        version_b_number_segments = version_name_b.to_s.split('.').length
+
+        if version_a_number_segments != version_b_number_segments
+          UI.error("Can't detect bump type because version #{version_a} and #{version_b} have a different format")
+          return :none
+        end
+
+        if version_a_number_segments != 3
+          UI.error("Can't detect bump type because versions don't follow format x.y.z")
+          return :none
+        end
+
         same_major = version_a.canonical_segments[0] == version_b.canonical_segments[0]
         same_minor = version_a.canonical_segments[1] == version_b.canonical_segments[1]
         if same_major && same_minor
