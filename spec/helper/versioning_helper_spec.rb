@@ -453,6 +453,44 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
+  describe '.detect_bump_type' do
+    it 'correctly detects patch bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2.4')
+      expect(bump_type).to eq(:patch)
+    end
+
+    it 'correctly detects minor bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.3.0')
+      expect(bump_type).to eq(:minor)
+    end
+
+    it 'correctly detects major bumps' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '2.0.0')
+      expect(bump_type).to eq(:major)
+    end
+
+    it 'correctly detects no version bump' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2.3')
+      expect(bump_type).to eq(:none)
+    end
+
+    it 'fails if incompatible versions' do
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Can't detect bump type because version 1.2.3 and 1.2 have a different format")
+        .once
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2')
+      expect(bump_type).to eq(:none)
+    end
+
+    it 'fails if versions don\'t have 3 segments' do
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Can't detect bump type because versions don't follow format x.y.z")
+        .once
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.3', '1.2')
+      expect(bump_type).to eq(:none)
+    end
+  end
+
   def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)

@@ -9,7 +9,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
     let(:current_version) { '1.12.0' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'bump-phc/1.13.0' }
-    let(:labels) { ['dependencies'] }
+    let(:labels) { ['dependencies', 'minor'] }
 
     it 'fails if version is invalid' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
@@ -36,7 +36,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with('bump-phc/1.13.0', mock_github_pr_token)
+        .with(new_branch_name, mock_github_pr_token)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with(new_branch_name)
@@ -97,7 +97,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
 
       message = "Updates purchases-hybrid-common to 1.13.0"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("[AUTOMATIC] #{message}", "**This is an automatic release.**\n\n#{message}", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+        .with("[AUTOMATIC BUMP] #{message}", "**This is an automatic bump.**\n\n#{message}", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
 
       Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
@@ -144,7 +144,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
       expect(FastlaneCore::UI).to receive(:input)
         .never
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with('bump-phc/1.13.0', mock_github_pr_token)
+        .with(new_branch_name, mock_github_pr_token)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with(new_branch_name)
@@ -155,7 +155,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
         .once
-      message = "Updates purchases-hybrid-common to 1.13.0"
+      message = "Updates purchases-hybrid-common to #{new_version}"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
         .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
         .once
@@ -168,6 +168,41 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         files_to_update: ['./test_file.sh', './test_file2.rb'],
         open_pr: true,
         next_version: new_version
+      )
+    end
+
+    it 'does not add the minor label if bump is not minor' do
+      new_patch_version = '1.12.1'
+      new_branch_name = 'bump-phc/1.12.1'
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
+      expect(FastlaneCore::UI).to receive(:input)
+        .never
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
+        .with(new_branch_name, mock_github_pr_token)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
+        .with(new_branch_name)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
+        .with(current_version, new_patch_version, ['./test_file.sh', './test_file2.rb'], [])
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
+        .with("Version bump for #{new_patch_version}")
+        .once
+      message = "Updates purchases-hybrid-common to 1.12.1"
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
+        .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, ['dependencies'])
+        .once
+
+      Fastlane::Actions::BumpPhcVersionAction.run(
+        current_version: current_version,
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        files_to_update: ['./test_file.sh', './test_file2.rb'],
+        open_pr: true,
+        next_version: new_patch_version
       )
     end
 
