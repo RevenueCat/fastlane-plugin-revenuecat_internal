@@ -468,6 +468,11 @@ describe Fastlane::Helper::VersioningHelper do
       bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '2.0.0')
       expect(bump_type).to eq(:major)
     end
+
+    it 'correctly detects no version bump' do
+      bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.2.3', '1.2.3')
+      expect(bump_type).to eq(:none)
+    end
   end
 
   def setup_tag_stubs
