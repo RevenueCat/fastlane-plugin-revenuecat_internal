@@ -40,9 +40,6 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commit_323_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_32320acc1d6afae30a965d7add32700313123431.json") }
     end
-    let(:get_commit_398_response) do
-      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_398d57d529680ea72ada461ebfbef86f11d457fe.json") }
-    end
     let(:get_commit_757_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_75763d3f1604aa5d633e70e46299b1f2813cb163.json") }
     end
@@ -86,7 +83,6 @@ describe Fastlane::Helper::VersioningHelper do
         '32320acc1d6afae30a965d7add32700313123431' => get_commit_323_response,
         '5920c32646f918a2484da8aa38ccc5e9337cc449' => get_commit_592_response,
         '9237147947bcbce00f36ae3ab51acccc54690782' => get_commit_923_response,
-        '398d57d529680ea72ada461ebfbef86f11d457fe' => get_commit_398_response,
         '75763d3f1604aa5d633e70e46299b1f2813cb163' => get_commit_757_response
       }
     end
