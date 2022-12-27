@@ -1,0 +1,87 @@
+{
+    "total_count": 1,
+    "incomplete_results": false,
+    "items": [
+        {
+            "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553",
+            "repository_url": "https://api.github.com/repos/RevenueCat/purchases-flutter",
+            "labels_url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553/labels{/name}",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553/comments",
+            "events_url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553/events",
+            "html_url": "https://github.com/RevenueCat/purchases-flutter/pull/553",
+            "id": 1503521174,
+            "node_id": "PR_kwDOCxR9WM5F0DM2",
+            "number": 553,
+            "title": "[AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3",
+            "user": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "labels": [
+                {
+                    "id": 3165687060,
+                    "node_id": "MDU6TGFiZWwzMTY1Njg3MDYw",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/labels/dependencies",
+                    "name": "dependencies",
+                    "color": "0366d6",
+                    "default": false,
+                    "description": "Pull requests that update a dependency file"
+                }
+            ],
+            "state": "closed",
+            "locked": false,
+            "assignee": null,
+            "assignees": [
+
+            ],
+            "milestone": null,
+            "comments": 0,
+            "created_at": "2022-12-19T20:07:40Z",
+            "updated_at": "2022-12-20T10:28:13Z",
+            "closed_at": "2022-12-20T10:28:10Z",
+            "author_association": "COLLABORATOR",
+            "active_lock_reason": null,
+            "draft": false,
+            "pull_request": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/pulls/553",
+                "html_url": "https://github.com/RevenueCat/purchases-flutter/pull/553",
+                "diff_url": "https://github.com/RevenueCat/purchases-flutter/pull/553.diff",
+                "patch_url": "https://github.com/RevenueCat/purchases-flutter/pull/553.patch",
+                "merged_at": "2022-12-20T10:28:10Z"
+            },
+            "body": "**This is an automatic bump.**\n\nUpdates purchases-hybrid-common to 4.5.3",
+            "reactions": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553/reactions",
+                "total_count": 0,
+                "+1": 0,
+                "-1": 0,
+                "laugh": 0,
+                "hooray": 0,
+                "confused": 0,
+                "heart": 0,
+                "rocket": 0,
+                "eyes": 0
+            },
+            "timeline_url": "https://api.github.com/repos/RevenueCat/purchases-flutter/issues/553/timeline",
+            "performed_via_github_app": null,
+            "state_reason": null,
+            "score": 1.0
+        }
+    ]
+}
