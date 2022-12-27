@@ -19,6 +19,8 @@ module Fastlane
         changelog_path = params[:changelog_path]
         editor = params[:editor]
         automatic_release = params[:automatic_release]
+        hybrid_common_version = params[:hybrid_common_version]
+        versions_file_path = params[:versions_file_path]
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -37,7 +39,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, hybrid_common_version, versions_file_path)
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
@@ -135,7 +137,15 @@ module Fastlane
                                        description: "If this is an automatic release",
                                        optional: true,
                                        is_string: false,
-                                       default_value: false)
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :hybrid_common_version,
+                                       description: "Version of the hybrid common sdk to add to the VERSIONS.md file",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :versions_file_path,
+                                       description: "Path to the VERSIONS.md file",
+                                       optional: true,
+                                       type: String)
         ]
       end
 

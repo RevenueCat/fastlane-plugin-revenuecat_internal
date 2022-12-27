@@ -40,6 +40,39 @@ module Fastlane
 
         return commits
       end
+
+      def self.get_releases_between_tags(github_token, start_tag_version, end_tag_version, repo_name)
+        start_tag = Gem::Version.new(start_tag_version)
+        end_tag = Gem::Version.new(end_tag_version)
+
+        response = Actions::GithubApiAction.run(
+          server_url: "https://api.github.com",
+          http_method: 'GET',
+          path: "repos/RevenueCat/#{repo_name}/releases?per_page=50",
+          error_handlers: {
+            404 => proc do |result|
+              UI.user_error!("Repository #{repo_name} cannot be found, please double check its name and that you provided a valid API token (if it's a private repository).")
+            end,
+            401 => proc do |result|
+              UI.user_error!("You are not authorized to access #{repo_name}, please make sure you provided a valid API token.")
+            end,
+            '*' => proc do |result|
+              UI.user_error!("GitHub responded with #{result[:status]}:#{result[:body]}")
+            end
+          },
+          api_token: github_token
+        )
+
+        all_releases = JSON.parse(response[:body])
+
+        # Filters releases between tags
+        all_releases.select do |release|
+          version = Gem::Version.new(release["tag_name"])
+          start_tag < version && version <= end_tag
+        end
+      end
+
+      private_class_method def self.get_github_releases(repo_name) end
     end
   end
 end

@@ -1,3 +1,20 @@
+def mock_native_releases
+  allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+    .with(server_url: server_url,
+          path: 'repos/RevenueCat/purchases-android/releases?per_page=50',
+          http_method: http_method,
+          error_handlers: anything,
+          api_token: 'mock-github-token')
+    .and_return(purchases_android_releases)
+  allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+    .with(server_url: server_url,
+          path: 'repos/RevenueCat/purchases-ios/releases?per_page=50',
+          http_method: http_method,
+          error_handlers: anything,
+          api_token: 'mock-github-token')
+    .and_return(purchases_ios_releases)
+end
+
 describe Fastlane::Helper::VersioningHelper do
   describe '.auto_generate_changelog' do
     let(:server_url) { 'https://api.github.com' }
@@ -14,6 +31,21 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commit_3_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_cfdd80f73d8c91121313d72227b4cbe283b57c1e.json") }
     end
+    let(:get_commit_923_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9237147947bcbce00f36ae3ab51acccc54690782.json") }
+    end
+    let(:get_commit_592_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_5920c32646f918a2484da8aa38ccc5e9337cc449.json") }
+    end
+    let(:get_commit_323_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_32320acc1d6afae30a965d7add32700313123431.json") }
+    end
+    let(:get_commit_398_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_398d57d529680ea72ada461ebfbef86f11d457fe.json") }
+    end
+    let(:get_commit_757_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_75763d3f1604aa5d633e70e46299b1f2813cb163.json") }
+    end
     let(:duplicate_items_get_commit_2_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/duplicate_items_get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
@@ -29,6 +61,17 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commit_no_items) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4ceaceb20e700b92197daf8904f5c4e226625d8a.json") }
     end
+    let(:get_commits_response_hybrid) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_hybrid.json") }
+    end
+    let(:purchases_android_releases) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/purchases_android_releases.json") }
+    end
+    let(:purchases_ios_releases) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/purchases_ios_releases.json") }
+    end
+    let(:versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS.md" }
+    let(:hybrid_common_version) { '4.5.3' }
 
     let(:hashes_to_responses) do
       {
@@ -38,18 +81,111 @@ describe Fastlane::Helper::VersioningHelper do
       }
     end
 
+    let(:hashes_to_responses_hybrid) do
+      {
+        '32320acc1d6afae30a965d7add32700313123431' => get_commit_323_response,
+        '5920c32646f918a2484da8aa38ccc5e9337cc449' => get_commit_592_response,
+        '9237147947bcbce00f36ae3ab51acccc54690782' => get_commit_923_response,
+        '398d57d529680ea72ada461ebfbef86f11d457fe' => get_commit_398_response,
+        '75763d3f1604aa5d633e70e46299b1f2813cb163' => get_commit_757_response
+      }
+    end
+
     it 'generates changelog automatically from github commits' do
       setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
-        0
+        0,
+        nil,
+        nil
       )
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
+    end
+
+    it 'includes native dependencies links automatically' do
+      setup_tag_stubs
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_hybrid)
+      mock_native_releases
+      hashes_to_responses_hybrid.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('5.6.6').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('4.15.4').once
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        hybrid_common_version,
+        versions_path
+      )
+      expect(changelog).to eq("### Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
+                              "\s\s* (Android 5.6.6)[https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6]\n" \
+                              "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
+                              "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
+    end
+
+    it 'includes native dependencies links automatically. only includes new versions' do
+      hybrid_common_version = '4.5.3'
+      setup_tag_stubs
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_hybrid)
+      mock_native_releases
+      hashes_to_responses_hybrid.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('5.6.6').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('4.15.4').once
+      # Making the latest android version match the current one
+      expect(File).to receive(:readlines).with(versions_path)
+                                         .and_return(["| Version | iOS version | Android version | Common files version |\n",
+                                                      "|---------|-------------|-----------------|----------------------|\n",
+                                                      "| 4.5.3   | 4.15.2      | 5.6.6           | 4.5.2                |"])
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        hybrid_common_version,
+        versions_path
+      )
+      expect(changelog).to eq("### Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
+                              "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
+                              "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
@@ -58,7 +194,9 @@ describe Fastlane::Helper::VersioningHelper do
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
-        3
+        3,
+        nil,
+        nil
       )
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
@@ -79,7 +217,9 @@ describe Fastlane::Helper::VersioningHelper do
         Fastlane::Helper::VersioningHelper.auto_generate_changelog(
           'mock-repo-name',
           'mock-github-token',
-          0
+          0,
+          nil,
+          nil
         )
       end.to raise_exception(StandardError)
     end
@@ -97,7 +237,9 @@ describe Fastlane::Helper::VersioningHelper do
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
-        0
+        0,
+        nil,
+        nil
       )
       expect(changelog).to eq("### Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
@@ -118,7 +260,9 @@ describe Fastlane::Helper::VersioningHelper do
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
-        0
+        0,
+        nil,
+        nil
       )
       expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
@@ -148,7 +292,9 @@ describe Fastlane::Helper::VersioningHelper do
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
-        0
+        0,
+        nil,
+        nil
       )
       expect(changelog).to eq("### Other Changes\n" \
                               "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")

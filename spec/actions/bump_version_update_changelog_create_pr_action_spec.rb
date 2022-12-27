@@ -45,7 +45,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with('release/1.13.0', mock_github_pr_token)
         .once
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3)
+        .with(mock_repo_name, mock_github_token, 3, nil, nil)
         .and_return(auto_generated_changelog)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
@@ -167,7 +167,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with('release/1.13.0', mock_github_pr_token)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3)
+        .with(mock_repo_name, mock_github_token, 3, nil, nil)
         .and_return(auto_generated_changelog)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path)
@@ -186,7 +186,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(12)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(14)
     end
   end
 end

@@ -6,6 +6,8 @@ require_relative '../helper/versioning_helper'
 module Fastlane
   module Actions
     class BumpPhcVersionAction < Action
+      PR_TITLE = "Updates purchases-hybrid-common to "
+
       def self.run(params)
         version_number = params[:current_version]
         files_to_update = params[:files_to_update]
@@ -99,7 +101,7 @@ module Fastlane
       private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number)
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
-        pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
+        pr_title = "#{PR_TITLE}#{new_version_number}"
         type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
         labels = ['dependencies']
         labels << 'minor' if type_of_bump == :minor

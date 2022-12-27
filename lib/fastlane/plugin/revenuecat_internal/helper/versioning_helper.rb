@@ -2,6 +2,8 @@ require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require_relative 'github_helper'
+require_relative '../actions/bump_phc_version_action'
+require_relative 'update_hybrids_versions_file_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -21,6 +23,11 @@ module Fastlane
 
   module Helper
     class VersioningHelper
+      LATEST_VERSION_COLUMN = 1
+      IOS_VERSION_COLUMN = 2
+      ANDROID_VERSION_COLUMN = 3
+      PHC_VERSION_COLUMN = 4
+
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
         old_version = latest_non_prerelease_version_number
         UI.important("Determining next version after #{old_version}")
@@ -34,14 +41,14 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, hybrid_common_version, versions_file_path)
         Actions.sh("git fetch --tags -f")
         old_version = latest_non_prerelease_version_number
         UI.important("Auto-generating changelog since #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], other: [] }
+        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], dependency_updates: [], other: [] }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -61,6 +68,10 @@ module Fastlane
             section = get_section_depending_on_types_of_change(types_of_change)
 
             line = "* #{message} via #{name} (@#{username})"
+            if message.include?(Fastlane::Actions::BumpPhcVersionAction::PR_TITLE)
+              # Append links to native releases
+              line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
+            end
             changelog_sections[section].push(line)
           when 0
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
@@ -74,6 +85,14 @@ module Fastlane
           end
         end
         build_changelog_sections(changelog_sections)
+      end
+
+      def self.platform_changelogs(releases, platform)
+        platform_changelogs = []
+        releases.each do |release|
+          platform_changelogs.push("  * (#{platform} #{release['name']})[#{release['html_url']}]")
+        end
+        platform_changelogs
       end
 
       def self.calculate_next_version(current_version, type_of_bump, snapshot)
@@ -159,6 +178,8 @@ module Fastlane
             title = "### Bugfixes"
           when :new_features
             title = "### New Features"
+          when :dependency_updates
+            title = "### Dependency Updates"
           else
             title = "### Other Changes"
           end
@@ -173,6 +194,8 @@ module Fastlane
           :new_features
         elsif change_types.include?("fix")
           :fixes
+        elsif change_types.include?("dependencies")
+          :dependency_updates
         else
           :other
         end
@@ -197,7 +220,7 @@ module Fastlane
           .to_set
       end
 
-      def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
         type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
@@ -224,6 +247,25 @@ module Fastlane
           type_of_bump = BUMP_VALUES.key([BUMP_VALUES[type_of_bump_for_commit], BUMP_VALUES[type_of_bump]].max)
         end
         type_of_bump
+      end
+
+      private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path)
+        versions_latest_release = File.readlines(versions_file_path)[2].gsub(/[[:space:]]/, '').split('|')
+        previous_ios_version = versions_latest_release[IOS_VERSION_COLUMN]
+        previous_android_version = versions_latest_release[ANDROID_VERSION_COLUMN]
+
+        new_android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(phc_version)
+        UI.message("Obtained android version #{new_android_version} for PHC version #{phc_version}")
+        new_ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(phc_version)
+        UI.message("Obtained ios version #{new_ios_version} for PHC version #{phc_version}")
+
+        android_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_android_version, new_android_version, 'purchases-android')
+        ios_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_ios_version, new_ios_version, 'purchases-ios')
+
+        native_dependency_changelogs = [""]
+        native_dependency_changelogs.concat(platform_changelogs(android_releases, 'Android'))
+        native_dependency_changelogs.concat(platform_changelogs(ios_releases, 'iOS'))
+        native_dependency_changelogs.join("\n")
       end
     end
   end
