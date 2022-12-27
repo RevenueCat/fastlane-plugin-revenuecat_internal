@@ -184,6 +184,47 @@ describe Fastlane::Helper::VersioningHelper do
                               "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
     end
 
+    it 'includes native dependencies links automatically. skips if no updates to native' do
+      hybrid_common_version = '4.5.3'
+      setup_tag_stubs
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_commits_response_hybrid)
+      mock_native_releases
+      hashes_to_responses_hybrid.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('5.6.6').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version).and_return('4.15.4').once
+      # Making the latest android version match the current one
+      expect(File).to receive(:readlines).with(versions_path)
+                                         .and_return(["| Version | iOS version | Android version | Common files version |\n",
+                                                      "|---------|-------------|-----------------|----------------------|\n",
+                                                      "| 4.5.3   | 4.15.4      | 5.6.6           | 4.5.2                |"])
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        hybrid_common_version,
+        versions_path
+      )
+      expect(changelog).to eq("### Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
+    end
+
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
