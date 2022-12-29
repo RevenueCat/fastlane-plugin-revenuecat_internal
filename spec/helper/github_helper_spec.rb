@@ -64,9 +64,13 @@ describe Fastlane::Helper::GitHubHelper do
     end
 
     it 'returns commits from response' do
+      allow(Fastlane::Actions::LastGitCommitAction).to receive(:run)
+        .and_return({
+                                                                       commit_hash: 'cfdd80f73d8c91121313d72227b4cbe283b57c1e'
+                                                                     })
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...cfdd80f73d8c91121313d72227b4cbe283b57c1e',
               http_method: http_method,
               body: {},
               api_token: github_token)
