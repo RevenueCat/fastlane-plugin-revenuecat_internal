@@ -480,9 +480,7 @@ describe Fastlane::Helper::VersioningHelper do
 
   def mock_commits_since_last_release(last_commit_hash, response)
     allow(Fastlane::Actions::LastGitCommitAction).to receive(:run)
-      .and_return({
-                                                                     commit_hash: last_commit_hash
-                                                                   })
+      .and_return(commit_hash: last_commit_hash)
     allow(Fastlane::Actions::GithubApiAction).to receive(:run)
       .with(server_url: server_url,
             path: "/repos/RevenueCat/mock-repo-name/compare/1.11.0...#{last_commit_hash}",
