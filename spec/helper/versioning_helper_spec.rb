@@ -216,7 +216,7 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'determines next version as patch correctly' do
       setup_commit_search_stubs(hashes_to_responses)
-      mock_commits_since_last_release("6d37c766b6da55dcab67c201c93ba3d4ca538e55", get_commits_response_patch)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
       expect_any_instance_of(Object).not_to receive(:sleep)
       next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -229,7 +229,7 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'skips next version if no release is needed' do
       setup_commit_search_stubs(hashes_to_responses)
-      mock_commits_since_last_release("1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe", get_commits_response_skip)
+      mock_commits_since_last_release('1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe', get_commits_response_skip)
       expect_any_instance_of(Object).not_to receive(:sleep)
       next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
@@ -341,7 +341,7 @@ describe Fastlane::Helper::VersioningHelper do
     it 'ignores commits without associated prs' do
       setup_commit_search_stubs(hashes_to_responses)
 
-      mock_commits_since_last_release("885cfa2d3d570c7427ad6581bc8e4e6c4baf82e4", get_commits_response_no_pr_more_commits)
+      mock_commits_since_last_release('885cfa2d3d570c7427ad6581bc8e4e6c4baf82e4', get_commits_response_no_pr_more_commits)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
               path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
@@ -466,7 +466,7 @@ describe Fastlane::Helper::VersioningHelper do
 
   def setup_commit_search_stubs(hashes_to_responses)
     setup_tag_stubs
-    mock_commits_since_last_release("cfdd80f73d8c91121313d72227b4cbe283b57c1e", get_commits_response)
+    mock_commits_since_last_release('cfdd80f73d8c91121313d72227b4cbe283b57c1e', get_commits_response)
     hashes_to_responses.each do |hash, response|
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
