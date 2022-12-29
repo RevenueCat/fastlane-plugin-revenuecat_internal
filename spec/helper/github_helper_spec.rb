@@ -57,16 +57,18 @@ describe Fastlane::Helper::GitHubHelper do
   describe '.get_commits_since_old_version' do
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
-    let(:hash) { 'a72c0435ecf71248f311900475e881cc07ac2eaf' }
+    let(:last_commit_sha) { 'cfdd80f73d8c91121313d72227b4cbe283b57c1e' }
     let(:github_token) { 'mock-github-token' }
     let(:get_commits_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release.json") }
     end
 
     it 'returns commits from response' do
+      allow(Fastlane::Actions::LastGitCommitAction).to receive(:run)
+        .and_return(commit_hash: last_commit_sha)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
+              path: "/repos/RevenueCat/mock-repo-name/compare/1.11.0...#{last_commit_sha}",
               http_method: http_method,
               body: {},
               api_token: github_token)

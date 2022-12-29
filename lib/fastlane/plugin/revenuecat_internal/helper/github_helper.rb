@@ -1,6 +1,7 @@
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
+require 'fastlane/actions/last_git_commit'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -27,7 +28,8 @@ module Fastlane
       end
 
       def self.get_commits_since_old_version(github_token, old_version, repo_name)
-        path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...HEAD"
+        commit_head = Actions::LastGitCommitAction.run({})
+        path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...#{commit_head[:commit_hash]}"
 
         # Get all commits from previous version (tag) to HEAD
         resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
