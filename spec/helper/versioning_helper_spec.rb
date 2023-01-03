@@ -68,7 +68,9 @@ describe Fastlane::Helper::VersioningHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/purchases_ios_releases.json") }
     end
     let(:versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS.md" }
-    let(:unity_versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS.md" }
+    let(:unity_versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS_unity.md" }
+    let(:empty_versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS_empty.md" }
+    let(:broken_versions_path) { "#{File.dirname(__FILE__)}/../test_files/VERSIONS_broken.md" }
     let(:hybrid_common_version) { '4.5.3' }
 
     let(:hashes_to_responses) do
@@ -135,6 +137,7 @@ describe Fastlane::Helper::VersioningHelper do
                               "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
                               "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
     end
+
     it 'includes native dependencies links automatically. Also works for unity style VERSIONS.md' do
       setup_tag_stubs
       mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
@@ -165,6 +168,60 @@ describe Fastlane::Helper::VersioningHelper do
                               "\s\s* (Android 5.6.6)[https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6]\n" \
                               "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
                               "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
+    end
+
+    it 'handles empty VERSIONS.md' do
+      setup_tag_stubs
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Can't detect iOS and Android version for version 4.5.3 of purchases-hybrid-common. Empty VERSIONS.md")
+        .once
+      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
+      hashes_to_responses_hybrid.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        hybrid_common_version,
+        empty_versions_path
+      )
+      expect(changelog).to eq("### Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
+    end
+
+    it 'handles broken VERSIONS.md' do
+      setup_tag_stubs
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Malformed iOS version - for version 4.5.3 of purchases-hybrid-common.")
+        .once
+      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
+      hashes_to_responses_hybrid.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        hybrid_common_version,
+        broken_versions_path
+      )
+      expect(changelog).to eq("### Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
     it 'includes native dependencies links automatically. only includes new versions' do

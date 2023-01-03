@@ -243,18 +243,35 @@ module Fastlane
           commit_supported_labels = get_type_of_change_from_pr_info(item)
           type_of_bump_for_commit = get_type_of_bump_from_types_of_change(commit_supported_labels)
 
-          puts("type_of_bump_for_commit #{type_of_bump_for_commit}")
-          puts("type_of_bump #{type_of_bump}")
-
           type_of_bump = BUMP_VALUES.key([BUMP_VALUES[type_of_bump_for_commit], BUMP_VALUES[type_of_bump]].max)
         end
         type_of_bump
       end
 
       private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path)
-        versions_latest_release = File.readlines(versions_file_path)[2].gsub(/[[:space:]]/, '').split('|')
+        latest_release_row = File.readlines(versions_file_path)[2]
+        if latest_release_row.nil?
+          UI.error("Can't detect iOS and Android version for version #{phc_version} of purchases-hybrid-common. Empty VERSIONS.md")
+          return ""
+        end
+
+        versions_latest_release = latest_release_row.gsub(/[[:space:]]/, '').split('|')
+        if versions_latest_release.count < 5
+          UI.error("Can't detect iOS and Android version for version #{phc_version} of purchases-hybrid-common. Malformed VERSIONS.md")
+          return ""
+        end
+
         previous_ios_version = versions_latest_release[IOS_VERSION_COLUMN]
+        unless Gem::Version.correct?(previous_ios_version)
+          UI.error("Malformed iOS version #{previous_ios_version} for version #{phc_version} of purchases-hybrid-common.")
+          return ""
+        end
+
         previous_android_version = versions_latest_release[ANDROID_VERSION_COLUMN]
+        unless Gem::Version.correct?(previous_android_version)
+          UI.error("Malformed Android version #{previous_android_version} for version #{phc_version} of purchases-hybrid-common.")
+          return ""
+        end
 
         new_android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(phc_version)
         UI.message("Obtained android version #{new_android_version} for PHC version #{phc_version}")
