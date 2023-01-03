@@ -73,8 +73,6 @@ module Fastlane
           start_tag < version && version <= end_tag
         end
       end
-
-      private_class_method def self.get_github_releases(repo_name) end
     end
   end
 end
