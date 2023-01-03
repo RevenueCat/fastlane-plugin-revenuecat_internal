@@ -17,7 +17,7 @@ module Fastlane
   BUMP_PER_LABEL = {
     major: %w[breaking].to_set,
     minor: %w[feat minor].to_set,
-    patch: %w[docs fix perf dependencies].to_set,
+    patch: %w[docs fix perf dependencies phc_dependencies].to_set,
     skip: %w[build ci refactor style test next_release].to_set
   }
 
@@ -196,7 +196,7 @@ module Fastlane
           :new_features
         elsif change_types.include?("fix")
           :fixes
-        elsif change_types.include?("dependencies")
+        elsif change_types.include?("dependencies") || change_types.include?("phc_dependencies")
           :dependency_updates
         else
           :other

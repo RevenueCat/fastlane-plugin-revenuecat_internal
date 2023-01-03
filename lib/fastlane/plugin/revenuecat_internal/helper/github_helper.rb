@@ -8,7 +8,7 @@ module Fastlane
 
   module Helper
     class GitHubHelper
-      SUPPORTED_PR_LABELS = %w[breaking build ci docs feat fix perf refactor style test next_release dependencies minor].to_set
+      SUPPORTED_PR_LABELS = %w[breaking build ci docs feat fix perf refactor style test next_release dependencies phc_dependencies minor].to_set
 
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
         if rate_limit_sleep > 0

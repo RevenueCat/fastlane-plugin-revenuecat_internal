@@ -9,7 +9,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
     let(:current_version) { '1.12.0' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'bump-phc/1.13.0' }
-    let(:labels) { ['dependencies', 'minor'] }
+    let(:labels) { ['phc_dependencies', 'minor'] }
 
     it 'fails if version is invalid' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
@@ -192,7 +192,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .once
       message = "Updates purchases-hybrid-common to 1.12.1"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, ['dependencies'])
+        .with(message, message, mock_repo_name, new_branch_name, mock_github_pr_token, ['phc_dependencies'])
         .once
 
       Fastlane::Actions::BumpPhcVersionAction.run(

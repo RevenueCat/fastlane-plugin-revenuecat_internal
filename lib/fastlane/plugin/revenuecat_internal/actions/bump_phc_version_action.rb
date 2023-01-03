@@ -103,7 +103,7 @@ module Fastlane
 
         pr_title = "#{PR_TITLE}#{new_version_number}"
         type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
-        labels = ['dependencies']
+        labels = ['phc_dependencies']
         labels << 'minor' if type_of_bump == :minor
         body = pr_title
 
