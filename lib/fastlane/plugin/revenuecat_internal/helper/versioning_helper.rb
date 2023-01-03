@@ -265,8 +265,8 @@ module Fastlane
         ios_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_ios_version, new_ios_version, REPO_NAME_IOS)
 
         native_dependency_changelogs = [""]
-        native_dependency_changelogs.concat(platform_changelogs(android_releases, 'Android'))
-        native_dependency_changelogs.concat(platform_changelogs(ios_releases, 'iOS'))
+        native_dependency_changelogs += platform_changelogs(android_releases, 'Android')
+        native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
         native_dependency_changelogs.join("\n")
       end
     end
