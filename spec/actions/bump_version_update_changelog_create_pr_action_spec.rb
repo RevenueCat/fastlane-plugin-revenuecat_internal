@@ -12,6 +12,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'release/1.13.0' }
     let(:labels) { ['next_release'] }
+    let(:hybrid_common_version) { '4.5.3' }
+    let(:versions_file_path) { '../VERSIONS.md' }
 
     it 'fails if version is invalid' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
@@ -78,6 +80,29 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_token: mock_github_token,
         github_rate_limit: 3,
         editor: editor
+      )
+    end
+
+    it 'generates changelog with appropriate parameters when bumping a hybrid SDK' do
+      setup_stubs
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, hybrid_common_version, versions_file_path)
+        .and_return(auto_generated_changelog)
+        .once
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: ['./test_file.sh', './test_file2.rb'],
+        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        hybrid_common_version: hybrid_common_version,
+        versions_file_path: versions_file_path
       )
     end
 
