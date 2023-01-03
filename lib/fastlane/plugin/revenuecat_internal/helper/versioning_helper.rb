@@ -2,7 +2,6 @@ require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require_relative 'github_helper'
-require_relative '../actions/bump_phc_version_action'
 require_relative 'update_hybrids_versions_file_helper'
 
 module Fastlane
@@ -70,7 +69,7 @@ module Fastlane
             section = get_section_depending_on_types_of_change(types_of_change)
 
             line = "* #{message} via #{name} (@#{username})"
-            if message.include?(Fastlane::Actions::BumpPhcVersionAction::PR_TITLE)
+            if types_of_change.include?("phc_dependencies")
               # Append links to native releases
               line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
             end
