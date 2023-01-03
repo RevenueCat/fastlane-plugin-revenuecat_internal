@@ -1,20 +1,3 @@
-def mock_native_releases
-  allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-    .with(server_url: server_url,
-          path: 'repos/RevenueCat/purchases-android/releases?per_page=50',
-          http_method: http_method,
-          error_handlers: anything,
-          api_token: 'mock-github-token')
-    .and_return(purchases_android_releases)
-  allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-    .with(server_url: server_url,
-          path: 'repos/RevenueCat/purchases-ios/releases?per_page=50',
-          http_method: http_method,
-          error_handlers: anything,
-          api_token: 'mock-github-token')
-    .and_return(purchases_ios_releases)
-end
-
 describe Fastlane::Helper::VersioningHelper do
   describe '.auto_generate_changelog' do
     let(:server_url) { 'https://api.github.com' }
@@ -399,6 +382,23 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Other Changes\n" \
                               "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")
+    end
+
+    def mock_native_releases
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: 'repos/RevenueCat/purchases-android/releases?per_page=50',
+              http_method: http_method,
+              error_handlers: anything,
+              api_token: 'mock-github-token')
+        .and_return(purchases_android_releases)
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: 'repos/RevenueCat/purchases-ios/releases?per_page=50',
+              http_method: http_method,
+              error_handlers: anything,
+              api_token: 'mock-github-token')
+        .and_return(purchases_ios_releases)
     end
   end
 
