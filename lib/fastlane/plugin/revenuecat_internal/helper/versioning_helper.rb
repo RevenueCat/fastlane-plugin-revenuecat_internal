@@ -3,6 +3,7 @@ require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require_relative 'github_helper'
 require_relative 'update_hybrids_versions_file_helper'
+require_relative '../constants'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -260,8 +261,8 @@ module Fastlane
         new_ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(phc_version)
         UI.message("Obtained ios version #{new_ios_version} for PHC version #{phc_version}")
 
-        android_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_android_version, new_android_version, 'purchases-android')
-        ios_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_ios_version, new_ios_version, 'purchases-ios')
+        android_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_android_version, new_android_version, REPO_NAME_ANDROID)
+        ios_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_ios_version, new_ios_version, REPO_NAME_IOS)
 
         native_dependency_changelogs = [""]
         native_dependency_changelogs.concat(platform_changelogs(android_releases, 'Android'))
