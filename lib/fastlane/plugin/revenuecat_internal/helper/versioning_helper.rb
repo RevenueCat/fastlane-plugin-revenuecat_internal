@@ -23,7 +23,7 @@ module Fastlane
 
   module Helper
     class VersioningHelper
-      # This assumes all hybrids have the same format in the VERSIONS.md. 
+      # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
       LATEST_VERSION_COLUMN = 1
       IOS_VERSION_COLUMN = 2

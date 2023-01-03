@@ -105,13 +105,7 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'includes native dependencies links automatically' do
       setup_tag_stubs
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commits_response_hybrid)
+      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
       hashes_to_responses_hybrid.each do |hash, response|
         allow(Fastlane::Actions::GithubApiAction).to receive(:run)
@@ -144,13 +138,7 @@ describe Fastlane::Helper::VersioningHelper do
     it 'includes native dependencies links automatically. only includes new versions' do
       hybrid_common_version = '4.5.3'
       setup_tag_stubs
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commits_response_hybrid)
+      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
       hashes_to_responses_hybrid.each do |hash, response|
         allow(Fastlane::Actions::GithubApiAction).to receive(:run)
@@ -187,13 +175,7 @@ describe Fastlane::Helper::VersioningHelper do
     it 'includes native dependencies links automatically. skips if no updates to native' do
       hybrid_common_version = '4.5.3'
       setup_tag_stubs
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-        .with(server_url: server_url,
-              path: '/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD',
-              http_method: http_method,
-              body: {},
-              api_token: 'mock-github-token')
-        .and_return(get_commits_response_hybrid)
+      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
       hashes_to_responses_hybrid.each do |hash, response|
         allow(Fastlane::Actions::GithubApiAction).to receive(:run)
