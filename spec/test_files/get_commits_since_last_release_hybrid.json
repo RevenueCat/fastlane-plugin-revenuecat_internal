@@ -1,0 +1,561 @@
+{
+    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/compare/1.11.0...HEAD",
+    "html_url": "https://github.com/RevenueCat/mock-repo-name/compare/1.11.0...HEAD",
+    "permalink_url": "https://github.com/RevenueCat/mock-repo-name/compare/RevenueCat:06f230b...RevenueCat:9237147",
+    "diff_url": "https://github.com/RevenueCat/mock-repo-name/compare/1.11.0...HEAD.diff",
+    "patch_url": "https://github.com/RevenueCat/mock-repo-name/compare/1.11.0...HEAD.patch",
+    "base_commit": {
+        "sha": "06f230b68da15ff8bab62d1b747b3886d6a6c527",
+        "node_id": "C_kwDOCxR9WNoAKDA2ZjIzMGI2OGRhMTVmZjhiYWI2MmQxYjc0N2IzODg2ZDZhNmM1Mjc",
+        "commit": {
+            "author": {
+                "name": "RCGitBot",
+                "email": "dev+RCGitBot@revenuecat.com",
+                "date": "2022-12-16T18:11:03Z"
+            },
+            "committer": {
+                "name": "RCGitBot",
+                "email": "dev+RCGitBot@revenuecat.com",
+                "date": "2022-12-16T18:11:03Z"
+            },
+            "message": "Update VERSIONS.md",
+            "tree": {
+                "sha": "378fbb53cee389f997899e3cb20f415dfd008043",
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/378fbb53cee389f997899e3cb20f415dfd008043"
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/06f230b68da15ff8bab62d1b747b3886d6a6c527",
+            "comment_count": 0,
+            "verification": {
+                "verified": false,
+                "reason": "unsigned",
+                "signature": null,
+                "payload": null
+            }
+        },
+        "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/06f230b68da15ff8bab62d1b747b3886d6a6c527",
+        "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/06f230b68da15ff8bab62d1b747b3886d6a6c527",
+        "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/06f230b68da15ff8bab62d1b747b3886d6a6c527/comments",
+        "author": {
+            "login": "RCGitBot",
+            "id": 72824662,
+            "node_id": "MDQ6VXNlcjcyODI0NjYy",
+            "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/RCGitBot",
+            "html_url": "https://github.com/RCGitBot",
+            "followers_url": "https://api.github.com/users/RCGitBot/followers",
+            "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+            "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+            "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+            "repos_url": "https://api.github.com/users/RCGitBot/repos",
+            "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "committer": {
+            "login": "RCGitBot",
+            "id": 72824662,
+            "node_id": "MDQ6VXNlcjcyODI0NjYy",
+            "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/RCGitBot",
+            "html_url": "https://github.com/RCGitBot",
+            "followers_url": "https://api.github.com/users/RCGitBot/followers",
+            "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+            "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+            "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+            "repos_url": "https://api.github.com/users/RCGitBot/repos",
+            "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "parents": [
+            {
+                "sha": "78531ffb88738e3be71b8575b589c3355561b310",
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/78531ffb88738e3be71b8575b589c3355561b310",
+                "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/78531ffb88738e3be71b8575b589c3355561b310"
+            }
+        ]
+    },
+    "merge_base_commit": {
+        "sha": "db1fca740a54a044cfe09a36809963d11b49ead0",
+        "node_id": "C_kwDOCxR9WNoAKGRiMWZjYTc0MGE1NGEwNDRjZmUwOWEzNjgwOTk2M2QxMWI0OWVhZDA",
+        "commit": {
+            "author": {
+                "name": "RevenueCat Git Bot",
+                "email": "72824662+RCGitBot@users.noreply.github.com",
+                "date": "2022-12-16T14:30:31Z"
+            },
+            "committer": {
+                "name": "GitHub",
+                "email": "noreply@github.com",
+                "date": "2022-12-16T14:30:31Z"
+            },
+            "message": "[AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550)\n\n**This is an automatic bump.**\r\n\r\nUpdates purchases-hybrid-common to 4.5.2",
+            "tree": {
+                "sha": "cc8ccefc6a1a368bf3899d196a43d58342468469",
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/cc8ccefc6a1a368bf3899d196a43d58342468469"
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/db1fca740a54a044cfe09a36809963d11b49ead0",
+            "comment_count": 0,
+            "verification": {
+                "verified": true,
+                "reason": "valid",
+                "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjnIEHCRBK7hj4Ov3rIwAAEd8IAJUKD2Mof1b8FIGPrZs6LYYy\nopM68iJrI4BxcWJqk/U3YzxYMtK9AxE4uWpe8Wwd4egTjLQ8NGUaN1FQMZQA2R4Z\nY7vUWvcTdoPrtEm1oIFDGjsa5TqBfGy9S+jTFjGPgCKmnFXfDexnEOyhrrbEKN7V\n6IkrFgU+ms/Ds1/hjMx5ksZ+ni6TovTfqLTaevTl4ABdJKacgmUKnv6Xgph6S0zj\nsRbA5tfRRnaXz68miWwDtJNNIRoSkob+K859CEptQY3iwOeEfMVswPHQA3P1ut/O\nvo/AvMfheex9Jgi48XvMRkIZt48FsCesliWymxr+2KC7e98Q10/63fjJ9A4t/TU=\n=cWYl\n-----END PGP SIGNATURE-----\n",
+                "payload": "tree cc8ccefc6a1a368bf3899d196a43d58342468469\nparent 3e04dd23c9d1bbd2b0c2f2352227c586a62ecc9a\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1671201031 +0000\ncommitter GitHub <noreply@github.com> 1671201031 +0100\n\n[AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550)\n\n**This is an automatic bump.**\r\n\r\nUpdates purchases-hybrid-common to 4.5.2"
+            }
+        },
+        "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/db1fca740a54a044cfe09a36809963d11b49ead0",
+        "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/db1fca740a54a044cfe09a36809963d11b49ead0",
+        "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/db1fca740a54a044cfe09a36809963d11b49ead0/comments",
+        "author": {
+            "login": "RCGitBot",
+            "id": 72824662,
+            "node_id": "MDQ6VXNlcjcyODI0NjYy",
+            "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/RCGitBot",
+            "html_url": "https://github.com/RCGitBot",
+            "followers_url": "https://api.github.com/users/RCGitBot/followers",
+            "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+            "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+            "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+            "repos_url": "https://api.github.com/users/RCGitBot/repos",
+            "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "committer": {
+            "login": "web-flow",
+            "id": 19864447,
+            "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+            "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/web-flow",
+            "html_url": "https://github.com/web-flow",
+            "followers_url": "https://api.github.com/users/web-flow/followers",
+            "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+            "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+            "organizations_url": "https://api.github.com/users/web-flow/orgs",
+            "repos_url": "https://api.github.com/users/web-flow/repos",
+            "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/web-flow/received_events",
+            "type": "User",
+            "site_admin": false
+        },
+        "parents": [
+            {
+                "sha": "3e04dd23c9d1bbd2b0c2f2352227c586a62ecc9a",
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/3e04dd23c9d1bbd2b0c2f2352227c586a62ecc9a",
+                "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/3e04dd23c9d1bbd2b0c2f2352227c586a62ecc9a"
+            }
+        ]
+    },
+    "status": "diverged",
+    "ahead_by": 5,
+    "behind_by": 2,
+    "total_commits": 5,
+    "commits": [
+        {
+            "sha": "75763d3f1604aa5d633e70e46299b1f2813cb163",
+            "node_id": "C_kwDOCxR9WNoAKDc1NzYzZDNmMTYwNGFhNWQ2MzNlNzBlNDYyOTliMWYyODEzY2IxNjM",
+            "commit": {
+                "author": {
+                    "name": "RevenueCat Git Bot",
+                    "email": "72824662+RCGitBot@users.noreply.github.com",
+                    "date": "2022-12-16T18:34:17Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-12-16T18:34:17Z"
+                },
+                "message": "[AUTOMATIC] Release/4.5.3 (#551)\n\n**This is an automatic release.**\r\n\r\n### Other Changes\r\n* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550) via\r\nRevenueCat Git Bot (@RCGitBot)",
+                "tree": {
+                    "sha": "378fbb53cee389f997899e3cb20f415dfd008043",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/378fbb53cee389f997899e3cb20f415dfd008043"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/75763d3f1604aa5d633e70e46299b1f2813cb163",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjnLopCRBK7hj4Ov3rIwAASfgIAD0psjNnMyKKNyZlKc1cffCB\nig/2MYwpXJPaSTY9/9N7n8jvc8JQa3rfDE/RIFk0SorwapGMbnNKXZM/E4/WRhF7\nFnLTcGQEdAY5cteGzH2BJWie6UgqPGFyDDNdWA98Tb8Ke+shlvEZapQorAmSaG+J\nWWotmkIK9I2BoAElfV4B5E+GbsnXkw+AkawVzJdUYmsG7HGnJtSZC7S82CDoqZbD\nFbNORllZAOzxleAQ/FxOXp4T9ErGGFyHqFjpvalj61BifpOAJbgxsU2KEKpNEBYE\nN8cxh9NM9ksJQwaKwHqyE3sIcZqtxDOlhqL2D/GPKU+NB2pHuDt1M5E/5gx73CU=\n=REO1\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 378fbb53cee389f997899e3cb20f415dfd008043\nparent db1fca740a54a044cfe09a36809963d11b49ead0\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1671215657 +0000\ncommitter GitHub <noreply@github.com> 1671215657 +0100\n\n[AUTOMATIC] Release/4.5.3 (#551)\n\n**This is an automatic release.**\r\n\r\n### Other Changes\r\n* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550) via\r\nRevenueCat Git Bot (@RCGitBot)"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/75763d3f1604aa5d633e70e46299b1f2813cb163",
+            "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/75763d3f1604aa5d633e70e46299b1f2813cb163",
+            "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/75763d3f1604aa5d633e70e46299b1f2813cb163/comments",
+            "author": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "db1fca740a54a044cfe09a36809963d11b49ead0",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/db1fca740a54a044cfe09a36809963d11b49ead0",
+                    "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/db1fca740a54a044cfe09a36809963d11b49ead0"
+                }
+            ]
+        },
+        {
+            "sha": "32320acc1d6afae30a965d7add32700313123431",
+            "node_id": "C_kwDOCxR9WNoAKDMyMzIwYWNjMWQ2YWZhZTMwYTk2NWQ3YWRkMzI3MDAzMTMxMjM0MzE",
+            "commit": {
+                "author": {
+                    "name": "RevenueCat Git Bot",
+                    "email": "72824662+RCGitBot@users.noreply.github.com",
+                    "date": "2022-12-20T10:28:10Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-12-20T10:28:10Z"
+                },
+                "message": "[AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553)\n\n**This is an automatic bump.**\r\n\r\nUpdates purchases-hybrid-common to 4.5.3",
+                "tree": {
+                    "sha": "20ef294cb9ae9e042ab86fd7131089e137945bf9",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/20ef294cb9ae9e042ab86fd7131089e137945bf9"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/32320acc1d6afae30a965d7add32700313123431",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjoY46CRBK7hj4Ov3rIwAAxwkIADQeWCb81yLKphjkT2Y6SyBp\nT9kXDa9sT9brVZusrRVPs0zEPRXOyoGmxuYdR7gj7Z1+Klv2g8g2u0uBFk/oOtN/\nN+IC0U6wMxbj5447W9JA0tCgfVCgqxSRcSEolrBh0xIbck1TcIFgB4gQXLgW6tiD\ndu1RLpj+LMW6MSQTmdyUN/nIeemNmqd6DlbAuyzCOKyAXb96W7+/5vokGdNHGGFc\n69N4eD0VRuJeYtR4Oc4B7EDlkh/674zBDVRvjp+vFGf9j1SZC8S2HG+r0LZpmDWB\ncZINPDDhzESPn1ke0XcNuQfxzgIciauP/M1FBo7SC8F4208JJU7tFUhDdb+8yrM=\n=TF6w\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 20ef294cb9ae9e042ab86fd7131089e137945bf9\nparent 75763d3f1604aa5d633e70e46299b1f2813cb163\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1671532090 +0000\ncommitter GitHub <noreply@github.com> 1671532090 +0100\n\n[AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553)\n\n**This is an automatic bump.**\r\n\r\nUpdates purchases-hybrid-common to 4.5.3"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/32320acc1d6afae30a965d7add32700313123431",
+            "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/32320acc1d6afae30a965d7add32700313123431",
+            "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/32320acc1d6afae30a965d7add32700313123431/comments",
+            "author": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "75763d3f1604aa5d633e70e46299b1f2813cb163",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/75763d3f1604aa5d633e70e46299b1f2813cb163",
+                    "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/75763d3f1604aa5d633e70e46299b1f2813cb163"
+                }
+            ]
+        },
+        {
+            "sha": "5920c32646f918a2484da8aa38ccc5e9337cc449",
+            "node_id": "C_kwDOCxR9WNoAKDU5MjBjMzI2NDZmOTE4YTI0ODRkYThhYTM4Y2NjNWU5MzM3Y2M0NDk",
+            "commit": {
+                "author": {
+                    "name": "RevenueCat Git Bot",
+                    "email": "72824662+RCGitBot@users.noreply.github.com",
+                    "date": "2022-12-21T18:17:03Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-12-21T18:17:03Z"
+                },
+                "message": "[AUTOMATIC] Release/4.5.4 (#554)",
+                "tree": {
+                    "sha": "da7750c632fe5e9383c9657f9b1d4158aa9d395d",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/da7750c632fe5e9383c9657f9b1d4158aa9d395d"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/5920c32646f918a2484da8aa38ccc5e9337cc449",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjo02fCRBK7hj4Ov3rIwAAQk0IABWcYGy55crkpaf5Yw+ITYWu\nALQ6Kq4h/g0EK1aCSlROjfkRgDkxqUy54ZuuJXjliAqFqZWBcu/NdJW8aHdAkWjr\nmkzdTh2CbLWnB6TDhkre4ofOY34aukRxBo7sQNV6+ff2ow5u5exILPNja9Fgtxc8\nSxHkfqa+N9nMB9dXj8mjTZuv79VPeq6Fffl4begQhX9sfv8W73cei7zkJu4imgO9\nJyY4efkrTOrvBjl7DzLtknraKy5XKeoa2ydnWCvyuKh55Wv+ByDhpod7+B3M6nJP\nkDcLJ0VGL9+VV/7iyK2OmqFX4gw7KRdjqhOnQEoPT40x1MnhXDT8R1C9FUrETE0=\n=lomU\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree da7750c632fe5e9383c9657f9b1d4158aa9d395d\nparent 32320acc1d6afae30a965d7add32700313123431\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1671646623 +0000\ncommitter GitHub <noreply@github.com> 1671646623 +0100\n\n[AUTOMATIC] Release/4.5.4 (#554)\n\n"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/5920c32646f918a2484da8aa38ccc5e9337cc449",
+            "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/5920c32646f918a2484da8aa38ccc5e9337cc449",
+            "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/5920c32646f918a2484da8aa38ccc5e9337cc449/comments",
+            "author": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "32320acc1d6afae30a965d7add32700313123431",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/32320acc1d6afae30a965d7add32700313123431",
+                    "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/32320acc1d6afae30a965d7add32700313123431"
+                }
+            ]
+        },
+        {
+            "sha": "9237147947bcbce00f36ae3ab51acccc54690782",
+            "node_id": "C_kwDOCxR9WNoAKDkyMzcxNDc5NDdiY2JjZTAwZjM2YWUzYWI1MWFjY2NjNTQ2OTA3ODI",
+            "commit": {
+                "author": {
+                    "name": "RevenueCat Git Bot",
+                    "email": "72824662+RCGitBot@users.noreply.github.com",
+                    "date": "2022-12-22T07:05:59Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-12-22T07:05:59Z"
+                },
+                "message": "Prepare next version: 4.6.0-SNAPSHOT (#555)",
+                "tree": {
+                    "sha": "cd76cf743421860356e733a298780d9d1fff0b4f",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/trees/cd76cf743421860356e733a298780d9d1fff0b4f"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/git/commits/9237147947bcbce00f36ae3ab51acccc54690782",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjpAHXCRBK7hj4Ov3rIwAA9QsIACtSRw8gFfrXhGlhKbtb66fj\nr/PX6vYI5aCNz58aCvYex+N0B+0b7ZjmAgTkn1vLACndYQDoZQa0kQhRVHsOGYxW\n8Yasdg4ogTYj+5mYxecgegA1ftgKGcAA6n51brtmFWpsWAG4zYUes/cQRfOFtkUL\nHluf6hrmujr0cgJMWwi0hWV9GN/luVHhviHO7ph+o2oIih1ebTfm38o7bg/jSI77\na/DqhjY+l+tnp4WIij8WRdaEHQuV3zKIMpXCt9iUr3rztu2j2DRNgg+7xZR7HwSW\nr0AP2ouWyekEBEWpB2l2wy7Vslqi3iNVtaSIfyqEOQJQmDAFGQ2qQEQx5gVTpgU=\n=Z6X8\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree cd76cf743421860356e733a298780d9d1fff0b4f\nparent 5920c32646f918a2484da8aa38ccc5e9337cc449\nauthor RevenueCat Git Bot <72824662+RCGitBot@users.noreply.github.com> 1671692759 +0000\ncommitter GitHub <noreply@github.com> 1671692759 +0100\n\nPrepare next version: 4.6.0-SNAPSHOT (#555)\n\n"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/9237147947bcbce00f36ae3ab51acccc54690782",
+            "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/9237147947bcbce00f36ae3ab51acccc54690782",
+            "comments_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/9237147947bcbce00f36ae3ab51acccc54690782/comments",
+            "author": {
+                "login": "RCGitBot",
+                "id": 72824662,
+                "node_id": "MDQ6VXNlcjcyODI0NjYy",
+                "avatar_url": "https://avatars.githubusercontent.com/u/72824662?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/RCGitBot",
+                "html_url": "https://github.com/RCGitBot",
+                "followers_url": "https://api.github.com/users/RCGitBot/followers",
+                "following_url": "https://api.github.com/users/RCGitBot/following{/other_user}",
+                "gists_url": "https://api.github.com/users/RCGitBot/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/RCGitBot/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/RCGitBot/subscriptions",
+                "organizations_url": "https://api.github.com/users/RCGitBot/orgs",
+                "repos_url": "https://api.github.com/users/RCGitBot/repos",
+                "events_url": "https://api.github.com/users/RCGitBot/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/RCGitBot/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "5920c32646f918a2484da8aa38ccc5e9337cc449",
+                    "url": "https://api.github.com/repos/RevenueCat/mock-repo-name/commits/5920c32646f918a2484da8aa38ccc5e9337cc449",
+                    "html_url": "https://github.com/RevenueCat/mock-repo-name/commit/5920c32646f918a2484da8aa38ccc5e9337cc449"
+                }
+            ]
+        }
+    ],
+    "files": [
+        {
+            "sha": "1a327f6a205aca35c7bb5fe1da4e38944be81425",
+            "filename": "CHANGELOG-LATEST.md",
+            "status": "modified",
+            "additions": 2,
+            "deletions": 2,
+            "changes": 4,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/CHANGELOG-LATEST.md",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/CHANGELOG-LATEST.md",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/CHANGELOG-LATEST.md?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -1,2 +1,2 @@\n-### Bugfixes\n-* Fix for java.lang.IllegalAccessError: Interface androidx.lifecycle.c  (#547) via Cesar de la Vega (@vegaro)\n+### Other Changes\n+* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)"
+        },
+        {
+            "sha": "b8afe65969224845664e62488859da55c272a2bd",
+            "filename": "CHANGELOG.md",
+            "status": "modified",
+            "additions": 8,
+            "deletions": 0,
+            "changes": 8,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/CHANGELOG.md",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/CHANGELOG.md",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/CHANGELOG.md?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -1,3 +1,11 @@\n+## 4.5.4\n+### Other Changes\n+* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n+\n+## 4.5.3\n+### Other Changes\n+* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550) via RevenueCat Git Bot (@RCGitBot)\n+\n ## 4.5.2\n ### Bugfixes\n * Fix for java.lang.IllegalAccessError: Interface androidx.lifecycle.c  (#547) via Cesar de la Vega (@vegaro)"
+        },
+        {
+            "sha": "c39e101544a081eb5cdba5b76f9ad3618c41b37c",
+            "filename": "VERSIONS.md",
+            "status": "modified",
+            "additions": 2,
+            "deletions": 0,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/VERSIONS.md",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/VERSIONS.md",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/VERSIONS.md?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -1,5 +1,7 @@\n | Version | iOS version | Android version | Common files version |\n |---------|-------------|-----------------|----------------------|\n+| 4.5.4 | 4.15.4 | 5.6.6 | 4.5.3 |\n+| 4.5.3 | 4.15.3 | 5.6.6 | 4.5.2 |\n | 4.5.2 | 4.15.2 | 5.6.5 | 4.5.1 |\n | 4.5.1 | 4.15.2 | 5.6.5 | 4.5.1 |\n | 4.5.0 | 4.15.0 | 5.6.5 | 4.5.0 |"
+        },
+        {
+            "sha": "596dba7e0e95fefd62a9ce789a016d4c1139d36e",
+            "filename": "android/build.gradle",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/android%2Fbuild.gradle",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/android%2Fbuild.gradle",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/android%2Fbuild.gradle?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -3,7 +3,7 @@ version '4.6.0-SNAPSHOT'\n \n buildscript {\n     ext.kotlin_version = '1.6.21'\n-    ext.common_version = '4.5.2'\n+    ext.common_version = '4.5.3'\n     repositories {\n         google()\n         mavenCentral()"
+        },
+        {
+            "sha": "86c2b77f485881ff1cec71e7952a9f2b45eb5e6e",
+            "filename": "ios/purchases_flutter.podspec",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/ios%2Fpurchases_flutter.podspec",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/ios%2Fpurchases_flutter.podspec",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/ios%2Fpurchases_flutter.podspec?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -15,7 +15,7 @@ Pod::Spec.new do |s|\n   s.source_files = 'Classes/**/*'\n   s.public_header_files = 'Classes/**/*.h'\n   s.dependency 'Flutter'\n-  s.dependency 'PurchasesHybridCommon', '4.5.2'\n+  s.dependency 'PurchasesHybridCommon', '4.5.3'\n   s.ios.deployment_target = '11.0'\n   s.swift_version         = '5.0'\n "
+        },
+        {
+            "sha": "04cd8fd3f3c15d634647cce718e3bc2b6ba1cdef",
+            "filename": "macos/purchases_flutter.podspec",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/RevenueCat/mock-repo-name/blob/9237147947bcbce00f36ae3ab51acccc54690782/macos%2Fpurchases_flutter.podspec",
+            "raw_url": "https://github.com/RevenueCat/mock-repo-name/raw/9237147947bcbce00f36ae3ab51acccc54690782/macos%2Fpurchases_flutter.podspec",
+            "contents_url": "https://api.github.com/repos/RevenueCat/mock-repo-name/contents/macos%2Fpurchases_flutter.podspec?ref=9237147947bcbce00f36ae3ab51acccc54690782",
+            "patch": "@@ -16,7 +16,7 @@ Pod::Spec.new do |s|\n   s.source_files     = 'Classes/**/*'\n   s.public_header_files = 'Classes/**/*.h'\n   s.dependency 'FlutterMacOS'\n-  s.dependency 'PurchasesHybridCommon', '4.5.2'\n+  s.dependency 'PurchasesHybridCommon', '4.5.3'\n   s.platform = :osx, '10.12'\n   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }\n   s.swift_version = '5.0'"
+        }
+    ]
+}
