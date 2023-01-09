@@ -116,9 +116,9 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
-                              "\s\s* (Android 5.6.6)[https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6]\n" \
-                              "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
-                              "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
+                              "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
+                              "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
+                              "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
     end
 
     it 'includes native dependencies links automatically. Also works for unity style VERSIONS.md' do
@@ -148,9 +148,9 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
-                              "\s\s* (Android 5.6.6)[https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6]\n" \
-                              "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
-                              "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
+                              "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
+                              "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
+                              "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
     end
 
     it 'handles empty VERSIONS.md' do
@@ -240,8 +240,8 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
-                              "\s\s* (iOS 4.15.4)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4]\n" \
-                              "\s\s* (iOS 4.15.3)[https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3]")
+                              "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
+                              "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
     end
 
     it 'includes native dependencies links automatically. skips if no updates to native' do

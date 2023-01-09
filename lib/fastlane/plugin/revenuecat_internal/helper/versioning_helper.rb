@@ -92,7 +92,7 @@ module Fastlane
       def self.platform_changelogs(releases, platform)
         platform_changelogs = []
         releases.each do |release|
-          platform_changelogs.push("  * (#{platform} #{release['name']})[#{release['html_url']}]")
+          platform_changelogs.push("  * [#{platform} #{release['name']}](#{release['html_url']})")
         end
         platform_changelogs
       end
