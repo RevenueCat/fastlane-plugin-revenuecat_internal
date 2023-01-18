@@ -14,6 +14,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commit_3_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_cfdd80f73d8c91121313d72227b4cbe283b57c1e.json") }
     end
+    let(:get_commit_4_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9a289e554fe384e6987b086fad047671058cf044.json") }
+    end
     let(:get_commit_923_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9237147947bcbce00f36ae3ab51acccc54690782.json") }
     end
@@ -60,7 +63,8 @@ describe Fastlane::Helper::VersioningHelper do
       {
         'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
         '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
-        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response
+        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
+        '9a289e554fe384e6987b086fad047671058cf044' => get_commit_4_response
       }
     end
 
@@ -86,7 +90,9 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "### Performance Improvements\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
     it 'includes native dependencies links automatically' do
@@ -281,7 +287,7 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
-      expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
+      expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(4).times
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
         'mock-github-token',
@@ -292,7 +298,9 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "### Performance Improvements\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
     it 'fails if it finds multiple commits with same sha' do
@@ -335,7 +343,9 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).to eq("### Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)")
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "### Performance Improvements\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
     it 'change is classified as Other Changes if pr has no label' do
@@ -357,6 +367,8 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "### Performance Improvements\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
                               "### Other Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
@@ -427,6 +439,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_fix_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_0e67cdb1c7582ce3e2fd00367acc24db6242c6d6.json") }
     end
+    let(:get_perf_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9a289e554fe384e6987b086fad047671058cf044.json") }
+    end
     let(:get_next_release_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_cfdd80f73d8c91121313d72227b4cbe283b57c1e.json") }
     end
@@ -459,6 +474,7 @@ describe Fastlane::Helper::VersioningHelper do
       {
         'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_feat_commit_response,
         '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_fix_commit_response,
+        '9a289e554fe384e6987b086fad047671058cf044' => get_perf_commit_response,
         'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_next_release_commit_response,
         '819dc620db5608fb952c852038a3560554161707' => get_ci_commit_response,
         '7d77decbcc9098145d1efd4c2de078b6121c8906' => get_build_commit_response,
@@ -550,7 +566,7 @@ describe Fastlane::Helper::VersioningHelper do
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
 
-      expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(3).times
+      expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(4).times
       next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
         'mock-repo-name',
         'mock-github-token',

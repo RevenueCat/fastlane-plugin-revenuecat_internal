@@ -50,7 +50,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], dependency_updates: [], other: [] }
+        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], performance: [], dependency_updates: [], other: [] }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -180,6 +180,8 @@ module Fastlane
             title = "### Bugfixes"
           when :new_features
             title = "### New Features"
+          when :performance
+            title = "### Performance Improvements"
           when :dependency_updates
             title = "### Dependency Updates"
           else
@@ -196,6 +198,8 @@ module Fastlane
           :new_features
         elsif change_types.include?("fix")
           :fixes
+        elsif change_types.include?("perf")
+          :performance
         elsif change_types.include?("dependencies") || change_types.include?("phc_dependencies")
           :dependency_updates
         else
