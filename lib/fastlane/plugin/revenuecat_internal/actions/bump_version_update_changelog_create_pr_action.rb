@@ -21,7 +21,7 @@ module Fastlane
         automatic_release = params[:automatic_release]
         hybrid_common_version = params[:hybrid_common_version]
         versions_file_path = params[:versions_file_path]
-        include_prerelease = false # TODO: make this a param
+        include_prerelease = params[:is_prerelease]
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -146,7 +146,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :versions_file_path,
                                        description: "Path to the VERSIONS.md file",
                                        optional: true,
-                                       type: String)
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :is_prerelease,
+                                       description: "If this is a prerelease",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 

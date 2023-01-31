@@ -81,7 +81,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
@@ -104,7 +105,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_rate_limit: 3,
         editor: editor,
         hybrid_common_version: hybrid_common_version,
-        versions_file_path: versions_file_path
+        versions_file_path: versions_file_path,
+        is_prerelease: false
       )
     end
 
@@ -122,7 +124,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           github_pr_token: mock_github_pr_token,
           github_token: mock_github_token,
           github_rate_limit: 3,
-          editor: editor
+          editor: editor,
+          is_prerelease: false
         )
       end.to raise_exception(StandardError)
     end
@@ -140,7 +143,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
@@ -161,7 +165,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
@@ -182,7 +187,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_token: mock_github_token,
         github_rate_limit: 3,
         editor: editor,
-        automatic_release: true
+        automatic_release: true,
+        is_prerelease: false
       )
     end
 
@@ -214,7 +220,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(14)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(15)
     end
   end
 end
