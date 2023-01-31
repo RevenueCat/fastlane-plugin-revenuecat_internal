@@ -85,11 +85,11 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr_to_main(title, body, repo_name, head_branch, github_pr_token, labels = [])
+      def self.create_pr(title, body, repo_namek, base_branch, head_branch, github_pr_token, labels = [])
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
-          base: 'main',
+          base: base_branch,
           body: body,
           repo: "RevenueCat/#{repo_name}",
           head: head_branch,

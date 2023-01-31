@@ -67,7 +67,7 @@ module Fastlane
           pr_title = "[AUTOMATIC] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr_to_main(pr_title, body, repo_name, new_branch_name, github_pr_token, [label])
+        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
       end
 
       def self.description
