@@ -161,12 +161,17 @@ module Fastlane
       end
 
       private_class_method def self.latest_version_number(include_prerelease: false)
-        Actions
-          .sh("git tag", log: false)
-          .strip
-          .split("\n")
-          #.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
-          .max_by { |tag| Gem::Version.new(tag) rescue Gem::Version.new(0) }
+        tags = Actions
+               .sh("git tag", log: false)
+               .strip
+               .split("\n")
+               .select { |tag| Gem::Version.correct?(tag) }
+
+        unless include_prerelease
+          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+        end
+
+        tags.max_by { |tag| Gem::Version.new(tag) }
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
