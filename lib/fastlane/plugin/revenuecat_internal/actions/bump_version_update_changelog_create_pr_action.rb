@@ -21,6 +21,7 @@ module Fastlane
         automatic_release = params[:automatic_release]
         hybrid_common_version = params[:hybrid_common_version]
         versions_file_path = params[:versions_file_path]
+        include_prerelease = true
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -37,9 +38,9 @@ module Fastlane
 
         new_branch_name = "release/#{new_version_number}"
 
-        Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
+        #Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, hybrid_common_version, versions_file_path)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prerelease, hybrid_common_version, versions_file_path)
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)

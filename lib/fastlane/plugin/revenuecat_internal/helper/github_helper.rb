@@ -16,9 +16,11 @@ module Fastlane
           sleep(rate_limit_sleep)
         end
 
+        current_branch = Actions.git_branch
+
         # Get pull request associate with commit message
         pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:main+SHA:#{sha}",
+                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{current_branch}+SHA:#{sha}",
                                                http_method: 'GET',
                                                body: {},
                                                api_token: github_token)

@@ -30,8 +30,8 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep)
-        old_version = latest_non_prerelease_version_number
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prerelease)
+        old_version = latest_version_number(include_prerelease: include_prerelease)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -43,9 +43,9 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, hybrid_common_version, versions_file_path)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prerelease, hybrid_common_version, versions_file_path)
         Actions.sh("git fetch --tags -f")
-        old_version = latest_non_prerelease_version_number
+        old_version = latest_version_number(include_prerelease: include_prerelease)
         UI.important("Auto-generating changelog since #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -160,13 +160,13 @@ module Fastlane
         end
       end
 
-      private_class_method def self.latest_non_prerelease_version_number
+      private_class_method def self.latest_version_number(include_prerelease: false)
         Actions
           .sh("git tag", log: false)
           .strip
           .split("\n")
-          .select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
-          .max_by { |tag| Gem::Version.new(tag) }
+          #.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+          .max_by { |tag| Gem::Version.new(tag) rescue Gem::Version.new(0) }
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
