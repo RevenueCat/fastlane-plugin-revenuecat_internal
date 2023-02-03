@@ -30,8 +30,8 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prerelease)
-        old_version = latest_version_number(include_prerelease: include_prerelease)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
+        old_version = latest_version_number(include_prereleases: include_prereleases)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -43,9 +43,10 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prerelease, hybrid_common_version, versions_file_path)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path)
+        base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
-        old_version = latest_version_number(include_prerelease: include_prerelease)
+        old_version = latest_version_number(include_prereleases: include_prereleases)
         UI.important("Auto-generating changelog since #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -56,7 +57,7 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
 
           case items.size
           when 1
@@ -160,14 +161,14 @@ module Fastlane
         end
       end
 
-      private_class_method def self.latest_version_number(include_prerelease: false)
+      private_class_method def self.latest_version_number(include_prereleases: false)
         tags = Actions
                .sh("git tag", log: false)
                .strip
                .split("\n")
                .select { |tag| Gem::Version.correct?(tag) }
 
-        unless include_prerelease
+        unless include_prereleases
           tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
         end
 
@@ -232,12 +233,14 @@ module Fastlane
       end
 
       private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+        base_branch = Actions.git_branch
+
         type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
 
           sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
 
           if items.size == 0
             # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump

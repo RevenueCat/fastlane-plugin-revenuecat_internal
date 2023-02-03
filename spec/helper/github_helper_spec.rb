@@ -9,10 +9,6 @@ describe Fastlane::Helper::GitHubHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
 
-    before(:each) do
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-    end
-
     it 'returns items from response' do
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
@@ -26,7 +22,8 @@ describe Fastlane::Helper::GitHubHelper do
         hash,
         github_token,
         0,
-        'mock-repo-name'
+        'mock-repo-name',
+        'main'
       )
 
       github_response = get_feat_commit_response
@@ -53,7 +50,8 @@ describe Fastlane::Helper::GitHubHelper do
         hash,
         github_token,
         1,
-        'mock-repo-name'
+        'mock-repo-name',
+        'main'
       )
       expect(items).not_to be_nil
     end

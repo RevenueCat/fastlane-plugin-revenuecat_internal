@@ -104,13 +104,14 @@ module Fastlane
         labels = ['phc_dependencies']
         labels << 'minor' if type_of_bump == :minor
         body = pr_title
+        base_branch = "main"
 
         if automatic_release
           body = "**This is an automatic bump.**\n\n#{body}"
           pr_title = "[AUTOMATIC BUMP] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, "main", new_branch_name, github_pr_token, labels)
+        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels)
       end
     end
   end

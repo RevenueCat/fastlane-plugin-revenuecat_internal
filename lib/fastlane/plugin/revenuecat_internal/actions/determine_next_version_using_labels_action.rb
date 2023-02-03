@@ -10,9 +10,9 @@ module Fastlane
         repo_name = params[:repo_name]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
-        include_prerelease = false
+        include_prereleases = false
 
-        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prerelease)
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
       end
 
       def self.description
