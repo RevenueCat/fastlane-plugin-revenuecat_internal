@@ -6,7 +6,7 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::VersioningHelper).to receive(:determine_next_version_using_labels)
-        .with(mock_repo_name, mock_github_token, 3)
+        .with(mock_repo_name, mock_github_token, 3, false)
         .and_return(new_version)
         .once
 

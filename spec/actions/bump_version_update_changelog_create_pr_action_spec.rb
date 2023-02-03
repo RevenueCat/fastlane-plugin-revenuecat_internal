@@ -9,6 +9,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:auto_generated_changelog) { 'mock-auto-generated-changelog' }
     let(:edited_changelog) { 'mock-edited-changelog' }
     let(:current_version) { '1.12.0' }
+    let(:base_branch) { 'main' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'release/1.13.0' }
     let(:labels) { ['next_release'] }
@@ -39,6 +40,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     end
 
     it 'calls all the appropriate methods with appropriate parameters' do
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
@@ -47,7 +49,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with('release/1.13.0', mock_github_pr_token)
         .once
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, nil, nil)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil)
         .and_return(auto_generated_changelog)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
@@ -65,8 +67,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -79,14 +81,15 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
     it 'generates changelog with appropriate parameters when bumping a hybrid SDK' do
       setup_stubs
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, hybrid_common_version, versions_file_path)
+        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, versions_file_path)
         .and_return(auto_generated_changelog)
         .once
 
@@ -102,7 +105,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_rate_limit: 3,
         editor: editor,
         hybrid_common_version: hybrid_common_version,
-        versions_file_path: versions_file_path
+        versions_file_path: versions_file_path,
+        is_prerelease: false
       )
     end
 
@@ -120,7 +124,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           github_pr_token: mock_github_pr_token,
           github_token: mock_github_token,
           github_rate_limit: 3,
-          editor: editor
+          editor: editor,
+          is_prerelease: false
         )
       end.to raise_exception(StandardError)
     end
@@ -138,7 +143,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
@@ -159,15 +165,16 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
-        editor: editor
+        editor: editor,
+        is_prerelease: false
       )
     end
 
     it 'adds automatic label to title and body' do
       setup_stubs
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
@@ -180,11 +187,13 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_token: mock_github_token,
         github_rate_limit: 3,
         editor: editor,
-        automatic_release: true
+        automatic_release: true,
+        is_prerelease: false
       )
     end
 
     def setup_stubs
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
@@ -192,7 +201,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with('release/1.13.0', mock_github_pr_token)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, nil, nil)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil)
         .and_return(auto_generated_changelog)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path)
@@ -204,14 +213,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr_to_main)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, new_branch_name, mock_github_pr_token, labels)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(14)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(15)
     end
   end
 end

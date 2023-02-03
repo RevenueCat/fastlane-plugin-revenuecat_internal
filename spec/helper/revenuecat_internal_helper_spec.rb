@@ -207,7 +207,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.create_pr_to_main' do
+  describe '.create_pr' do
     it 'creates pr' do
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
         .with(
@@ -221,7 +221,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           labels: ['label_1', 'label_2'],
           team_reviewers: ['coresdk']
         ).once
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr_to_main('fake-title', 'fake-changelog', 'fake-repo-name', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
     end
   end
 

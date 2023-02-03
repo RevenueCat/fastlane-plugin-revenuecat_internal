@@ -1,5 +1,6 @@
 describe Fastlane::Helper::GitHubHelper do
   describe '.get_pr_resp_items_for_sha' do
+    let(:base_branch) { 'main' }
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
     let(:hash) { 'a72c0435ecf71248f311900475e881cc07ac2eaf' }
@@ -11,7 +12,7 @@ describe Fastlane::Helper::GitHubHelper do
     it 'returns items from response' do
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
-              path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+              path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:#{base_branch}+SHA:#{hash}",
               http_method: http_method,
               body: {},
               api_token: github_token)
@@ -21,7 +22,8 @@ describe Fastlane::Helper::GitHubHelper do
         hash,
         github_token,
         0,
-        'mock-repo-name'
+        'mock-repo-name',
+        'main'
       )
 
       github_response = get_feat_commit_response
@@ -36,7 +38,7 @@ describe Fastlane::Helper::GitHubHelper do
     it 'sleeps if passing rate limit sleep' do
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
-              path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+              path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:#{base_branch}+SHA:#{hash}",
               http_method: http_method,
               body: {},
               api_token: github_token)
@@ -48,7 +50,8 @@ describe Fastlane::Helper::GitHubHelper do
         hash,
         github_token,
         1,
-        'mock-repo-name'
+        'mock-repo-name',
+        'main'
       )
       expect(items).not_to be_nil
     end

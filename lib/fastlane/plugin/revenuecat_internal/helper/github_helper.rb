@@ -10,7 +10,7 @@ module Fastlane
     class GitHubHelper
       SUPPORTED_PR_LABELS = %w[breaking build ci docs feat fix perf refactor style test next_release dependencies phc_dependencies minor].to_set
 
-      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name)
+      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
         if rate_limit_sleep > 0
           UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
           sleep(rate_limit_sleep)
@@ -18,7 +18,7 @@ module Fastlane
 
         # Get pull request associate with commit message
         pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:main+SHA:#{sha}",
+                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
                                                http_method: 'GET',
                                                body: {},
                                                api_token: github_token)
