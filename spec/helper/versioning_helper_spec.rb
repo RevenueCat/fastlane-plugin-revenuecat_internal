@@ -500,6 +500,32 @@ describe Fastlane::Helper::VersioningHelper do
       }
     end
 
+    describe '#latest_version_number' do
+      let(:git_tag_output) do
+        <<~GIT_TAG
+5.7.0
+5.7.1
+6.0.0-alpha.1
+6.0.0-alpha.2
+amazon-latest
+latest
+        GIT_TAG
+      end
+      it 'finds latest version number' do
+        allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output)
+
+        latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number)
+        expect(latest_version).to eq("5.7.1")
+      end
+
+      it 'finds latest prerelease version number' do
+        allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output)
+
+        latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number, include_prereleases: true)
+        expect(latest_version).to eq("6.0.0-alpha.2")
+      end
+    end
+
     it 'determines next version as patch correctly' do
       setup_commit_search_stubs(hashes_to_responses)
       mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
