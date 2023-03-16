@@ -95,11 +95,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
     end
 
-    it 'fails if prepopulated changelog is empty' do
-      expect(File).not_to receive(:write)
+    it 'does not fail if prepopulated changelog is empty' do
+      expect(File).to receive(:write)
       expect do
         Fastlane::Helper::RevenuecatInternalHelper.edit_changelog('', changelog_latest_path, editor)
-      end.to raise_exception(StandardError)
+      end.not_to raise_exception(StandardError)
     end
 
     it 'fails if user cancels on confirmation to open editor' do
