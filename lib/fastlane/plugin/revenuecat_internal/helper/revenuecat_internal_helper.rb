@@ -28,6 +28,7 @@ module Fastlane
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
         changelog_filename = File.basename(changelog_latest_path)
 
+        UI.message("Warning: pre-populated content for changelog is empty") if prepopulated_changelog.empty?
         UI.message("Using pre populated contents:\n#{prepopulated_changelog}")
 
         UI.message("Will use '#{editor}'... Override by setting FASTLANE_EDITOR environment variable")
