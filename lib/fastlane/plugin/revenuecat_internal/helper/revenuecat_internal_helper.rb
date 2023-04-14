@@ -13,15 +13,14 @@ module Fastlane
 
   module Helper
     class RevenuecatInternalHelper
-      def self.replace_version_number(previous_version_number, new_version_number, files_to_update, files_to_update_without_prerelease_modifiers)
+      def self.replace_version_number(previous_version_number, new_version_number, files_to_update_with_patterns, files_to_update_without_prerelease_modifiers)
         previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
-
-        files_to_update.each do |file_to_update|
-          replace_in(previous_version_number, new_version_number, file_to_update)
+        files_to_update_with_patterns.each do |file_to_update, patterns|
+          replace_in(previous_version_number, new_version_number, file_to_update, patterns)
         end
-        files_to_update_without_prerelease_modifiers.each do |file_to_update|
-          replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update)
+        files_to_update_without_prerelease_modifiers.each do |file_to_update, patterns|
+          replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
         end
       end
 
@@ -131,12 +130,18 @@ module Fastlane
         )
       end
 
-      def self.replace_in(previous_text, new_text, path, allow_empty: false)
+      def self.replace_in(previous_text, new_text, path, patterns = ['{x}'], allow_empty: false)
         if new_text.to_s.strip.empty? && !allow_empty
           UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
         end
         original_text = File.read(path)
-        replaced_text = original_text.gsub(previous_text, new_text)
+        replaced_text = original_text.dup
+        patterns.each do |pattern|
+          replaced_previous_text = pattern.gsub('{x}', previous_text)
+          replaced_new_text = pattern.gsub('{x}', new_text)
+          replaced_text = replaced_text.gsub(replaced_previous_text, replaced_new_text)
+        end
+
         File.write(path, replaced_text)
       end
 

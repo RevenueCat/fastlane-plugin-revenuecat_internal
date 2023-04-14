@@ -59,7 +59,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
+        .with(current_version,
+              new_version,
+              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] })
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
@@ -75,8 +78,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -97,8 +100,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -118,8 +121,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           current_version: current_version,
           changelog_latest_path: mock_changelog_latest_path,
           changelog_path: mock_changelog_path,
-          files_to_update: ['./test_file.sh', './test_file2.rb'],
-          files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+          files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+          files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
           repo_name: mock_repo_name,
           github_pr_token: mock_github_pr_token,
           github_token: mock_github_token,
@@ -137,8 +140,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -159,8 +162,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -180,8 +183,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         current_version: current_version,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file3.kt', './test_file4.swift'],
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -208,7 +211,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with(new_branch_name)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, ['./test_file.sh', './test_file2.rb'], ['./test_file3.kt', './test_file4.swift'])
+        .with(current_version,
+              new_version,
+              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] })
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)

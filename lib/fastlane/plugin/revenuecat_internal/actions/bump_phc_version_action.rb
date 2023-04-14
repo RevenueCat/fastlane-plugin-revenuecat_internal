@@ -39,7 +39,7 @@ module Fastlane
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
-                                                                [])
+                                                                {})
 
         return unless open_pr
 
@@ -61,10 +61,12 @@ module Fastlane
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :files_to_update,
-                                       env_name: "RC_INTERNAL_FILES_TO_UPDATE_VERSION",
-                                       description: "Files that contain the version number and need to have it updated",
+                                       description: 'Hash of files that contain the version number and need to have it' \
+                                                    'updated to the pattern that contains the version in the file.' \
+                                                    'Mark the version in the pattern using {x}.' \
+                                                    'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: false,
-                                       type: Array),
+                                       type: Hash),
           FastlaneCore::ConfigItem.new(key: :repo_name,
                                        env_name: "RC_INTERNAL_REPO_NAME",
                                        description: "Name of the repo of the SDK",

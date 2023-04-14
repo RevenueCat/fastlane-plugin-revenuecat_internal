@@ -24,8 +24,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0',
-        [file_to_update_1, file_to_update_2],
-        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+        { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0')
@@ -43,8 +43,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
         '1.12.0',
-        [file_to_update_1, file_to_update_2],
-        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+        { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.11.0 and version with snapshot: 1.12.0')
@@ -62,14 +62,82 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0-SNAPSHOT',
-        [file_to_update_1, file_to_update_2],
-        [file_to_update_without_prerelease_modifiers_3, file_to_update_without_prerelease_modifiers_4]
+        { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0-SNAPSHOT')
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0-SNAPSHOT and other version: 1.11.1')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+    end
+
+    it 'updates only version number that follows pattern' do
+      File.write(file_to_update_1, 'Contains version: 1.11.0')
+      File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
+
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0',
+        '1.12.0',
+        { file_to_update_1 => ["{x}"], file_to_update_2 => ["Contains version: {x} and"] },
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
+      )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+    end
+
+    it 'updates only version number that follows pattern when current version has prerelease modifiers' do
+      File.write(file_to_update_1, 'Contains version: 1.11.0 and version with snapshot: 1.11.0-SNAPSHOT')
+      File.write(file_to_update_2, 'Contains version: 1.11.0-SNAPSHOT and other version: 1.11.0-SNAPSHOT')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0 and other version: 1.11.0')
+
+      pattern = "Contains version: {x} and"
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0-SNAPSHOT',
+        '1.12.0',
+        {
+            file_to_update_1 => ["{x}"],
+            file_to_update_2 => [pattern]
+        },
+        {
+            file_to_update_without_prerelease_modifiers_3 => ["{x}"],
+            file_to_update_without_prerelease_modifiers_4 => [pattern]
+        }
+      )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.11.0 and version with snapshot: 1.12.0')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.0-SNAPSHOT')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
+    end
+
+    it 'updates only version number that follows pattern when new version has prerelease modifiers' do
+      File.write(file_to_update_1, 'Contains version: 1.11.0')
+      File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
+      File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
+      File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0 and other version: 1.11.0')
+
+      pattern = "Contains version: {x} and"
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0',
+        '1.12.0-SNAPSHOT',
+        { file_to_update_1 => ["{x}"], file_to_update_2 => [pattern] },
+        {
+            file_to_update_without_prerelease_modifiers_3 => ["{x}"],
+            file_to_update_without_prerelease_modifiers_4 => [pattern]
+        }
+      )
+
+      expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0-SNAPSHOT')
+      expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0-SNAPSHOT and other version: 1.11.1')
+      expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
     end
   end
 
