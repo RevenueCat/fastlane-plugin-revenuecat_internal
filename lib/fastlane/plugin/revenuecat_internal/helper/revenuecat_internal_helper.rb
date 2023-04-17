@@ -135,7 +135,7 @@ module Fastlane
           UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
         end
         original_text = File.read(path)
-        replaced_text = original_text.dup
+        replaced_text = original_text
         patterns.each do |pattern|
           replaced_previous_text = pattern.gsub('{x}', previous_text)
           replaced_new_text = pattern.gsub('{x}', new_text)
