@@ -21,7 +21,10 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, next_version, ['./test_file.sh', './test_file2.rb'], ['./test_file4.swift', './test_file5.kt'])
+        .with(current_version,
+              next_version,
+              { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
+              { './test_file4.swift' => ['{x}'], './test_file5.kt' => ['{x}'] })
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with('Preparing for next version')
@@ -33,8 +36,8 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         current_version: current_version,
         repo_name: repo_name,
         github_pr_token: github_pr_token,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file4.swift', './test_file5.kt']
+        files_to_update: { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { './test_file4.swift' => ['{x}'], './test_file5.kt' => ['{x}'] }
       )
     end
 
@@ -49,8 +52,8 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         current_version: current_version_snapshot,
         repo_name: repo_name,
         github_pr_token: github_pr_token,
-        files_to_update: ['./test_file.sh', './test_file2.rb'],
-        files_to_update_without_prerelease_modifiers: ['./test_file4.swift', './test_file5.kt']
+        files_to_update: { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { './test_file4.swift' => ['{x}'], './test_file5.kt' => ['{x}'] }
       )
     end
   end
