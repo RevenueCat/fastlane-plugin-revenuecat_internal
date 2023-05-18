@@ -297,7 +297,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with('git', 'branch', '--list', 'new-branch').and_return('')
       allow(Fastlane::Actions).to receive(:sh).with('git', 'ls-remote', '--heads', 'origin', 'new-branch').and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with('git status --porcelain', { error_callback: anything, log: true }).and_return('')
       allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
+      allow(Fastlane::Actions::ResetGitRepoAction).to receive(:run).with(true)
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
     end
 
     it 'fails if github_pr_token is nil' do
@@ -340,8 +343,29 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
 
-    it 'ensures repo is in a clean state' do
-      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({}).once
+    it 'ensures repo is in a clean state when running on local' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({ show_diff: true }).once
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
+    end
+
+    it 'doesnt ensure repo is clean when running on CI' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
+      expect(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run).with({ show_diff: true }).never
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
+    end
+
+    it 'resets repo when running on CI and there are changes' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
+      allow(Fastlane::Actions).to receive(:sh).with('git status --porcelain', { error_callback: anything, log: true })
+                                              .and_return('M lib/fastlane/plugin/revenuecat_internal/actions/create_next_snapshot_version_action.rb')
+      expect(Fastlane::Actions::ResetGitRepoAction).to receive(:run).with({ force: true }).once
+      Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
+    end
+
+    it 'doesnt reset repo when running on CI and there are no changes' do
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
+      expect(Fastlane::Actions::ResetGitRepoAction).to receive(:run).with({ force: true }).never
       Fastlane::Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump('new-branch', 'fake-github-pr-token')
     end
   end
