@@ -6,6 +6,7 @@ require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
 require 'fastlane/actions/set_github_release'
+require 'fastlane/actions/reset_git_repo'
 require_relative 'versioning_helper'
 
 module Fastlane
@@ -105,7 +106,19 @@ module Fastlane
           UI.user_error!("Could not find value for GITHUB_PULL_REQUEST_API_TOKEN")
         end
         ensure_new_branch_local_remote(new_branch)
-        Actions::EnsureGitStatusCleanAction.run({})
+        if UI.interactive?
+          Actions::EnsureGitStatusCleanAction.run(
+            show_diff: true
+          )
+        else
+          command = "git status --porcelain"
+          git_status = Actions.sh(command, log: true, error_callback: ->(_) {})
+          dirty_repo = git_status.lines.length > 0
+          if dirty_repo
+            UI.message("Git status is not clean. Resetting all files.")
+            Actions::ResetGitRepoAction.run(force: true)
+          end
+        end
       end
 
       def self.calculate_next_snapshot_version(current_version)
