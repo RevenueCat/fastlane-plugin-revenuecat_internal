@@ -70,7 +70,7 @@ module Fastlane
         # Filters releases between tags
         all_releases.select do |release|
           version = Gem::Version.new(release["tag_name"])
-          start_tag < version && version <= end_tag
+          start_tag < version && version <= end_tag && !release["prerelease"]
         end
       end
     end
