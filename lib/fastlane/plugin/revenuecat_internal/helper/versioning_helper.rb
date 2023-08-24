@@ -199,6 +199,7 @@ module Fastlane
         end.join("\n")
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
         if change_types.include?("breaking")
           :breaking_changes
@@ -216,6 +217,7 @@ module Fastlane
           :other
         end
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
         if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
