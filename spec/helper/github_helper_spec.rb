@@ -84,7 +84,7 @@ describe Fastlane::Helper::GitHubHelper do
       expected_items = body["commits"]
 
       expect(items).not_to be_nil
-      expect(items.length).to eq(4)
+      expect(items.length).to eq(5)
       expected_items.each do |item|
         expect(expected_items.include?(item)).to be_truthy
       end

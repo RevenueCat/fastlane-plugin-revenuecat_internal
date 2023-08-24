@@ -405,6 +405,85 @@
             ]
         },
         {
+            "sha": "1625e195a117ad0435864dc8a561e6a0c6052bdf",
+            "node_id": "C_kwDOBnB8hdoAKDBlNjdjZGIxYzc1ODJjZTNlMmZkMDAzNjdhY2MyNGRiNjI0MmM2ZDY",
+            "commit": {
+                "author": {
+                    "name": "Nacho Soto",
+                    "email": "ignacio@revenuecat.com",
+                    "date": "2023-01-15T04:49:17Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-07-05T04:49:17Z"
+                },
+                "message": "`Paywalls`: multi-package horizontal template",
+                "tree": {
+                    "sha": "1625e195a117ad0435864dc8a561e6a0c6052bdf",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/1625e195a117ad0435864dc8a561e6a0c6052bdf"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/1625e195a117ad0435864dc8a561e6a0c6052bdf",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiw8LNCRBK7hj4Ov3rIwAAx28IAK9cCcm3f58V5rLV9dPmJXjb\n46NoSgWH4jG/yuSdPbIwMFU0KoxjrZFLn0xsgRzdKFwxDSdZufjukEB8K25nw+/H\niYBxq5muO/NcN+zjYpl8a6xVWrMEgmAzgkM6C4KK7dAFOPPzh96yo2H0XfwJbBd8\nU+Bseg+J8Dq7+ObKnSeQ03Oo8kUfbdzV673r+4z5iR6FgY3hBiFjzzkXqIQn6N9u\nPxpErOgLmsb21gKF/BrvWzg9y+CTZhsbiktDxLM3GuPxOynJLCuRvqliADZNw6Z3\nDsiPdvIwezopzppYHy+VXsKKnzeSnIB3QddLp9eNIUaaIKgXb/MNurc54/mB+pQ=\n=0/O8\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 3b552b9fbfcc806a009325e84a098680cb9cf952\nparent a72c0435ecf71248f311900475e881cc07ac2eaf\nauthor Toni Rico <antonio.rico.diez@revenuecat.com> 1656996557 +0200\ncommitter GitHub <noreply@github.com> 1656996557 +0200\n\nFix replace version without prerelease modifiers (#1751)\n\n* Fix replacing version without prerelease modifiers\r\n\r\n* Move SystemInfo.swift to use version with prerelease modifiers and remove outdated files"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/1625e195a117ad0435864dc8a561e6a0c6052bdf",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/commit/1625e195a117ad0435864dc8a561e6a0c6052bdf",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/1625e195a117ad0435864dc8a561e6a0c6052bdf/comments",
+            "author": {
+                "login": "NachoSoto",
+                "id": 808417,
+                "node_id": "MDQ6VXNlcjgwODQxNw==",
+                "avatar_url": "https://avatars.githubusercontent.com/u/808417?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/nachosoto",
+                "html_url": "https://github.com/nachosoto",
+                "followers_url": "https://api.github.com/users/nachosoto/followers",
+                "following_url": "https://api.github.com/users/nachosoto/following{/other_user}",
+                "gists_url": "https://api.github.com/users/nachosoto/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/nachosoto/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/nachosoto/subscriptions",
+                "organizations_url": "https://api.github.com/users/nachosoto/orgs",
+                "repos_url": "https://api.github.com/users/nachosoto/repos",
+                "events_url": "https://api.github.com/users/nachosoto/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/nachosoto/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "a72c0435ecf71248f311900475e881cc07ac2eaf",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+                    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf"
+                }
+            ]
+        },
+        {
             "sha": "cfdd80f73d8c91121313d72227b4cbe283b57c1e",
             "node_id": "C_kwDOBnB8hdoAKGNmZGQ4MGY3M2Q4YzkxMTIxMzEzZDcyMjI3YjRjYmUyODNiNTdjMWU",
             "commit": {
