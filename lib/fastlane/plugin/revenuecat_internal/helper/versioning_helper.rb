@@ -17,7 +17,7 @@ module Fastlane
   BUMP_PER_LABEL = {
     major: %w[breaking].to_set,
     minor: %w[feat minor].to_set,
-    patch: %w[docs fix perf dependencies phc_dependencies].to_set,
+    patch: %w[docs fix perf dependencies phc_dependencies revenuecatui].to_set,
     skip: %w[build ci refactor style test next_release].to_set
   }
 
@@ -51,7 +51,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], new_features: [], fixes: [], performance: [], dependency_updates: [], other: [] }
+        changelog_sections = { breaking_changes: [], new_features: [], paywalls: [], fixes: [], performance: [], dependency_updates: [], other: [] }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -186,6 +186,8 @@ module Fastlane
             title = "### Bugfixes"
           when :new_features
             title = "### New Features"
+          when :paywalls
+            title = "### RevenueCatUI"
           when :performance
             title = "### Performance Improvements"
           when :dependency_updates
@@ -197,6 +199,7 @@ module Fastlane
         end.join("\n")
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
         if change_types.include?("breaking")
           :breaking_changes
@@ -204,6 +207,8 @@ module Fastlane
           :new_features
         elsif change_types.include?("fix")
           :fixes
+        elsif change_types.include?("revenuecatui")
+          :paywalls
         elsif change_types.include?("perf")
           :performance
         elsif change_types.include?("dependencies") || change_types.include?("phc_dependencies")
@@ -212,6 +217,7 @@ module Fastlane
           :other
         end
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
         if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
@@ -227,7 +233,7 @@ module Fastlane
 
       private_class_method def self.get_type_of_change_from_pr_info(pr_info)
         pr_info["labels"]
-          .map { |label_info| label_info["name"] }
+          .map { |label_info| label_info["name"].downcase }
           .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) }
           .to_set
       end
