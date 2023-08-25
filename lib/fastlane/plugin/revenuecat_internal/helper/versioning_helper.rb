@@ -187,7 +187,7 @@ module Fastlane
           when :new_features
             title = "### New Features"
           when :paywalls
-            title = "### Paywalls"
+            title = "### RevenueCatUI"
           when :performance
             title = "### Performance Improvements"
           when :dependency_updates
@@ -207,7 +207,7 @@ module Fastlane
           :new_features
         elsif change_types.include?("fix")
           :fixes
-        elsif change_types.include?("RevenueCatUI")
+        elsif change_types.include?("revenuecatui")
           :paywalls
         elsif change_types.include?("perf")
           :performance
@@ -233,7 +233,7 @@ module Fastlane
 
       private_class_method def self.get_type_of_change_from_pr_info(pr_info)
         pr_info["labels"]
-          .map { |label_info| label_info["name"] }
+          .map { |label_info| label_info["name"].downcase }
           .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) }
           .to_set
       end

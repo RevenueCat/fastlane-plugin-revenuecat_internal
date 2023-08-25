@@ -98,7 +98,7 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### Paywalls\n" \
+                              "### RevenueCatUI\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
@@ -315,7 +315,7 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### Paywalls\n" \
+                              "### RevenueCatUI\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
@@ -364,7 +364,7 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### Paywalls\n" \
+                              "### RevenueCatUI\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
@@ -390,7 +390,7 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### Paywalls\n" \
+      expect(changelog).to eq("### RevenueCatUI\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
