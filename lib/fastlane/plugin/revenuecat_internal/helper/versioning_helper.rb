@@ -203,12 +203,12 @@ module Fastlane
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
         if change_types.include?("breaking")
           :breaking_changes
+        elsif change_types.include?("revenuecatui")
+          :paywalls
         elsif change_types.include?("feat")
           :new_features
         elsif change_types.include?("fix")
           :fixes
-        elsif change_types.include?("revenuecatui")
-          :paywalls
         elsif change_types.include?("perf")
           :performance
         elsif change_types.include?("dependencies") || change_types.include?("phc_dependencies")
