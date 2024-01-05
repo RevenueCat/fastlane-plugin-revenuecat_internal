@@ -8,7 +8,7 @@ describe Fastlane::Helper::UpdateHybridsVersionsFileHelper do
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         server_url: "https://api.github.com",
         http_method: 'GET',
-        path: "/repos/revenuecat/purchases-hybrid-common/contents/android/build.gradle?ref=3.3.0",
+        path: "/repos/revenuecat/purchases-hybrid-common/contents/android/gradle/libs.versions.toml?ref=3.3.0",
         body: {}
       ).and_return(get_contents_android_build_gradle_3_3_0_response).once
       version = Fastlane::Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version('3.3.0')
