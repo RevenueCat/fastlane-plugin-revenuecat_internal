@@ -9,10 +9,10 @@ module Fastlane
   module Helper
     class UpdateHybridsVersionsFileHelper
       def self.get_android_version_for_hybrid_common_version(hybrid_common_version)
-        path = 'android/build.gradle'
+        path = 'android/gradle/libs.versions.toml'
         repo_name = 'purchases-hybrid-common'
         contents = get_contents_file_github(path, repo_name, hybrid_common_version)
-        matches = contents.match("ext.purchases_version = '(.*)'").captures
+        matches = contents.match('purchases = "(.*)"').captures
         UI.user_error!("Could not find android version in #{repo_name} in file '#{path}'") if matches.length != 1
         matches[0]
       end
