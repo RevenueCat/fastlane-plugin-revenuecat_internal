@@ -10,7 +10,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
     let(:base_branch) { 'main' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'bump-phc/1.13.0' }
-    let(:labels) { ['phc_dependencies', 'minor'] }
+    let(:labels) { ['phc_dependencies'] }
 
     it 'fails if version is invalid' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
