@@ -102,7 +102,6 @@ module Fastlane
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
-        type_of_bump = Helper::VersioningHelper.detect_bump_type(version_number, new_version_number)
         labels = ['phc_dependencies']
         body = pr_title
         base_branch = "main"
