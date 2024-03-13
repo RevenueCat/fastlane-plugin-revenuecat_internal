@@ -6,7 +6,7 @@ require 'json'
 
 module Fastlane
   module Actions
-    class TriggerCircleCIActionAction < Action
+    class TriggerActionInCircleCI < Action
       def self.run(params)
         circle_token = params[:circle_token]
         UI.user_error!("Please set the CIRCLE_TOKEN environment variable") unless circle_token
