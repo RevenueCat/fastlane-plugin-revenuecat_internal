@@ -13,3 +13,7 @@ require 'fastlane' # to import the Action super class
 require 'fastlane/plugin/revenuecat_internal' # import the actual plugin
 
 Fastlane.load_actions # load other actions (in case your plugin calls other actions or shared values)
+
+require 'webmock/rspec'
+
+WebMock.disable_net_connect!(allow_localhost: true)
