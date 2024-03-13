@@ -6,15 +6,13 @@ require 'json'
 
 module Fastlane
   module Actions
-    class TriggerActionInCircleCI < Action
+    class TriggerActionInCircleCiAction < Action
       def self.run(params)
         circle_token = params[:circle_token]
         UI.user_error!("Please set the CIRCLE_TOKEN environment variable") unless circle_token
 
-        branch = params[:branch]
         default_branch = Actions.git_branch
-        branch = UI.input("Branch (defaults to #{default_branch}): ")
-        branch = default_branch if branch.empty?
+        branch = params[:branch] || default_branch
 
         headers = {"Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json"}
         data = {parameters: {'action' => params[:action]}, branch: branch}
