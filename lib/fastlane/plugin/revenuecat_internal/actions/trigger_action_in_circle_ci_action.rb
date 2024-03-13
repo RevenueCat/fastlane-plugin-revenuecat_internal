@@ -10,14 +10,18 @@ module Fastlane
   module Actions
     class TriggerActionInCircleCiAction < Action
       def self.run(params)
+        action = params[:action]
+        repo_name = params[:repo_name]
+        UI.user_error!("Missing action parameter. Check #{repo_name}'s config.yml for options") unless action
+
         circle_token = params[:circle_token]
         UI.user_error!("Please set the CIRCLE_TOKEN environment variable") unless circle_token
 
-        default_branch = Actions.git_branch
-        branch = params[:branch] || default_branch
+        current_branch = Actions.git_branch
+        branch = params[:branch] || current_branch
 
         headers = { "Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json" }
-        data = { parameters: { 'action' => params[:action] }, branch: branch }
+        data = { parameters: { 'action' => action }, branch: branch }
         url = "https://circleci.com/api/v2/project/github/RevenueCat/#{params[:repo_name]}/pipeline"
 
         resp = RestClient.post(url, data.to_json, headers)
