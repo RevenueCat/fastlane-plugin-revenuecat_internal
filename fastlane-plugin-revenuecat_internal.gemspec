@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   # Don't add a dependency to fastlane or fastlane_re
   # since this would cause a circular dependency
 
-  # spec.add_dependency 'your-dependency', '~> 1.0.0'
+  spec.add_dependency('rest-client')
 
   spec.add_development_dependency('bundler')
   spec.add_development_dependency('fastlane', '2.207.0')
@@ -34,5 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('rubocop-require_tools')
   spec.add_development_dependency('rubocop-rspec')
   spec.add_development_dependency('simplecov')
+  spec.add_development_dependency('webmock')
   spec.metadata['rubygems_mfa_required'] = 'true'
 end
