@@ -11,7 +11,7 @@ describe Fastlane::Actions::TriggerActionInCircleCiAction do
       stub_request(:post, "https://circleci.com/api/v2/project/github/RevenueCat/#{repo_name}/pipeline").
         with(
           body: hash_including(
-            parameters: {'action' => action},
+            parameters: { 'action' => action },
             branch: branch
           ),
           headers: {
@@ -35,13 +35,13 @@ describe Fastlane::Actions::TriggerActionInCircleCiAction do
     end
 
     it 'raises an error if the CIRCLE_TOKEN is not provided' do
-      expect {
+      expect do
         Fastlane::Actions::TriggerActionInCircleCiAction.run(
           action: action,
           repo_name: repo_name,
           branch: branch
         )
-      }.to raise_error("Please set the CIRCLE_TOKEN environment variable")
+      end.to raise_error("Please set the CIRCLE_TOKEN environment variable")
     end
   end
 end

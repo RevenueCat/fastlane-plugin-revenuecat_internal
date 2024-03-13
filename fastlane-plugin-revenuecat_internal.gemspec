@@ -27,7 +27,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('pry')
   spec.add_development_dependency('rake')
   spec.add_development_dependency('rspec')
-  spec.add_development_dependency('webmock')
   spec.add_development_dependency('rspec_junit_formatter')
   spec.add_development_dependency('rubocop', '1.31.1')
   spec.add_development_dependency('rubocop-performance')
@@ -35,5 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('rubocop-require_tools')
   spec.add_development_dependency('rubocop-rspec')
   spec.add_development_dependency('simplecov')
+  spec.add_development_dependency('webmock')
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

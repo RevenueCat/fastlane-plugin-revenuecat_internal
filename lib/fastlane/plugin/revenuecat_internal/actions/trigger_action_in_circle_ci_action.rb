@@ -5,6 +5,8 @@ require 'rest-client'
 require 'json'
 
 module Fastlane
+  UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
+
   module Actions
     class TriggerActionInCircleCiAction < Action
       def self.run(params)
@@ -14,16 +16,16 @@ module Fastlane
         default_branch = Actions.git_branch
         branch = params[:branch] || default_branch
 
-        headers = {"Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json"}
-        data = {parameters: {'action' => params[:action]}, branch: branch}
+        headers = { "Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json" }
+        data = { parameters: { 'action' => params[:action] }, branch: branch }
         url = "https://circleci.com/api/v2/project/github/RevenueCat/#{params[:repo_name]}/pipeline"
 
-        resp = RestClient.post url, data.to_json, headers
+        resp = RestClient.post(url, data.to_json, headers)
 
         number = JSON.parse(resp.body)["number"]
         workflow_url = "https://app.circleci.com/pipelines/github/RevenueCat/#{params[:repo_name]}/#{number}"
 
-        UI.important "Workflow: #{workflow_url}"
+        UI.important("Workflow: #{workflow_url}")
       end
 
       def self.description
@@ -57,7 +59,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :branch,
                                        description: "Branch to trigger the pipeline on, defaults to current branch",
                                        optional: true,
-                                       type: String),
+                                       type: String)
         ]
       end
 
@@ -67,4 +69,3 @@ module Fastlane
     end
   end
 end
-
