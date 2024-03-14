@@ -20,7 +20,7 @@ describe Fastlane::Actions::TriggerActionInCircleCiAction do
             'Accept' => 'application/json'
           }
         ).
-        to_return(status: 200, body: { number: 1 }.to_json, headers: {})
+        to_return(status: 201, body: { number: 1 }.to_json, headers: {})
     end
 
     it 'triggers a CircleCI pipeline and prints the workflow URL' do
