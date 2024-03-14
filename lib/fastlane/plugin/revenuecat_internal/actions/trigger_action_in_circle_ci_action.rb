@@ -17,14 +17,15 @@ module Fastlane
         circle_token = params[:circle_token]
         UI.user_error!("Please set the CIRCLE_TOKEN environment variable") unless circle_token
 
-        current_branch = Actions.git_branch
-        branch = params[:branch] || current_branch
+        branch = params[:branch]
+        branch = Actions.git_branch if branch == ""
 
         headers = { "Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json" }
         data = { parameters: { 'action' => action }, branch: branch }
         url = "https://circleci.com/api/v2/project/github/RevenueCat/#{params[:repo_name]}/pipeline"
 
         resp = RestClient.post(url, data.to_json, headers)
+        UI.user_error!("Error triggering CircleCI pipeline. Error: #{resp.body}") unless resp.code == 201
 
         number = JSON.parse(resp.body)["number"]
         workflow_url = "https://app.circleci.com/pipelines/github/RevenueCat/#{params[:repo_name]}/#{number}"
@@ -62,7 +63,7 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :branch,
                                        description: "Branch to trigger the pipeline on, defaults to current branch",
-                                       optional: true,
+                                       optional: false,
                                        type: String)
         ]
       end
