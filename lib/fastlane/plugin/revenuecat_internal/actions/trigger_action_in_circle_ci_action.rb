@@ -18,11 +18,7 @@ module Fastlane
         UI.user_error!("Please set the CIRCLE_TOKEN environment variable") unless circle_token
 
         branch = params[:branch]
-        current_branch = Actions.git_branch
-        if branch.nil? || branch.empty?
-          branch = UI.input("Branch (defaults to #{current_branch}): ")
-        end
-        branch = current_branch if branch == ""
+        branch = Actions.git_branch if branch == ""
 
         headers = { "Circle-Token" => circle_token, "Content-Type" => "application/json", "Accept" => "application/json" }
         data = { parameters: { 'action' => action }, branch: branch }
@@ -67,7 +63,7 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :branch,
                                        description: "Branch to trigger the pipeline on, defaults to current branch",
-                                       optional: true,
+                                       optional: false,
                                        type: String)
         ]
       end
