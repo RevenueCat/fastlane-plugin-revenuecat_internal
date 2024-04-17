@@ -114,8 +114,8 @@ module Fastlane
                                        type: Hash),
           FastlaneCore::ConfigItem.new(key: :files_to_update_on_latest_stable_releases,
                                        env_name: "RC_INTERNAL_FILES_TO_UPDATE_ON_LATEST_STABLE_RELEASES",
-                                       description: 'Hash of files that contain the version number and need to update' \
-                                                    'it only on stable releases (no prereleases) and on the latest' \
+                                       description: 'Hash of files that contain the version number and only need to' \
+                                                    'be updated on stable releases (no prereleases) and on the latest' \
                                                     'major (no hotfixes).' \
                                                     'Mark the version in the pattern using {x}.' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',

@@ -27,14 +27,14 @@ module Fastlane
         files_to_update_without_prerelease_modifiers.each do |file_to_update, patterns|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
         end
-        if !files_to_update_on_latest_stable_releases.empty? && latest_semver_tag?(new_version_number) && !Gem::Version.new(new_version_number).prerelease?
+        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(new_version_number).prerelease?
           files_to_update_on_latest_stable_releases.each do |file_to_update, patterns|
             replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
           end
         end
       end
 
-      def self.latest_semver_tag?(version_number)
+      def self.newer_than_latest_published_version?(version_number)
         Actions.sh("git fetch --tags -f")
         latest_published_version = Actions.sh("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?

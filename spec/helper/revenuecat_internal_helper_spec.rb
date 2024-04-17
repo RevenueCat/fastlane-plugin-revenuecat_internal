@@ -214,7 +214,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.latest_semver_tag?' do
+  describe '.newer_than_latest_published_version?' do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('1.2.3')
@@ -222,17 +222,17 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'if no tag is returned its considered latest' do
       allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.latest_semver_tag?('1.0.0')).to be_truthy
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to be_truthy
     end
 
     it 'returns false if tag older than latest' do
-      expect(Fastlane::Helper::RevenuecatInternalHelper.latest_semver_tag?('1.0.0')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
     end
 
     it 'returns true if tag newer than latest' do
-      expect(Fastlane::Helper::RevenuecatInternalHelper.latest_semver_tag?('1.2.4')).to eq(true)
-      expect(Fastlane::Helper::RevenuecatInternalHelper.latest_semver_tag?('1.3.0')).to eq(true)
-      expect(Fastlane::Helper::RevenuecatInternalHelper.latest_semver_tag?('2.0.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
     end
   end
 
