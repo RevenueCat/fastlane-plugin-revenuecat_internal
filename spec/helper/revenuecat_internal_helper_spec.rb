@@ -6,8 +6,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     let(:file_to_update_2) { './tmp_test_files/file_to_update_2.txt' }
     let(:file_to_update_without_prerelease_modifiers_3) { './tmp_test_files/file_to_update_3.txt' }
     let(:file_to_update_without_prerelease_modifiers_4) { './tmp_test_files/file_to_update_4.txt' }
+    let(:file_to_update_on_latest_stable_release_5) { './tmp_test_files/file_to_update_5.txt' }
 
     before(:each) do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('1.2.3')
       Dir.mkdir('./tmp_test_files')
     end
 
@@ -20,18 +23,21 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0',
         { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
-        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] },
+        { file_to_update_on_latest_stable_release_5 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.1')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.12.0')
     end
 
     it 'updates previous version number with new version number when current version has prerelease modifiers' do
@@ -39,18 +45,21 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0-SNAPSHOT and other version: 1.11.1')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
         '1.12.0',
         { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
-        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] },
+        { file_to_update_on_latest_stable_release_5 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.11.0 and version with snapshot: 1.12.0')
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.1')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.12.0')
     end
 
     it 'updates previous version number with new version number when new version has prerelease modifiers' do
@@ -58,18 +67,21 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0-SNAPSHOT',
         { file_to_update_1 => ["{x}"], file_to_update_2 => ["{x}"] },
-        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] },
+        { file_to_update_on_latest_stable_release_5 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0-SNAPSHOT')
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0-SNAPSHOT and other version: 1.11.1')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.11.0')
     end
 
     it 'updates only version number that follows pattern' do
@@ -77,18 +89,21 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0',
         { file_to_update_1 => ["{x}"], file_to_update_2 => ["Contains version: {x} and"] },
-        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] }
+        { file_to_update_without_prerelease_modifiers_3 => ["{x}"], file_to_update_without_prerelease_modifiers_4 => ["{x}"] },
+        { file_to_update_on_latest_stable_release_5 => ["{x}"] }
       )
 
       expect(File.read(file_to_update_1)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.12.0')
     end
 
     it 'updates only version number that follows pattern when current version has prerelease modifiers' do
@@ -96,6 +111,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0-SNAPSHOT and other version: 1.11.0-SNAPSHOT')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0 and other version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0 and other version: 1.11.0')
 
       pattern = "Contains version: {x} and"
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
@@ -108,6 +124,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         {
             file_to_update_without_prerelease_modifiers_3 => ["{x}"],
             file_to_update_without_prerelease_modifiers_4 => [pattern]
+        },
+        {
+            file_to_update_on_latest_stable_release_5 => [pattern]
         }
       )
 
@@ -115,6 +134,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0 and other version: 1.11.0-SNAPSHOT')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
     end
 
     it 'updates only version number that follows pattern when new version has prerelease modifiers' do
@@ -122,6 +142,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_2, 'Contains version: 1.11.0 and other version: 1.11.1')
       File.write(file_to_update_without_prerelease_modifiers_3, 'Contains version: 1.11.0')
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0 and other version: 1.11.0')
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0 and other version: 1.11.0')
 
       pattern = "Contains version: {x} and"
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
@@ -131,6 +152,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         {
             file_to_update_without_prerelease_modifiers_3 => ["{x}"],
             file_to_update_without_prerelease_modifiers_4 => [pattern]
+        },
+        {
+            file_to_update_on_latest_stable_release_5 => [pattern]
         }
       )
 
@@ -138,6 +162,77 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(File.read(file_to_update_2)).to eq('Contains version: 1.12.0-SNAPSHOT and other version: 1.11.1')
       expect(File.read(file_to_update_without_prerelease_modifiers_3)).to eq('Contains version: 1.12.0')
       expect(File.read(file_to_update_without_prerelease_modifiers_4)).to eq('Contains version: 1.12.0 and other version: 1.11.0')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.11.0 and other version: 1.11.0')
+    end
+
+    it 'does not update files on latest stable release if new version is prerelease' do
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
+
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.11.0',
+        '1.12.0-SNAPSHOT',
+        {},
+        {},
+        {
+          file_to_update_on_latest_stable_release_5 => ["{x}"]
+        }
+      )
+
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.11.0')
+    end
+
+    it 'does not update files on latest stable release if new version is older than latest version' do
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.1.0')
+
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.1.0',
+        '1.1.8',
+        {},
+        {},
+        {
+          file_to_update_on_latest_stable_release_5 => ["{x}"]
+        }
+      )
+
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.1.0')
+    end
+
+    it 'does update files on latest stable release if new version is newer than latest version' do
+      File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.2.3')
+
+      Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
+        '1.2.3',
+        '1.2.4',
+        {},
+        {},
+        {
+          file_to_update_on_latest_stable_release_5 => ["{x}"]
+        }
+      )
+
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('Contains version: 1.2.4')
+    end
+  end
+
+  describe '.newer_than_latest_published_version?' do
+    before(:each) do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('1.2.3')
+    end
+
+    it 'if no tag is returned its considered latest' do
+      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('')
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to be_truthy
+    end
+
+    it 'returns false if tag older than latest' do
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
+    end
+
+    it 'returns true if tag newer than latest' do
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
     end
   end
 
