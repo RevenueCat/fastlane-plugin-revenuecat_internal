@@ -62,7 +62,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(current_version,
               new_version,
               { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] })
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
@@ -80,6 +81,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
         files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -102,6 +104,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
         files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -123,6 +126,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           changelog_path: mock_changelog_path,
           files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
           files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+          files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
           repo_name: mock_repo_name,
           github_pr_token: mock_github_pr_token,
           github_token: mock_github_token,
@@ -142,6 +146,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
         files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -164,6 +169,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
         files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -185,6 +191,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
         files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
@@ -214,7 +221,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(current_version,
               new_version,
               { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] })
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
@@ -226,7 +234,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(15)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(16)
     end
   end
 end

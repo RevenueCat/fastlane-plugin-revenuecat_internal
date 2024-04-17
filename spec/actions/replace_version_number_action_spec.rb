@@ -5,20 +5,22 @@ describe Fastlane::Actions::ReplaceVersionNumberAction do
         .with('1.12.0',
               '1.13.0',
               { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
-              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] })
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
       Fastlane::Actions::ReplaceVersionNumberAction.run(
         current_version: '1.12.0',
         new_version_number: '1.13.0',
         files_to_update: { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
-        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] }
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] }
       )
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::ReplaceVersionNumberAction.available_options.size).to eq(4)
+      expect(Fastlane::Actions::ReplaceVersionNumberAction.available_options.size).to eq(5)
     end
   end
 end

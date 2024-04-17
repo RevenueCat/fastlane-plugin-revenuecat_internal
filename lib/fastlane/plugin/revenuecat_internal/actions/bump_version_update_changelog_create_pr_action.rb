@@ -15,6 +15,7 @@ module Fastlane
         new_version_number = params[:next_version]
         files_to_update = params[:files_to_update]
         files_to_update_without_prerelease_modifiers = params[:files_to_update_without_prerelease_modifiers]
+        files_to_update_on_latest_stable_releases = params[:files_to_update_on_latest_stable_releases]
         changelog_latest_path = params[:changelog_latest_path]
         changelog_path = params[:changelog_path]
         editor = params[:editor]
@@ -54,7 +55,8 @@ module Fastlane
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
-                                                                files_to_update_without_prerelease_modifiers)
+                                                                files_to_update_without_prerelease_modifiers,
+                                                                files_to_update_on_latest_stable_releases)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
@@ -105,6 +107,16 @@ module Fastlane
                                        description: 'Hash of files that contain the version number without pre-release' \
                                                     'modifier and need to have it updated, to the patterns that' \
                                                     'contains the version in the file.' \
+                                                    'Mark the version in the pattern using {x}.' \
+                                                    'For example: { "./pubspec.yaml" => ["version: {x}"] }',
+                                       optional: true,
+                                       default_value: {},
+                                       type: Hash),
+          FastlaneCore::ConfigItem.new(key: :files_to_update_on_latest_stable_releases,
+                                       env_name: "RC_INTERNAL_FILES_TO_UPDATE_ON_LATEST_STABLE_RELEASES",
+                                       description: 'Hash of files that contain the version number and need to update' \
+                                                    'it only on stable releases (no prereleases) and on the latest' \
+                                                    'major (no hotfixes).' \
                                                     'Mark the version in the pattern using {x}.' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: true,
