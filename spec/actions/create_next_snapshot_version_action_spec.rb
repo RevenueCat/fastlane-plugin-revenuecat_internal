@@ -24,7 +24,8 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         .with(current_version,
               next_version,
               { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
-              { './test_file4.swift' => ['{x}'], './test_file5.kt' => ['{x}'] })
+              { './test_file4.swift' => ['{x}'], './test_file5.kt' => ['{x}'] },
+              {})
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with('Preparing for next version')

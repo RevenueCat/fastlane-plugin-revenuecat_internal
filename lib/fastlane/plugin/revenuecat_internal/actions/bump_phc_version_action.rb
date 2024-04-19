@@ -39,6 +39,7 @@ module Fastlane
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
+                                                                {},
                                                                 {})
 
         return unless open_pr
