@@ -28,7 +28,8 @@ module Fastlane
         Helper::RevenuecatInternalHelper.replace_version_number(previous_version_number,
                                                                 next_version_snapshot,
                                                                 files_to_update,
-                                                                files_to_update_without_prerelease_modifiers)
+                                                                files_to_update_without_prerelease_modifiers,
+                                                                {})
 
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch('Preparing for next version')
 

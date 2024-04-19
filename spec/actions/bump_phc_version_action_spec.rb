@@ -43,7 +43,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {})
+        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {}, {})
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
@@ -126,7 +126,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .never
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {})
+        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {}, {})
         .once
 
       Fastlane::Actions::BumpPhcVersionAction.run(
@@ -151,7 +151,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {})
+        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {}, {})
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
@@ -186,7 +186,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .with(new_branch_name)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_patch_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {})
+        .with(current_version, new_patch_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {}, {})
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_patch_version}")
@@ -216,7 +216,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
         .with(new_branch_name)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {})
+        .with(current_version, new_version, { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] }, {}, {})
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
       message = "Updates purchases-hybrid-common to 1.13.0"
