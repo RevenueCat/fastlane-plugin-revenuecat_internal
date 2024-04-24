@@ -1,4 +1,6 @@
 describe Fastlane::Helper::RevenuecatInternalHelper do
+  let(:get_latest_tag_command) { "git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1" }
+
   describe '.replace_version_number' do
     require 'fileutils'
 
@@ -10,7 +12,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Dir.mkdir('./tmp_test_files')
     end
 
@@ -217,11 +219,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   describe '.newer_than_latest_published_version?' do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
     end
 
     it 'if no tag is returned its considered latest' do
-      allow(Fastlane::Actions).to receive(:sh).with("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1").and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to be_truthy
     end
 

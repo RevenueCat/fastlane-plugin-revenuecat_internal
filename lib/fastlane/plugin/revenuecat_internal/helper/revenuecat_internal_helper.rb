@@ -36,7 +36,7 @@ module Fastlane
 
       def self.newer_than_latest_published_version?(version_number)
         Actions.sh("git fetch --tags -f")
-        latest_published_version = Actions.sh("git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -r --version-sort | head -n1")
+        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?
 
         Gem::Version.new(latest_published_version) < Gem::Version.new(version_number)
