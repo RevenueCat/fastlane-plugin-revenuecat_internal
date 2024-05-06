@@ -116,7 +116,8 @@ module Fastlane
                                        env_name: "RC_INTERNAL_FILES_TO_UPDATE_ON_LATEST_STABLE_RELEASES",
                                        description: 'Hash of files that contain the version number and only need to' \
                                                     'be updated on stable releases (no prereleases) and on the latest' \
-                                                    'major (no hotfixes).' \
+                                                    'major (no hotfixes). Note that the version will be updated as' \
+                                                    'long as it matches a semver stable version, even if its not the previous version' \
                                                     'Mark the version in the pattern using {x}.' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: true,
