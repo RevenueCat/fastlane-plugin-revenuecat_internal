@@ -216,7 +216,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'does update files on latest stable release if previous version does not match previous version given' do
-      File.write(file_to_update_on_latest_stable_release_5, '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7/index.html" />')
+      original_text = '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7/index.html" />'
+      expected_text = '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/1.2.4/index.html" />'
+
+      File.write(file_to_update_on_latest_stable_release_5, original_text)
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.2.3',
@@ -228,11 +231,13 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         }
       )
 
-      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/1.2.4/index.html" />')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq(expected_text)
     end
 
     it 'does not update files on latest stable release if old version does not match a stable semver version' do
-      File.write(file_to_update_on_latest_stable_release_5, '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7-SNAPSHOT/index.html" />')
+      original_text = '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7-SNAPSHOT/index.html" />'
+
+      File.write(file_to_update_on_latest_stable_release_5, original_text)
 
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.2.3',
@@ -244,7 +249,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         }
       )
 
-      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq('<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7-SNAPSHOT/index.html" />')
+      expect(File.read(file_to_update_on_latest_stable_release_5)).to eq(original_text)
     end
   end
 
