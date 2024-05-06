@@ -38,28 +38,28 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :files_to_update,
                                        env_name: "RC_INTERNAL_FILES_TO_UPDATE_VERSION",
-                                       description: 'Hash of files that contain the version number and need to have it' \
-                                                    'updated to the patterns that contains the version in the file.' \
-                                                    'Mark the version in the pattern using {x}.' \
+                                       description: 'Hash of files that contain the version number and need to have it ' \
+                                                    'updated to the patterns that contains the version in the file. ' \
+                                                    'Mark the version in the pattern using {x}. ' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: false,
                                        type: Hash),
           FastlaneCore::ConfigItem.new(key: :files_to_update_without_prerelease_modifiers,
                                        env_name: "RC_INTERNAL_FILES_TO_UPDATE_VERSION_WITHOUT_PRERELEASE_MODIFIERS",
-                                       description: 'Hash of files that contain the version number without pre-release' \
-                                                    'modifier and need to have it updated, to the patterns that' \
-                                                    'contains the version in the file.' \
-                                                    'Mark the version in the pattern using {x}.' \
+                                       description: 'Hash of files that contain the version number without pre-release ' \
+                                                    'modifier and need to have it updated, to the patterns that ' \
+                                                    'contains the version in the file. ' \
+                                                    'Mark the version in the pattern using {x}. ' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: true,
                                        default_value: {},
                                        type: Hash),
           FastlaneCore::ConfigItem.new(key: :files_to_update_on_latest_stable_releases,
                                        env_name: "RC_INTERNAL_FILES_TO_UPDATE_ON_LATEST_STABLE_RELEASES",
-                                       description: 'Hash of files that contain the version number and need to update' \
-                                                    'it only on stable releases (no prereleases) and on the latest' \
-                                                    'major (no hotfixes).' \
-                                                    'Mark the version in the pattern using {x}.' \
+                                       description: 'Hash of files that contain the version number and need to update ' \
+                                                    'it only on stable releases (no prereleases) and on the latest ' \
+                                                    'major (no hotfixes). ' \
+                                                    'Mark the version in the pattern using {x}. ' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: true,
                                        default_value: {},

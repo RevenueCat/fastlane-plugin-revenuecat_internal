@@ -29,7 +29,7 @@ module Fastlane
         end
         if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(new_version_number).prerelease?
           files_to_update_on_latest_stable_releases.each do |file_to_update, patterns|
-            replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
+            replace_stable_version_number_using_regex(new_version_number_without_prerelease_modifiers, file_to_update, patterns)
           end
         end
       end
@@ -214,6 +214,19 @@ module Fastlane
           UI.error("Branch '#{new_branch}' already exists in remote repository.")
           UI.user_error!("Please make sure it doesn't have any unsaved changes and delete it to continue.")
         end
+      end
+
+      private_class_method def self.replace_stable_version_number_using_regex(new_text, path, patterns = ['{x}'])
+        original_text = File.read(path)
+        replaced_text = original_text
+        semver_regex = /(\d+\.\d+\.\d+)/
+        patterns.each do |pattern|
+          previous_regex = Regexp.new(pattern.gsub('{x}', semver_regex.source))
+          replaced_new_text = pattern.gsub('{x}', new_text)
+          replaced_text = replaced_text.gsub(previous_regex, replaced_new_text)
+        end
+
+        File.write(path, replaced_text)
       end
     end
   end

@@ -62,9 +62,9 @@ module Fastlane
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :files_to_update,
-                                       description: 'Hash of files that contain the version number and need to have it' \
-                                                    'updated to the pattern that contains the version in the file.' \
-                                                    'Mark the version in the pattern using {x}.' \
+                                       description: 'Hash of files that contain the version number and need to have it ' \
+                                                    'updated to the pattern that contains the version in the file. ' \
+                                                    'Mark the version in the pattern using {x}. ' \
                                                     'For example: { "./pubspec.yaml" => ["version: {x}"] }',
                                        optional: false,
                                        type: Hash),
