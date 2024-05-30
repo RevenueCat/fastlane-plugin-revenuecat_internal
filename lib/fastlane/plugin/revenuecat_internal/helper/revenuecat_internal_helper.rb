@@ -202,6 +202,19 @@ module Fastlane
             .map { |item| item['tag_name'] }
       end
 
+      def self.git_clone_source_to_dest(source_repo, destination_repo)
+        Actions.sh("git clone #{source_repo}")
+        repo_name = source_repo.split('/').last.gsub('.git', '')
+
+        Dir.chdir(repo_name) do
+          Actions.sh("git fetch --tags")
+          Actions.sh("git remote set-url origin #{destination_repo}")
+
+          Actions.sh("git push origin")
+          Actions.sh("git push --tags")
+        end
+      end
+
       private_class_method def self.ensure_new_branch_local_remote(new_branch)
         local_branches = Actions.sh('git', 'branch', '--list', new_branch)
         unless local_branches.empty?
