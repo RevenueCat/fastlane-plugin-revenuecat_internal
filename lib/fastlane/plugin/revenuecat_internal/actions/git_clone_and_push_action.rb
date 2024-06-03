@@ -14,7 +14,7 @@ module Fastlane
       end
 
       def self.description
-        "Makes a lightweight clone containing only on the main branch's history."
+        "Makes a lightweight clone containing only on the main branch's history. Includes Git tags."
       end
 
       def self.authors
@@ -25,15 +25,17 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(key: :source_repo,
                                        description: "The source repository URL",
-                                       is_string: true),
+                                       optional: false,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :destination_repo,
                                        description: "The destination repository URL",
-                                       is_string: true)
+                                       optional: false,
+                                       type: String)
         ]
       end
 
       def self.is_supported?(platform)
-        [:ios, :mac].include?(platform)
+        true
       end
     end
   end
