@@ -29,8 +29,8 @@ module Fastlane
           extend_header = lines[0].split('|').length <= 6
 
           if extend_header
-            lines[0] = "#{lines[0].strip} Android Billing Client version |\n"
-            lines[1] = "#{lines[1].strip}--------------------------------|\n"
+            lines[0] = "#{lines[0].strip} Play Billing Library version |\n"
+            lines[1] = "#{lines[1].strip}------------------------------|\n"
             lines.each_with_index do |line, index|
               if index > 1
                 lines[index] = "#{line.strip} |\n"
