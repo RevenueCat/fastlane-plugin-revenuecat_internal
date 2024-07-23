@@ -19,9 +19,33 @@ module Fastlane
         ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(hybrid_common_version)
         UI.message("Obtained ios version #{ios_version} for PHC version #{hybrid_common_version}")
 
+        billing_client_version = Helper::UpdateHybridsVersionsFileHelper.get_android_billing_client_version(android_version)
+        UI.message("Obtained android billing client version #{billing_client_version} for PHC version #{hybrid_common_version}")
+
         File.open(versions_file_path, 'r+') do |file|
           lines = file.each_line.to_a
-          lines.insert(2, "| #{new_sdk_version} | #{ios_version} | #{android_version} | #{hybrid_common_version} |\n")
+          # Determine if the header needs to be extended based on the number of columns
+          # The number 6 comes from new_sdk_version, ios_version, android_version, hybrid_common_version + separators before and after
+          extend_header = lines[0].split('|').length <= 6
+
+          if extend_header
+            lines[0] = "#{lines[0].strip} Play Billing Library version |\n"
+            lines[1] = "#{lines[1].strip}------------------------------|\n"
+            lines.each_with_index do |line, index|
+              if index > 1
+                lines[index] = "#{line.strip} |\n"
+              end
+            end
+          end
+
+          new_line = [
+            new_sdk_version,
+            "[#{ios_version}](https://github.com/RevenueCat/purchases-ios/releases/tag/#{ios_version})",
+            "[#{android_version}](https://github.com/RevenueCat/purchases-android/releases/tag/#{android_version})",
+            "[#{hybrid_common_version}](https://github.com/RevenueCat/purchases-hybrid-common/releases/tag/#{hybrid_common_version})",
+            "[#{billing_client_version}](https://developer.android.com/google/play/billing/release-notes)"
+          ].join(' | ')
+          lines.insert(2, "| #{new_line} |\n")
           file.rewind
           file.write(lines.join)
         end
