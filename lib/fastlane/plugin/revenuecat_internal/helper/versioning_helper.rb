@@ -29,6 +29,9 @@ module Fastlane
       IOS_VERSION_COLUMN = 2
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
+      # Taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+      BUILD_METADATA_PATTERN = "[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*".freeze
+      ANCHORED_BUILD_METADATA_PATTERN = /^#{BUILD_METADATA_PATTERN}$/.freeze
 
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
         old_version = latest_version_number(include_prereleases: include_prereleases)
@@ -177,13 +180,19 @@ module Fastlane
                .sh("git tag", log: false)
                .strip
                .split("\n")
-               .select { |tag| Gem::Version.correct?(tag) }
+               .select do |tag|
+                 version, metadata = tag.split('+')
+                 Gem::Version.correct?(version) && (metadata.nil? || is_build_metadata(metadata))
+               end
 
         unless include_prereleases
-          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{BUILD_METADATA_PATTERN}))?$") }
         end
 
-        tags.max_by { |tag| Gem::Version.new(tag) }
+        tags.max_by do |tag|
+          version, = tag.split('+')
+          Gem::Version.new(version)
+        end
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
@@ -314,6 +323,10 @@ module Fastlane
         native_dependency_changelogs += platform_changelogs(android_releases, 'Android')
         native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
         native_dependency_changelogs.join("\n")
+      end
+
+      private_class_method def self.is_build_metadata(string)
+        !!(string =~ ANCHORED_BUILD_METADATA_PATTERN)
       end
     end
   end

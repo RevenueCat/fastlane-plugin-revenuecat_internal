@@ -527,6 +527,17 @@ amazon-latest
 latest
         GIT_TAG
       end
+      let(:git_tag_output_with_build_metadata) do
+        <<~GIT_TAG
+5.7.0
+5.7.1
+6.0.0-alpha.1
+6.0.0-alpha.2
+6.0.0+3.2.1
+amazon-latest
+latest
+        GIT_TAG
+      end
       it 'finds latest version number' do
         allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output)
 
@@ -539,6 +550,13 @@ latest
 
         latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number, include_prereleases: true)
         expect(latest_version).to eq("6.0.0-alpha.2")
+      end
+
+      it 'finds latest version number with build metadata' do
+        allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output_with_build_metadata)
+
+        latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number, include_prereleases: false)
+        expect(latest_version).to eq("6.0.0+3.2.1")
       end
     end
 
