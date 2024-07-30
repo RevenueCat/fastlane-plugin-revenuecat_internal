@@ -45,26 +45,15 @@ module Fastlane
           UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
         end
 
-        append_phc_version = false
-        if UI.interactive? &&
-           append_hybrid_common_version.nil? &&
-           !include_prereleases &&
-           !hybrid_common_version.nil? &&
-           !hybrid_common_version.strip.empty? &&
-           !new_version_number.include?("-")
-
+        if Helper::VersioningHelper.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
           build_metadata = new_version_number.partition("+").last
-          if build_metadata.strip.empty?
-            append_phc_version = UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
+          if build_metadata.strip.empty? && UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
+            new_version_number = "#{new_version_number}+#{hybrid_common_version}"
           else
             UI.important(
               "Not asking to append PHC version, as provided version already has build metadata (+#{build_metadata})."
             )
           end
-        end
-
-        if append_phc_version
-          new_version_number = "#{new_version_number}+#{hybrid_common_version}"
         end
 
         UI.important("New version is #{new_version_number}")

@@ -161,6 +161,17 @@ module Fastlane
         end
       end
 
+      def self.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+        UI.interactive? &&
+          append_hybrid_common_version.nil? &&
+          !include_prereleases &&
+          !hybrid_common_version.nil? &&
+          !hybrid_common_version.strip.empty? &&
+          !new_version_number.nil? &&
+          !new_version_number.strip.empty? &&
+          !new_version_number.include?("-")
+      end
+
       private_class_method def self.latest_version_number(include_prereleases: false)
         tags = Actions
                .sh("git tag", log: false)
