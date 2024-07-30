@@ -23,6 +23,12 @@ module Fastlane
         hybrid_common_version = params[:hybrid_common_version]
         versions_file_path = params[:versions_file_path]
         include_prereleases = params[:is_prerelease]
+        append_hybrid_common_version = params[:append_hybrid_common_version]
+
+        if append_hybrid_common_version
+          UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.") if include_prereleases
+          UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
+        end
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -35,6 +41,32 @@ module Fastlane
         new_version_number ||= UI.input("New version number: ")
 
         UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
+        if append_hybrid_common_version && new_version_number.include?("-")
+          UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
+        end
+
+        append_phc_version = false
+        if UI.interactive? &&
+           append_hybrid_common_version.nil? &&
+           !include_prereleases &&
+           !hybrid_common_version.nil? &&
+           !hybrid_common_version.strip.empty? &&
+           !new_version_number.include?("-")
+
+          build_metadata = new_version_number.partition("+").last
+          if build_metadata.strip.empty?
+            append_phc_version = UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
+          else
+            UI.important(
+              "Not asking to append PHC version, as provided version already has build metadata (+#{build_metadata})."
+            )
+          end
+        end
+
+        if append_phc_version
+          new_version_number = "#{new_version_number}+#{hybrid_common_version}"
+        end
+
         UI.important("New version is #{new_version_number}")
 
         new_branch_name = "release/#{new_version_number}"
