@@ -723,6 +723,31 @@ latest
       expect(next_version).to eq('2.0.0-SNAPSHOT')
     end
 
+    it 'increasing patch version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :patch, false)
+      expect(next_version).to eq('1.2.4')
+    end
+
+    it 'increasing minor version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :minor, false)
+      expect(next_version).to eq('1.3.0')
+    end
+
+    it 'increasing major version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :major, false)
+      expect(next_version).to eq('2.0.0')
+    end
+
+    it 'increasing minor snapshot version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :minor, true)
+      expect(next_version).to eq('1.3.0-SNAPSHOT')
+    end
+
+    it 'increasing major snapshot version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :major, true)
+      expect(next_version).to eq('2.0.0-SNAPSHOT')
+    end
+
     it 'keeps version with snapshot but removing alpha modifier if it appears' do
       next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha.1', :major, true)
       expect(next_version).to eq('1.2.3-SNAPSHOT')
@@ -752,6 +777,18 @@ latest
     it 'fails if given unsupported version to bump' do
       expect do
         Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha', :patch, false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given version with both prerelease modifier and build metadata to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-rc.1+2.3.1', :patch, false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given version with incorrect build metadata to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+meta data', :patch, false)
       end.to raise_exception(StandardError)
     end
   end

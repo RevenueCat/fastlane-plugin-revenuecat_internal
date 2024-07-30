@@ -102,11 +102,11 @@ module Fastlane
         return current_version if type_of_bump == :skip
 
         is_prerelease = %w(alpha beta rc).any? { |prerelease| current_version.include?(prerelease) }
-        is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?$")
+        is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+((-(alpha|beta|rc).[0-9]+)|(\\+[a-zA-Z0-9.]+))?$")
 
-        UI.user_error!("Invalid version number: #{current_version}. Expected 3 numbers separated by '.' with an optional prerelease modifier") unless is_valid_version
+        UI.user_error!("Invalid version number: #{current_version}. Expected 3 numbers separated by '.' optionally with either a prerelease modifier or build metadata") unless is_valid_version
 
-        delimiters = ['.', '-']
+        delimiters = %w[. - +]
         version_split = current_version.split(Regexp.union(delimiters))
 
         major = version_split[0]
