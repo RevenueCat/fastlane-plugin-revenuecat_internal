@@ -876,7 +876,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(16)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(17)
     end
   end
 end
