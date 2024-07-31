@@ -13,6 +13,9 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
+    # Taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+    BUILD_METADATA_PATTERN = "[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*".freeze
+
     class RevenuecatInternalHelper
       def self.replace_version_number(previous_version_number,
                                       new_version_number,
@@ -27,7 +30,7 @@ module Fastlane
         files_to_update_without_prerelease_modifiers.each do |file_to_update, patterns|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
         end
-        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(new_version_number).prerelease?
+        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(drop_build_metadata(new_version_number)).prerelease?
           files_to_update_on_latest_stable_releases.each do |file_to_update, patterns|
             replace_stable_version_number_using_regex(new_version_number_without_prerelease_modifiers, file_to_update, patterns)
           end
@@ -39,7 +42,7 @@ module Fastlane
         latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?
 
-        Gem::Version.new(latest_published_version) < Gem::Version.new(version_number)
+        Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -232,7 +235,7 @@ module Fastlane
       private_class_method def self.replace_stable_version_number_using_regex(new_text, path, patterns = ['{x}'])
         original_text = File.read(path)
         replaced_text = original_text
-        semver_regex = /(\d+\.\d+\.\d+)/
+        semver_regex = /(\d+\.\d+\.\d+)(\\+(#{BUILD_METADATA_PATTERN}))?/o
         patterns.each do |pattern|
           previous_regex = Regexp.new(pattern.gsub('{x}', semver_regex.source))
           replaced_new_text = pattern.gsub('{x}', new_text)
@@ -240,6 +243,10 @@ module Fastlane
         end
 
         File.write(path, replaced_text)
+      end
+
+      private_class_method def self.drop_build_metadata(version)
+        version.split('+')[0]
       end
     end
   end
