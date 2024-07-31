@@ -987,7 +987,7 @@ latest
       expect(should_append_phc_version).to eq(false)
     end
   end
-  
+
   def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
