@@ -13,8 +13,6 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
-    # Taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-    BUILD_METADATA_PATTERN = "[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*".freeze
 
     class RevenuecatInternalHelper
       def self.replace_version_number(previous_version_number,

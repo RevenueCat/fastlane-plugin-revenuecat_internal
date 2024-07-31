@@ -29,9 +29,6 @@ module Fastlane
       IOS_VERSION_COLUMN = 2
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
-      # Taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-      BUILD_METADATA_PATTERN = "[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*".freeze
-      ANCHORED_BUILD_METADATA_PATTERN = /^#{BUILD_METADATA_PATTERN}$/.freeze
 
       def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
         old_version = latest_version_number(include_prereleases: include_prereleases)
