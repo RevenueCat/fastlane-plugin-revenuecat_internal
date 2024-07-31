@@ -192,6 +192,11 @@ module Fastlane
                                        description: "If this is a prerelease",
                                        optional: true,
                                        is_string: false,
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :append_hybrid_common_version,
+                                       description: "Whether to append the hybrid_common_version to the new version number",
+                                       optional: true,
+                                       is_string: false,
                                        default_value: false)
         ]
       end
