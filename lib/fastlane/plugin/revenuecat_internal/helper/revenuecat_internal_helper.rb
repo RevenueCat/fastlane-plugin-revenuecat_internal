@@ -13,7 +13,6 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
-
     class RevenuecatInternalHelper
       def self.replace_version_number(previous_version_number,
                                       new_version_number,

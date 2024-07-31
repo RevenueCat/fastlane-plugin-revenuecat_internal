@@ -376,7 +376,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0+1.2.3')).to eq(true)
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0+1.2.3')).to eq(true)
     end
-
   end
 
   describe '.edit_changelog' do
