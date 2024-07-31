@@ -197,7 +197,7 @@ module Fastlane
                                        description: "Whether to append the hybrid_common_version to the new version number",
                                        optional: true,
                                        is_string: false,
-                                       default_value: false)
+                                       default_value: nil)
         ]
       end
 
