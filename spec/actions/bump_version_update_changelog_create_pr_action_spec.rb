@@ -422,7 +422,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
 
       expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the version provided already has metadata (+#{mismatched_metadata}).")
+        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
         .and_throw(:expected_error)
 
@@ -460,7 +460,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
 
       expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the version provided already has metadata (+#{mismatched_metadata}).")
+        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
         .and_throw(:expected_error)
 
@@ -622,7 +622,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
 
       expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the version provided already has metadata (+#{mismatched_metadata}).")
+        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
         .and_throw(:expected_error)
 
@@ -660,7 +660,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
 
       expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the version provided already has metadata (+#{mismatched_metadata}).")
+        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
         .and_throw(:expected_error)
 

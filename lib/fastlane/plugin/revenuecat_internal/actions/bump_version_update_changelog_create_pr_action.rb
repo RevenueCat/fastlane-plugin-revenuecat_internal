@@ -48,7 +48,8 @@ module Fastlane
           if new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version
             UI.user_error!(
               "Asked to append PHC version (+#{hybrid_common_version}), " \
-              "but the version provided already has metadata (+#{new_version_number.partition('+').last})."
+              "but the provided version (#{new_version_number}) already has metadata " \
+              "(+#{new_version_number.partition('+').last})."
             )
           end
         end
@@ -63,6 +64,9 @@ module Fastlane
             )
           end
         elsif Helper::VersioningHelper.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+          UI.important(
+            "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
+          )
           new_version_number = "#{new_version_number}+#{hybrid_common_version}"
         end
 
