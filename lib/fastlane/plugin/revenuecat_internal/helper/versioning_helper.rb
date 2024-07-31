@@ -169,7 +169,19 @@ module Fastlane
           !hybrid_common_version.strip.empty? &&
           !new_version_number.nil? &&
           !new_version_number.strip.empty? &&
-          !new_version_number.include?("-")
+          !new_version_number.include?("-") &&
+          !new_version_number.include?("+")
+      end
+
+      def self.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+        append_hybrid_common_version &&
+          !include_prereleases &&
+          !hybrid_common_version.nil? &&
+          !hybrid_common_version.strip.empty? &&
+          !new_version_number.nil? &&
+          !new_version_number.strip.empty? &&
+          !new_version_number.include?("-") &&
+          !new_version_number.include?("+")
       end
 
       private_class_method def self.latest_version_number(include_prereleases: false)

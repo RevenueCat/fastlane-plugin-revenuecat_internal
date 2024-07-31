@@ -41,8 +41,16 @@ module Fastlane
         new_version_number ||= UI.input("New version number: ")
 
         UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
-        if append_hybrid_common_version && new_version_number.include?("-")
-          UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
+        if append_hybrid_common_version
+          if new_version_number.include?("-")
+            UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
+          end
+          if new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version
+            UI.user_error!(
+              "Asked to append PHC version (+#{hybrid_common_version}), " \
+              "but the version provided already has metadata (+#{new_version_number.partition('+').last})."
+            )
+          end
         end
 
         if Helper::VersioningHelper.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
@@ -54,6 +62,8 @@ module Fastlane
               "Not asking to append PHC version, as provided version already has build metadata (+#{build_metadata})."
             )
           end
+        elsif Helper::VersioningHelper.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+          new_version_number = "#{new_version_number}+#{hybrid_common_version}"
         end
 
         UI.important("New version is #{new_version_number}")

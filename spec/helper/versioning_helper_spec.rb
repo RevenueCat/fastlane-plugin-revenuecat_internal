@@ -909,8 +909,85 @@ latest
       should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0-beta.1")
       expect(should_ask_to_append_phc_version).to eq(false)
     end
+
+    it 'should not ask to append PHC version if new_version_number has metadata' do
+      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0+meta")
+      expect(should_ask_to_append_phc_version).to eq(false)
+    end
+
+    it 'should not ask to append PHC version if new_version_number has empty metadata' do
+      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0+")
+      expect(should_ask_to_append_phc_version).to eq(false)
+    end
   end
 
+  describe 'should_append_phc_version' do
+    it 'should append PHC version if all conditions are met' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0")
+      expect(should_append_phc_version).to eq(true)
+    end
+
+    it 'should append PHC version if include_prereleases is nil' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, nil, "12.0.0", "2.0.0")
+      expect(should_append_phc_version).to eq(true)
+    end
+
+    it 'should not append PHC version if append_hybrid_common_version is false' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(false, false, "12.0.0", "2.0.0")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if include_prereleases is true' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, true, "12.0.0", "2.0.0")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if hybrid_common_version is blank' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, " ", "2.0.0")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if hybrid_common_version is nil' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, nil, "2.0.0")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number is blank' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", " ")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number is nil' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", nil)
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number is SNAPSHOT' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-SNAPSHOT")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number is alpha' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-alpha.1")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number is beta' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-beta.1")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number has metadata' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0+meta")
+      expect(should_append_phc_version).to eq(false)
+    end
+
+    it 'should not append PHC version if new_version_number has empty metadata' do
+      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0+")
+      expect(should_append_phc_version).to eq(false)
+    end
+  end
+  
   def setup_tag_stubs
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
