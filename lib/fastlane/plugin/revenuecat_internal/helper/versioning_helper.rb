@@ -184,11 +184,11 @@ module Fastlane
       end
 
       def self.append_phc_version_if_necessary(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-        if Helper::VersioningHelper.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+        if should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
           if UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
             return "#{new_version_number}+#{hybrid_common_version}"
           end
-        elsif Helper::VersioningHelper.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+        elsif should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
           UI.important(
             "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
           )
@@ -197,23 +197,23 @@ module Fastlane
         return new_version_number
       end
 
-      def self.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+      private_class_method def self.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
         UI.interactive? &&
-          append_hybrid_common_version.nil? &&
-          satisfies_requirements_for_appending_phc_version?(
-            include_prereleases,
-            hybrid_common_version,
-            new_version_number
-          )
+        append_hybrid_common_version.nil? &&
+        satisfies_requirements_for_appending_phc_version?(
+          include_prereleases,
+          hybrid_common_version,
+          new_version_number
+        )
       end
 
-      def self.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+      private_class_method def self.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
         append_hybrid_common_version &&
-          satisfies_requirements_for_appending_phc_version?(
-            include_prereleases,
-            hybrid_common_version,
-            new_version_number
-          )
+        satisfies_requirements_for_appending_phc_version?(
+          include_prereleases,
+          hybrid_common_version,
+          new_version_number
+        )
       end
 
       private_class_method def self.satisfies_requirements_for_appending_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
