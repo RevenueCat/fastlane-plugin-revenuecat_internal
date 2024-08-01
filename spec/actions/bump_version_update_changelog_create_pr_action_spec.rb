@@ -286,44 +286,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       end
     end
 
-    it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - interactive' do
-      # Arrange
-      interactive = true
-      append_hybrid_common_version = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
-      # We are providing new_version, without PHC appended as metadata
-      new_version_provided = new_version
-      new_branch_name = "release/#{new_version_appended}"
-
-      # Act, Assert
-      test_successfully_appending_phc_version(
-        interactive,
-        new_version_provided,
-        new_branch_name,
-        new_version_appended,
-        append_hybrid_common_version
-      )
-    end
-
-    it 'succeeds if append_hybrid_common_version is true and provided version metadata matches - interactive' do
-      # Arrange
-      interactive = true
-      append_hybrid_common_version = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
-      # We are providing new_version_appended, with the correct PHC version already appended as metadata
-      new_version_provided = new_version_appended
-      new_branch_name = "release/#{new_version_appended}"
-
-      # Act, Assert
-      test_successfully_appending_phc_version(
-        interactive,
-        new_version_provided,
-        new_branch_name,
-        new_version_appended,
-        append_hybrid_common_version
-      )
-    end
-
     it 'fails if append_hybrid_common_version is true and provided version metadata does not match - interactive' do
       # Arrange
       interactive = true
@@ -397,6 +359,44 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           append_hybrid_common_version: append_hybrid_common_version
         )
       end
+    end
+
+    it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - interactive' do
+      # Arrange
+      interactive = true
+      append_hybrid_common_version = true
+      new_version_appended = "#{new_version}+#{hybrid_common_version}"
+      # We are providing new_version, without PHC appended as metadata
+      new_version_provided = new_version
+      new_branch_name = "release/#{new_version_appended}"
+
+      # Act, Assert
+      test_successfully_appending_phc_version(
+        interactive,
+        new_version_provided,
+        new_branch_name,
+        new_version_appended,
+        append_hybrid_common_version
+      )
+    end
+
+    it 'succeeds if append_hybrid_common_version is true and provided version metadata matches - interactive' do
+      # Arrange
+      interactive = true
+      append_hybrid_common_version = true
+      new_version_appended = "#{new_version}+#{hybrid_common_version}"
+      # We are providing new_version_appended, with the correct PHC version already appended as metadata
+      new_version_provided = new_version_appended
+      new_branch_name = "release/#{new_version_appended}"
+
+      # Act, Assert
+      test_successfully_appending_phc_version(
+        interactive,
+        new_version_provided,
+        new_branch_name,
+        new_version_appended,
+        append_hybrid_common_version
+      )
     end
 
     it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - non-interactive' do
