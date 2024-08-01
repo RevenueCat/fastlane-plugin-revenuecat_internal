@@ -25,10 +25,12 @@ module Fastlane
         include_prereleases = params[:is_prerelease]
         append_hybrid_common_version = params[:append_hybrid_common_version]
 
-        if append_hybrid_common_version
-          UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.") if include_prereleases
-          UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
-        end
+        # See if we got any conflicting arguments.
+        Helper::VersioningHelper.validate_input_if_appending_phc_version?(
+          append_hybrid_common_version,
+          include_prereleases,
+          hybrid_common_version
+        )
 
         current_branch = Actions.git_branch
         if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
@@ -41,34 +43,18 @@ module Fastlane
         new_version_number ||= UI.input("New version number: ")
 
         UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
-        if append_hybrid_common_version
-          if new_version_number.include?("-")
-            UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
-          end
-          if new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version
-            UI.user_error!(
-              "Asked to append PHC version (+#{hybrid_common_version}), " \
-              "but the provided version (#{new_version_number}) already has metadata " \
-              "(+#{new_version_number.partition('+').last})."
-            )
-          end
-        end
+        Helper::VersioningHelper.validate_new_version_if_appending_phc_version?(
+          append_hybrid_common_version,
+          new_version_number,
+          hybrid_common_version
+        )
 
-        if Helper::VersioningHelper.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-          build_metadata = new_version_number.partition("+").last
-          if build_metadata.strip.empty? && UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
-            new_version_number = "#{new_version_number}+#{hybrid_common_version}"
-          else
-            UI.important(
-              "Not asking to append PHC version, as provided version already has build metadata (+#{build_metadata})."
-            )
-          end
-        elsif Helper::VersioningHelper.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-          UI.important(
-            "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
-          )
-          new_version_number = "#{new_version_number}+#{hybrid_common_version}"
-        end
+        new_version_number = Helper::VersioningHelper.append_phc_version_if_necessary(
+          append_hybrid_common_version,
+          include_prereleases,
+          hybrid_common_version,
+          new_version_number
+        )
 
         UI.important("New version is #{new_version_number}")
 
