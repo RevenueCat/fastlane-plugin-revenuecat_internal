@@ -161,6 +161,7 @@ module Fastlane
         end
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
         UI.interactive? &&
           append_hybrid_common_version.nil? &&
@@ -172,6 +173,7 @@ module Fastlane
           !new_version_number.include?("-") &&
           !new_version_number.include?("+")
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def self.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
         append_hybrid_common_version &&
