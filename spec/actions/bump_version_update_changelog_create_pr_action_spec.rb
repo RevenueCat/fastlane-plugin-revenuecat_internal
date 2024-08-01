@@ -309,7 +309,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with(new_branch_name, mock_github_pr_token)
         .once
@@ -369,7 +368,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with(new_branch_name, mock_github_pr_token)
         .once
@@ -458,7 +456,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(FastlaneCore::UI).to receive(:user_error!)
         .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
@@ -507,7 +504,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with(new_branch_name, mock_github_pr_token)
         .once
@@ -569,7 +565,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with(new_branch_name, mock_github_pr_token)
         .once
@@ -620,7 +615,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(FastlaneCore::UI).to receive(:user_error!)
         .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
@@ -658,7 +652,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
       expect(FastlaneCore::UI).to receive(:user_error!)
         .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
