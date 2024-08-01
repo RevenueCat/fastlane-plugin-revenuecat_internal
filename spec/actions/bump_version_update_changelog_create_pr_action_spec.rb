@@ -306,6 +306,26 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
+    it 'fails if append_hybrid_common_version is true and provided version metadata does not match - non-interactive' do
+      # Arrange
+      interactive = false
+      append_hybrid_common_version = true
+      mismatched_metadata = "some.metadata"
+
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+    end
+
+    it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - non-interactive' do
+      # Arrange
+      interactive = false
+      append_hybrid_common_version = true
+      mismatched_metadata = "" # Empty on purpose
+
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+    end
+
     it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - interactive' do
       # Arrange
       interactive = true
@@ -380,26 +400,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         new_version_appended,
         append_hybrid_common_version
       )
-    end
-
-    it 'fails if append_hybrid_common_version is true and provided version metadata does not match - non-interactive' do
-      # Arrange
-      interactive = false
-      append_hybrid_common_version = true
-      mismatched_metadata = "some.metadata"
-
-      # Act, Assert
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
-    end
-
-    it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - non-interactive' do
-      # Arrange
-      interactive = false
-      append_hybrid_common_version = true
-      mismatched_metadata = "" # Empty on purpose
-
-      # Act, Assert
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
     it 'asks to append a PHC version if all conditions are met' do
