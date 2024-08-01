@@ -291,37 +291,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       interactive = true
       append_hybrid_common_version = true
       mismatched_metadata = "some.metadata"
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      # We are providing a version with metadata that doesn't match the PHC version
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return("#{new_version}+#{mismatched_metadata}")
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
 
-      # Assert
-      expect(FastlaneCore::UI).not_to receive(:confirm)
-        .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
-        .once
-        .and_throw(:expected_error)
-
-      # Act
-      catch :expected_error do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          editor: editor,
-          hybrid_common_version: hybrid_common_version,
-          is_prerelease: false,
-          append_hybrid_common_version: append_hybrid_common_version
-        )
-      end
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
     it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - interactive' do
@@ -329,36 +301,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       interactive = true
       append_hybrid_common_version = true
       mismatched_metadata = "" # Empty on purpose
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      # We are providing a version with metadata that doesn't match the PHC version
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return("#{new_version}+#{mismatched_metadata}")
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
 
-      # Assert
-      expect(FastlaneCore::UI).not_to receive(:confirm)
-        .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
-        .once
-        .and_throw(:expected_error)
-
-      # Act
-      catch :expected_error do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          editor: editor,
-          hybrid_common_version: hybrid_common_version,
-          is_prerelease: false,
-          append_hybrid_common_version: append_hybrid_common_version
-        )
-      end
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
     it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - interactive' do
@@ -442,36 +387,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       interactive = false
       append_hybrid_common_version = true
       mismatched_metadata = "some.metadata"
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      # We are providing a version with metadata that doesn't match the PHC version
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return("#{new_version}+#{mismatched_metadata}")
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
 
-      # Assert
-      expect(FastlaneCore::UI).not_to receive(:confirm)
-        .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
-        .once
-        .and_throw(:expected_error)
-
-      # Act
-      catch :expected_error do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          editor: editor,
-          hybrid_common_version: hybrid_common_version,
-          is_prerelease: false,
-          append_hybrid_common_version: append_hybrid_common_version
-        )
-      end
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
     it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - non-interactive' do
@@ -479,36 +397,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       interactive = false
       append_hybrid_common_version = true
       mismatched_metadata = "" # Empty on purpose
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      # We are providing a version with metadata that doesn't match the PHC version
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return("#{new_version}+#{mismatched_metadata}")
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
 
-      # Assert
-      expect(FastlaneCore::UI).not_to receive(:confirm)
-        .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
-        .once
-        .and_throw(:expected_error)
-
-      # Act
-      catch :expected_error do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          editor: editor,
-          hybrid_common_version: hybrid_common_version,
-          is_prerelease: false,
-          append_hybrid_common_version: append_hybrid_common_version
-        )
-      end
+      # Act, Assert
+      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
     end
 
     it 'asks to append a PHC version if all conditions are met' do
@@ -684,61 +575,38 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def appends_arrange(interactive, new_version_provided)
+    def test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+      # Arrange
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
+      # We are providing a version with metadata that doesn't match the PHC version
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return("#{new_version}+#{mismatched_metadata}")
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
-      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, nil)
-        .and_return(auto_generated_changelog)
-        .once
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
-        .with(auto_generated_changelog, mock_changelog_latest_path)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
-        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
-        .once
-    end
 
-    def appends_assert(new_branch_name, new_version_appended)
+      # Assert
       expect(FastlaneCore::UI).not_to receive(:confirm)
         .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(new_branch_name, mock_github_pr_token)
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with("Asked to append PHC version (+#{hybrid_common_version}), but the provided version (#{new_version}+#{mismatched_metadata}) already has metadata (+#{mismatched_metadata}).")
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version,
-              new_version_appended,
-              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
-        .with(new_version_appended, mock_changelog_latest_path, mock_changelog_path)
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/#{new_version_appended}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
-        .once
-    end
+        .and_throw(:expected_error)
 
-    def appends_act(append_hybrid_common_version)
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-        current_version: current_version,
-        changelog_latest_path: mock_changelog_latest_path,
-        changelog_path: mock_changelog_path,
-        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
-        repo_name: mock_repo_name,
-        github_pr_token: mock_github_pr_token,
-        github_token: mock_github_token,
-        github_rate_limit: 3,
-        editor: editor,
-        hybrid_common_version: hybrid_common_version,
-        is_prerelease: false,
-        append_hybrid_common_version: append_hybrid_common_version
-      )
+      # Act
+      catch(:expected_error) do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          github_token: mock_github_token,
+          github_rate_limit: 3,
+          editor: editor,
+          hybrid_common_version: hybrid_common_version,
+          is_prerelease: false,
+          append_hybrid_common_version: append_hybrid_common_version
+        )
+      end
     end
 
     def setup_stubs
