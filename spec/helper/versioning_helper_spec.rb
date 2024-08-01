@@ -1,3 +1,14 @@
+AppendPhcVersionIfNecessaryParams = Struct.new(
+  :interactive,
+  :append_on_confirmation,
+  :append_hybrid_common_version,
+  :include_prereleases,
+  :hybrid_common_version,
+  :new_version_number,
+  :expected_version,
+  keyword_init: true
+)
+
 describe Fastlane::Helper::VersioningHelper do
   before(:each) do
     allow(Fastlane::Actions).to receive(:git_branch).and_return('main')
@@ -849,142 +860,279 @@ latest
     end
   end
 
-  describe 'should_ask_to_append_phc_version' do
-    it 'should ask to append PHC version if all conditions are met' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(true)
-    end
+  describe 'append_phc_version_if_necessary' do
+    params = [
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: nil,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: true,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: false,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: true,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: " ",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: nil,
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: " ",
+        expected_version: " "
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: nil,
+        expected_version: nil
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-SNAPSHOT",
+        expected_version: "2.0.0-SNAPSHOT"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-alpha.1",
+        expected_version: "2.0.0-alpha.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-beta.1",
+        expected_version: "2.0.0-beta.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+meta",
+        expected_version: "2.0.0+meta"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: true,
+        append_on_confirmation: true,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+",
+        expected_version: "2.0.0+"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: nil,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: true,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: false,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: true,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: " ",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: nil,
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: " ",
+        expected_version: " "
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: nil,
+        expected_version: nil
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-SNAPSHOT",
+        expected_version: "2.0.0-SNAPSHOT"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-alpha.1",
+        expected_version: "2.0.0-alpha.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-beta.1",
+        expected_version: "2.0.0-beta.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+meta",
+        expected_version: "2.0.0+meta"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        interactive: false,
+        append_on_confirmation: false,
+        append_hybrid_common_version: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+",
+        expected_version: "2.0.0+"
+      )
+    ]
 
-    it 'should ask to append PHC version if include_prereleases is nil' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, nil, "12.0.0", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(true)
-    end
+    params.each_with_index do |param, i|
+      it "#{i} - params: #{param}" do
+        # Arrange
+        allow(FastlaneCore::UI).to receive(:interactive?).and_return(param.interactive)
+        allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(param.append_on_confirmation)
 
-    it 'should not ask to append PHC version if append_hybrid_common_version is true' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(true, false, "12.0.0", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
+        # Act
+        actual_version = Fastlane::Helper::VersioningHelper.append_phc_version_if_necessary(
+          param.append_hybrid_common_version,
+          param.include_prereleases,
+          param.hybrid_common_version,
+          param.new_version_number
+        )
 
-    it 'should not ask to append PHC version if append_hybrid_common_version is false' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(false, false, "12.0.0", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if include_prereleases is true' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, true, "12.0.0", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if hybrid_common_version is blank' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, " ", "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if hybrid_common_version is nil' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, nil, "2.0.0")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number is blank' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", " ")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number is nil' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", nil)
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number is SNAPSHOT' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0-SNAPSHOT")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number is alpha' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0-alpha.1")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number is beta' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0-beta.1")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number has metadata' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0+meta")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-
-    it 'should not ask to append PHC version if new_version_number has empty metadata' do
-      should_ask_to_append_phc_version = Fastlane::Helper::VersioningHelper.should_ask_to_append_phc_version?(nil, false, "12.0.0", "2.0.0+")
-      expect(should_ask_to_append_phc_version).to eq(false)
-    end
-  end
-
-  describe 'should_append_phc_version' do
-    it 'should append PHC version if all conditions are met' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0")
-      expect(should_append_phc_version).to eq(true)
-    end
-
-    it 'should append PHC version if include_prereleases is nil' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, nil, "12.0.0", "2.0.0")
-      expect(should_append_phc_version).to eq(true)
-    end
-
-    it 'should not append PHC version if append_hybrid_common_version is false' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(false, false, "12.0.0", "2.0.0")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if include_prereleases is true' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, true, "12.0.0", "2.0.0")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if hybrid_common_version is blank' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, " ", "2.0.0")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if hybrid_common_version is nil' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, nil, "2.0.0")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number is blank' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", " ")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number is nil' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", nil)
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number is SNAPSHOT' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-SNAPSHOT")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number is alpha' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-alpha.1")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number is beta' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0-beta.1")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number has metadata' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0+meta")
-      expect(should_append_phc_version).to eq(false)
-    end
-
-    it 'should not append PHC version if new_version_number has empty metadata' do
-      should_append_phc_version = Fastlane::Helper::VersioningHelper.should_append_phc_version?(true, false, "12.0.0", "2.0.0+")
-      expect(should_append_phc_version).to eq(false)
+        # Assert
+        expect(actual_version).to eq(param.expected_version)
+      end
     end
   end
 
