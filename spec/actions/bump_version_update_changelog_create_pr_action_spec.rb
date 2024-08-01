@@ -221,31 +221,21 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     end
 
     it 'fails trying to append a nil PHC version' do
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
-      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
+      # Arrange
+      hybrid_common_version_provided = nil
+      expected_error = "Cannot append a nil PHC version."
 
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with('Cannot append a nil PHC version.')
-        .once
-        .and_throw(:expected_error)
+      # Act, Assert
+      test_fails_to_append_incorrect_phc_version(hybrid_common_version_provided, expected_error)
+    end
 
-      catch :expected_error do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          editor: editor,
-          hybrid_common_version: nil,
-          is_prerelease: false,
-          append_hybrid_common_version: true
-        )
-      end
+    it 'fails trying to append a blank PHC version' do
+      # Arrange
+      hybrid_common_version_provided = " "
+      expected_error = "Cannot append a blank PHC version."
+
+      # Act, Assert
+      test_fails_to_append_incorrect_phc_version(hybrid_common_version_provided, expected_error)
     end
 
     it 'fails if append_hybrid_common_version is true and provided version metadata does not match - interactive' do
@@ -428,6 +418,34 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
     it 'does not ask to append a PHC version if hybrid_common_version is blank' do
       test_does_not_ask_to_append_phc_version(" ")
+    end
+
+    def test_fails_to_append_incorrect_phc_version(hybrid_common_version_provided, expected_error)
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with(expected_error)
+        .once
+        .and_throw(:expected_error)
+
+      catch(:expected_error) do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          github_token: mock_github_token,
+          editor: editor,
+          hybrid_common_version: hybrid_common_version_provided,
+          is_prerelease: false,
+          append_hybrid_common_version: true
+        )
+      end
     end
 
     def test_fails_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)

@@ -165,6 +165,7 @@ module Fastlane
         if append_hybrid_common_version
           UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.") if include_prereleases
           UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
+          UI.user_error!("Cannot append a blank PHC version.") if hybrid_common_version.strip.empty?
         end
       end
 
