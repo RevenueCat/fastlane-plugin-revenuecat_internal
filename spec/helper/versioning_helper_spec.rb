@@ -1118,11 +1118,9 @@ latest
 
     params.each_with_index do |param, i|
       it "#{i} - params: #{param}" do
-        # Arrange
-        allow(FastlaneCore::UI).to receive(:interactive?).and_return(param.interactive)
+          allow(FastlaneCore::UI).to receive(:interactive?).and_return(param.interactive)
         allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(param.append_on_confirmation)
 
-        # Act
         actual_version = Fastlane::Helper::VersioningHelper.append_phc_version_if_necessary(
           param.append_hybrid_common_version,
           param.include_prereleases,
@@ -1130,8 +1128,7 @@ latest
           param.new_version_number
         )
 
-        # Assert
-        expect(actual_version).to eq(param.expected_version)
+          expect(actual_version).to eq(param.expected_version)
       end
     end
   end
