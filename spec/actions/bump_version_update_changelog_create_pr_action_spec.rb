@@ -230,41 +230,56 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_fails_to_append_incorrect_phc_version(hybrid_common_version_provided, expected_error)
     end
 
-    it 'fails if append_hybrid_common_version is true and provided version metadata does not match - interactive' do
+    it 'fails if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata does not match - interactive' do
       interactive = true
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       mismatched_metadata = "some.metadata"
 
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+      test_fails_appending_phc_version(
+        interactive,
+        append_phc_version_if_next_version_is_not_prerelease,
+        mismatched_metadata
+      )
     end
 
-    it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - interactive' do
+    it 'fails if append_phc_version_if_next_version_is_not_prerelease is true and provided version has + but no metadata - interactive' do
       interactive = true
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       mismatched_metadata = "" # Empty on purpose
 
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+      test_fails_appending_phc_version(
+        interactive,
+        append_phc_version_if_next_version_is_not_prerelease,
+        mismatched_metadata
+      )
     end
 
-    it 'fails if append_hybrid_common_version is true and provided version metadata does not match - non-interactive' do
+    it 'fails if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata does not match - non-interactive' do
       interactive = false
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       mismatched_metadata = "some.metadata"
 
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+      test_fails_appending_phc_version(
+        interactive,
+        append_phc_version_if_next_version_is_not_prerelease,
+        mismatched_metadata
+      )
     end
 
-    it 'fails if append_hybrid_common_version is true and provided version has + but no metadata - non-interactive' do
+    it 'fails if append_phc_version_if_next_version_is_not_prerelease is true and provided version has + but no metadata - non-interactive' do
       interactive = false
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       mismatched_metadata = "" # Empty on purpose
 
-      test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+      test_fails_appending_phc_version(
+        interactive,
+        append_phc_version_if_next_version_is_not_prerelease, mismatched_metadata
+      )
     end
 
-    it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - interactive' do
+    it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - interactive' do
       interactive = true
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
@@ -275,13 +290,13 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         new_version_provided,
         new_branch_name,
         new_version_appended,
-        append_hybrid_common_version
+        append_phc_version_if_next_version_is_not_prerelease
       )
     end
 
-    it 'succeeds if append_hybrid_common_version is true and provided version metadata matches - interactive' do
+    it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - interactive' do
       interactive = true
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version_appended, with the correct PHC version already appended as metadata
       new_version_provided = new_version_appended
@@ -292,13 +307,13 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         new_version_provided,
         new_branch_name,
         new_version_appended,
-        append_hybrid_common_version
+        append_phc_version_if_next_version_is_not_prerelease
       )
     end
 
-    it 'appends the PHC version automatically if append_hybrid_common_version is true and provided version lacks metadata - non-interactive' do
+    it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - non-interactive' do
       interactive = false
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
@@ -309,13 +324,13 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         new_version_provided,
         new_branch_name,
         new_version_appended,
-        append_hybrid_common_version
+        append_phc_version_if_next_version_is_not_prerelease
       )
     end
 
-    it 'succeeds if append_hybrid_common_version is true and provided version metadata matches - non-interactive' do
+    it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - non-interactive' do
       interactive = false
-      append_hybrid_common_version = true
+      append_phc_version_if_next_version_is_not_prerelease = true
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version_appended, with the correct PHC version already appended as metadata
       new_version_provided = new_version_appended
@@ -326,7 +341,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         new_version_provided,
         new_branch_name,
         new_version_appended,
-        append_hybrid_common_version
+        append_phc_version_if_next_version_is_not_prerelease
       )
     end
 
@@ -381,7 +396,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         editor: editor,
         hybrid_common_version: hybrid_common_version,
         is_prerelease: false,
-        append_hybrid_common_version: nil
+        append_phc_version_if_next_version_is_not_prerelease: nil
       )
     end
 
@@ -416,7 +431,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           editor: editor,
           hybrid_common_version: hybrid_common_version_provided,
           is_prerelease: false,
-          append_hybrid_common_version: true
+          append_phc_version_if_next_version_is_not_prerelease: true
         )
       end
     end
@@ -444,7 +459,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           editor: editor,
           hybrid_common_version: hybrid_common_version,
           is_prerelease: is_prerelease,
-          append_hybrid_common_version: true
+          append_phc_version_if_next_version_is_not_prerelease: true
         )
       end
     end
@@ -496,11 +511,11 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         editor: editor,
         hybrid_common_version: hybrid_common_version,
         is_prerelease: false,
-        append_hybrid_common_version: nil
+        append_phc_version_if_next_version_is_not_prerelease: nil
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, new_version_provided, new_branch_name, new_version_appended, append_hybrid_common_version)
+    def test_successfully_appending_phc_version(interactive, new_version_provided, new_branch_name, new_version_appended, append_phc_version_if_next_version_is_not_prerelease)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
@@ -549,11 +564,11 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         editor: editor,
         hybrid_common_version: hybrid_common_version,
         is_prerelease: false,
-        append_hybrid_common_version: append_hybrid_common_version
+        append_phc_version_if_next_version_is_not_prerelease: append_phc_version_if_next_version_is_not_prerelease
       )
     end
 
-    def test_fails_appending_phc_version(interactive, append_hybrid_common_version, mismatched_metadata)
+    def test_fails_appending_phc_version(interactive, append_phc_version_if_next_version_is_not_prerelease, mismatched_metadata)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
       # We are providing a version with metadata that doesn't match the PHC version
@@ -579,7 +594,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
           editor: editor,
           hybrid_common_version: hybrid_common_version,
           is_prerelease: false,
-          append_hybrid_common_version: append_hybrid_common_version
+          append_phc_version_if_next_version_is_not_prerelease: append_phc_version_if_next_version_is_not_prerelease
         )
       end
     end

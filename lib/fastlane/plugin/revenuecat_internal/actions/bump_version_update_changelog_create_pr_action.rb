@@ -23,11 +23,11 @@ module Fastlane
         hybrid_common_version = params[:hybrid_common_version]
         versions_file_path = params[:versions_file_path]
         include_prereleases = params[:is_prerelease]
-        append_hybrid_common_version = params[:append_hybrid_common_version]
+        append_phc_version_if_next_version_is_not_prerelease = params[:append_phc_version_if_next_version_is_not_prerelease]
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
-          append_hybrid_common_version,
+          append_phc_version_if_next_version_is_not_prerelease,
           include_prereleases,
           hybrid_common_version
         )
@@ -44,13 +44,13 @@ module Fastlane
 
         UI.user_error!("Version number cannot be empty") if new_version_number.strip.empty?
         Helper::VersioningHelper.validate_new_version_if_appending_phc_version?(
-          append_hybrid_common_version,
+          append_phc_version_if_next_version_is_not_prerelease,
           new_version_number,
           hybrid_common_version
         )
 
         new_version_number = Helper::VersioningHelper.append_phc_version_if_necessary(
-          append_hybrid_common_version,
+          append_phc_version_if_next_version_is_not_prerelease,
           include_prereleases,
           hybrid_common_version,
           new_version_number
@@ -193,8 +193,8 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
-          FastlaneCore::ConfigItem.new(key: :append_hybrid_common_version,
-                                       description: "Whether to append the hybrid_common_version to the new version number",
+          FastlaneCore::ConfigItem.new(key: :append_phc_version_if_next_version_is_not_prerelease,
+                                       description: "Whether to append the hybrid_common_version to the new version number, if that new version number is not a pre-release version",
                                        optional: true,
                                        is_string: false,
                                        default_value: nil)
