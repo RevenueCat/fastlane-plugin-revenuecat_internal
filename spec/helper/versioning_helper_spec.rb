@@ -861,7 +861,7 @@ latest
   end
 
   describe 'append_phc_version_if_necessary' do
-    params = [
+    params_set = [
       AppendPhcVersionIfNecessaryParams.new(
         interactive: true,
         append_on_confirmation: true,
@@ -1116,19 +1116,19 @@ latest
       )
     ]
 
-    params.each_with_index do |param, i|
-      it "#{i} - params: #{param}" do
-        allow(FastlaneCore::UI).to receive(:interactive?).and_return(param.interactive)
-        allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(param.append_on_confirmation)
+    params_set.each_with_index do |params, i|
+      it "#{i} - params: #{params}" do
+        allow(FastlaneCore::UI).to receive(:interactive?).and_return(params.interactive)
+        allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(params.append_on_confirmation)
 
         actual_version = Fastlane::Helper::VersioningHelper.append_phc_version_if_necessary(
-          param.append_hybrid_common_version,
-          param.include_prereleases,
-          param.hybrid_common_version,
-          param.new_version_number
+          params.append_hybrid_common_version,
+          params.include_prereleases,
+          params.hybrid_common_version,
+          params.new_version_number
         )
 
-        expect(actual_version).to eq(param.expected_version)
+        expect(actual_version).to eq(params.expected_version)
       end
     end
   end
