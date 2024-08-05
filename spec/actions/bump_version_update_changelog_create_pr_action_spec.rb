@@ -284,7 +284,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
 
-      test_successfully_appending_phc_version(
+      test_actual_version(
         interactive,
         false,
         new_version_provided,
@@ -300,7 +300,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # We are providing expected_version, with the correct PHC version already appended as metadata
       new_version_provided = expected_version
 
-      test_successfully_appending_phc_version(
+      test_actual_version(
         interactive,
         false,
         new_version_provided,
@@ -316,7 +316,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
 
-      test_successfully_appending_phc_version(
+      test_actual_version(
         interactive,
         false,
         new_version_provided,
@@ -332,7 +332,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       # We are providing expected_version, with the correct PHC version already appended as metadata
       new_version_provided = expected_version
 
-      test_successfully_appending_phc_version(
+      test_actual_version(
         interactive,
         false,
         new_version_provided,
@@ -511,7 +511,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, is_prerelease, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
+    def test_actual_version(interactive, is_prerelease, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
       new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
