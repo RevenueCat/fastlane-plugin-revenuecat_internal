@@ -287,8 +287,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        expected_version,
-        append_phc_version_if_next_version_is_not_prerelease
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
       )
     end
 
@@ -302,8 +302,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        expected_version,
-        append_phc_version_if_next_version_is_not_prerelease
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
       )
     end
 
@@ -317,8 +317,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        expected_version,
-        append_phc_version_if_next_version_is_not_prerelease
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
       )
     end
 
@@ -332,8 +332,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        expected_version,
-        append_phc_version_if_next_version_is_not_prerelease
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
       )
     end
 
@@ -507,7 +507,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, new_version_provided, expected_version, append_phc_version_if_next_version_is_not_prerelease)
+    def test_successfully_appending_phc_version(interactive, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
       new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
