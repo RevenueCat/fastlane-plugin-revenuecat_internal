@@ -283,12 +283,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
-      new_branch_name = "release/#{new_version_appended}"
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_branch_name,
         new_version_appended,
         append_phc_version_if_next_version_is_not_prerelease
       )
@@ -300,12 +298,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version_appended, with the correct PHC version already appended as metadata
       new_version_provided = new_version_appended
-      new_branch_name = "release/#{new_version_appended}"
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_branch_name,
         new_version_appended,
         append_phc_version_if_next_version_is_not_prerelease
       )
@@ -317,12 +313,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
-      new_branch_name = "release/#{new_version_appended}"
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_branch_name,
         new_version_appended,
         append_phc_version_if_next_version_is_not_prerelease
       )
@@ -334,12 +328,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version_appended, with the correct PHC version already appended as metadata
       new_version_provided = new_version_appended
-      new_branch_name = "release/#{new_version_appended}"
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_branch_name,
         new_version_appended,
         append_phc_version_if_next_version_is_not_prerelease
       )
@@ -515,7 +507,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, new_version_provided, new_branch_name, new_version_appended, append_phc_version_if_next_version_is_not_prerelease)
+    def test_successfully_appending_phc_version(interactive, new_version_provided, new_version_appended, append_phc_version_if_next_version_is_not_prerelease)
+      new_branch_name = "release/#{new_version_appended}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
