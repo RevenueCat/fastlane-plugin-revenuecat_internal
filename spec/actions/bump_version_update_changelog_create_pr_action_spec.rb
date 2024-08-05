@@ -202,18 +202,18 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    it 'fails trying to append PHC version if is_prerelease is true' do
+    it 'does not fail trying to append PHC version if is_prerelease is true' do
       new_version_provided = new_version
       is_prerelease = true
 
-      test_fails_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
+      test_does_not_fail_trying_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
     end
 
-    it 'fails trying to append PHC version if new version is prerelease' do
+    it 'does not fail trying to append PHC version if new version is prerelease' do
       new_version_provided = '1.13.0-alpha.1'
       is_prerelease = false
 
-      test_fails_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
+      test_does_not_fail_trying_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
     end
 
     it 'fails trying to append a nil PHC version' do
@@ -496,17 +496,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       end
     end
 
-    def test_fails_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
+    def test_does_not_fail_trying_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
 
-      expect(FastlaneCore::UI).to receive(:user_error!)
-        .with('Appending the PHC version to prerelease versions violates SemVer.')
-        .once
-        .and_throw(:expected_error)
+      expect(FastlaneCore::UI).not_to receive(:user_error!)
 
       catch(:expected_error) do
         Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
