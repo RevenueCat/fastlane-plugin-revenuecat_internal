@@ -28,7 +28,6 @@ module Fastlane
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
           append_phc_version_if_next_version_is_not_prerelease,
-          include_prereleases,
           hybrid_common_version
         )
 

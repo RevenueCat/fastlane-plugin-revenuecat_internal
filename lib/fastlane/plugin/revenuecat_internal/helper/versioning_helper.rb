@@ -161,35 +161,25 @@ module Fastlane
         end
       end
 
-      def self.validate_input_if_appending_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version)
+      def self.validate_input_if_appending_phc_version?(append_hybrid_common_version, hybrid_common_version)
         if append_hybrid_common_version
-          UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.") if include_prereleases
           UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
           UI.user_error!("Cannot append a blank PHC version.") if hybrid_common_version.strip.empty?
         end
       end
 
       def self.validate_new_version_if_appending_phc_version?(append_hybrid_common_version, new_version_number, hybrid_common_version)
-        if append_hybrid_common_version
-          if new_version_number.include?("-")
-            UI.user_error!("Appending the PHC version to prerelease versions violates SemVer.")
-          end
-          if new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version
-            UI.user_error!(
-              "Asked to append PHC version (+#{hybrid_common_version}), " \
-              "but the provided version (#{new_version_number}) already has metadata " \
-              "(+#{new_version_number.partition('+').last})."
-            )
-          end
+        if append_hybrid_common_version && (new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version)
+          UI.user_error!(
+            "Asked to append PHC version (+#{hybrid_common_version}), " \
+            "but the provided version (#{new_version_number}) already has metadata " \
+            "(+#{new_version_number.partition('+').last})."
+          )
         end
       end
 
       def self.append_phc_version_if_necessary(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-        if should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-          if UI.confirm("Would you like to append the PHC version (+#{hybrid_common_version})?")
-            return "#{new_version_number}+#{hybrid_common_version}"
-          end
-        elsif should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
+        if append_hybrid_common_version && should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
           UI.important(
             "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
           )
@@ -198,34 +188,14 @@ module Fastlane
         return new_version_number
       end
 
-      private_class_method def self.should_ask_to_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-        UI.interactive? &&
-        append_hybrid_common_version.nil? &&
-        satisfies_requirements_for_appending_phc_version?(
-          include_prereleases,
-          hybrid_common_version,
-          new_version_number
-        )
-      end
-
-      private_class_method def self.should_append_phc_version?(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-        append_hybrid_common_version &&
-        satisfies_requirements_for_appending_phc_version?(
-          include_prereleases,
-          hybrid_common_version,
-          new_version_number
-        )
-      end
-
-      private_class_method def self.satisfies_requirements_for_appending_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
+      private_class_method def self.should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
         !include_prereleases &&
         !hybrid_common_version.nil? &&
         !hybrid_common_version.strip.empty? &&
         !new_version_number.nil? &&
         !new_version_number.strip.empty? &&
         !new_version_number.include?("-") &&
-        !new_version_number.include?("+") &&
-        new_version_number.partition("+").last.strip.empty?
+        !new_version_number.include?("+")
       end
 
       private_class_method def self.latest_version_number(include_prereleases: false)
