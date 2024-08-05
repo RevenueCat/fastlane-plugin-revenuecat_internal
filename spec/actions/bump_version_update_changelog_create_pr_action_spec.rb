@@ -286,6 +286,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
       test_successfully_appending_phc_version(
         interactive,
+        false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
         expected_version
@@ -301,6 +302,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
       test_successfully_appending_phc_version(
         interactive,
+        false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
         expected_version
@@ -316,6 +318,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
       test_successfully_appending_phc_version(
         interactive,
+        false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
         expected_version
@@ -331,6 +334,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
       test_successfully_appending_phc_version(
         interactive,
+        false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
         expected_version
@@ -507,7 +511,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
+    def test_successfully_appending_phc_version(interactive, is_prerelease, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
       new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
@@ -557,7 +561,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         github_rate_limit: 3,
         editor: editor,
         hybrid_common_version: hybrid_common_version,
-        is_prerelease: false,
+        is_prerelease: is_prerelease,
         append_phc_version_if_next_version_is_not_prerelease: append_phc_version_if_next_version_is_not_prerelease
       )
     end
