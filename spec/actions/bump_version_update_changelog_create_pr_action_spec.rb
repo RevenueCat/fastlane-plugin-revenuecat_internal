@@ -511,7 +511,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided) if interactive
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
@@ -545,6 +545,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
+        next_version: interactive ? nil : new_version_provided,
         changelog_latest_path: mock_changelog_latest_path,
         changelog_path: mock_changelog_path,
         files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
