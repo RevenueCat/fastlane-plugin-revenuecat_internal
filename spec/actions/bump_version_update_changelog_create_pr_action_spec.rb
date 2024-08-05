@@ -280,14 +280,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
+      expected_version = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_version_appended,
+        expected_version,
         append_phc_version_if_next_version_is_not_prerelease
       )
     end
@@ -295,14 +295,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
-      # We are providing new_version_appended, with the correct PHC version already appended as metadata
-      new_version_provided = new_version_appended
+      expected_version = "#{new_version}+#{hybrid_common_version}"
+      # We are providing expected_version, with the correct PHC version already appended as metadata
+      new_version_provided = expected_version
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_version_appended,
+        expected_version,
         append_phc_version_if_next_version_is_not_prerelease
       )
     end
@@ -310,14 +310,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - non-interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
+      expected_version = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_version_appended,
+        expected_version,
         append_phc_version_if_next_version_is_not_prerelease
       )
     end
@@ -325,14 +325,14 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - non-interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
-      # We are providing new_version_appended, with the correct PHC version already appended as metadata
-      new_version_provided = new_version_appended
+      expected_version = "#{new_version}+#{hybrid_common_version}"
+      # We are providing expected_version, with the correct PHC version already appended as metadata
+      new_version_provided = expected_version
 
       test_successfully_appending_phc_version(
         interactive,
         new_version_provided,
-        new_version_appended,
+        expected_version,
         append_phc_version_if_next_version_is_not_prerelease
       )
     end
@@ -507,8 +507,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_successfully_appending_phc_version(interactive, new_version_provided, new_version_appended, append_phc_version_if_next_version_is_not_prerelease)
-      new_branch_name = "release/#{new_version_appended}"
+    def test_successfully_appending_phc_version(interactive, new_version_provided, expected_version, append_phc_version_if_next_version_is_not_prerelease)
+      new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided)
@@ -531,16 +531,16 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version,
-              new_version_appended,
+              expected_version,
               { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
-        .with(new_version_appended, mock_changelog_latest_path, mock_changelog_path)
+        .with(expected_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/#{new_version_appended}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("Release/#{expected_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
