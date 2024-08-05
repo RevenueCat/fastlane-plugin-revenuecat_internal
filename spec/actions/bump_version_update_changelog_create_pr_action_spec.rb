@@ -341,6 +341,70 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
+    it 'does not add phc version if next version is pre-release - interactive' do
+      interactive = true
+      append_phc_version_if_next_version_is_not_prerelease = true
+      expected_version = "1.2.3-alpha.1"
+      # We are providing expected_version, which is pre-release
+      new_version_provided = expected_version
+
+      test_actual_version(
+        interactive,
+        false,
+        new_version_provided,
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
+      )
+    end
+
+    it 'does not add phc version if next version is pre-release - non-interactive' do
+      interactive = false
+      append_phc_version_if_next_version_is_not_prerelease = true
+      expected_version = "1.2.3-alpha.1"
+      # We are providing expected_version, which is pre-release
+      new_version_provided = expected_version
+
+      test_actual_version(
+        interactive,
+        false,
+        new_version_provided,
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
+      )
+    end
+
+    it 'does not add phc version if is_prerelease is true - interactive' do
+      interactive = true
+      append_phc_version_if_next_version_is_not_prerelease = true
+      expected_version = "1.2.3"
+      # We are providing expected_version, which is not pre-release
+      new_version_provided = expected_version
+
+      test_actual_version(
+        interactive,
+        true,
+        new_version_provided,
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
+      )
+    end
+
+    it 'does not add phc version if is_prerelease is true - interactive' do
+      interactive = false
+      append_phc_version_if_next_version_is_not_prerelease = true
+      expected_version = "1.2.3"
+      # We are providing expected_version, which is not pre-release
+      new_version_provided = expected_version
+
+      test_actual_version(
+        interactive,
+        true,
+        new_version_provided,
+        append_phc_version_if_next_version_is_not_prerelease,
+        expected_version
+      )
+    end
+
     it 'asks to append a PHC version if all conditions are met' do
       new_version_appended = "#{new_version}+#{hybrid_common_version}"
       new_branch_name = "release/#{new_version_appended}"
