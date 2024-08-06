@@ -188,6 +188,7 @@ module Fastlane
         return new_version_number
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
         if include_prereleases
           # The BumpVersionUpdateChangelogCreatePrAction's parameter is called is_prerelease.
@@ -215,6 +216,7 @@ module Fastlane
 
         true
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       private_class_method def self.latest_version_number(include_prereleases: false)
         tags = Actions
