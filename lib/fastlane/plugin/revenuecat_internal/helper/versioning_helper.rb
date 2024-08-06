@@ -161,15 +161,15 @@ module Fastlane
         end
       end
 
-      def self.validate_input_if_appending_phc_version?(append_hybrid_common_version, hybrid_common_version)
-        if append_hybrid_common_version
+      def self.validate_input_if_appending_phc_version?(append_phc_version_if_next_version_is_not_prerelease, hybrid_common_version)
+        if append_phc_version_if_next_version_is_not_prerelease
           UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
           UI.user_error!("Cannot append a blank PHC version.") if hybrid_common_version.strip.empty?
         end
       end
 
-      def self.validate_new_version_if_appending_phc_version?(append_hybrid_common_version, new_version_number, hybrid_common_version)
-        if append_hybrid_common_version && (new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version)
+      def self.validate_new_version_if_appending_phc_version?(append_phc_version_if_next_version_is_not_prerelease, new_version_number, hybrid_common_version)
+        if append_phc_version_if_next_version_is_not_prerelease && (new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version)
           UI.user_error!(
             "Asked to append PHC version (+#{hybrid_common_version}), " \
             "but the provided version (#{new_version_number}) already has metadata " \
