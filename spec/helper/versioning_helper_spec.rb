@@ -1,7 +1,7 @@
 AppendPhcVersionIfNecessaryParams = Struct.new(
   :interactive,
   :append_on_confirmation,
-  :append_hybrid_common_version,
+  :append_phc_version_if_next_version_is_not_prerelease,
   :include_prereleases,
   :hybrid_common_version,
   :new_version_number,
@@ -863,252 +863,196 @@ latest
   describe 'append_phc_version_if_necessary' do
     params_set = [
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
-        include_prereleases: false,
-        hybrid_common_version: "12.0.0",
-        new_version_number: "2.0.0",
-        expected_version: "2.0.0+12.0.0"
-      ),
-      AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
-        include_prereleases: nil,
-        hybrid_common_version: "12.0.0",
-        new_version_number: "2.0.0",
-        expected_version: "2.0.0+12.0.0"
-      ),
-      AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: true,
-        include_prereleases: false,
-        hybrid_common_version: "12.0.0",
-        new_version_number: "2.0.0",
-        expected_version: "2.0.0+12.0.0"
-      ),
-      AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: false,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: nil,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: true,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: false,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: true,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: " ",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: nil,
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: " ",
         expected_version: " "
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: nil,
         expected_version: nil
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-SNAPSHOT",
         expected_version: "2.0.0-SNAPSHOT"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-alpha.1",
         expected_version: "2.0.0-alpha.1"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-beta.1",
         expected_version: "2.0.0-beta.1"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0+meta",
         expected_version: "2.0.0+meta"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: true,
-        append_on_confirmation: true,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0+",
         expected_version: "2.0.0+"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: nil,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: true,
+        append_phc_version_if_next_version_is_not_prerelease: true,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0+12.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: false,
+        append_phc_version_if_next_version_is_not_prerelease: false,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: true,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: " ",
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: nil,
         new_version_number: "2.0.0",
         expected_version: "2.0.0"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: " ",
         expected_version: " "
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: nil,
         expected_version: nil
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-SNAPSHOT",
         expected_version: "2.0.0-SNAPSHOT"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-alpha.1",
         expected_version: "2.0.0-alpha.1"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0-beta.1",
         expected_version: "2.0.0-beta.1"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0+meta",
         expected_version: "2.0.0+meta"
       ),
       AppendPhcVersionIfNecessaryParams.new(
-        interactive: false,
-        append_on_confirmation: false,
-        append_hybrid_common_version: nil,
+        append_phc_version_if_next_version_is_not_prerelease: nil,
         include_prereleases: false,
         hybrid_common_version: "12.0.0",
         new_version_number: "2.0.0+",
@@ -1118,11 +1062,8 @@ latest
 
     params_set.each_with_index do |params, i|
       it "#{i} - params: #{params}" do
-        allow(FastlaneCore::UI).to receive(:interactive?).and_return(params.interactive)
-        allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(params.append_on_confirmation)
-
         actual_version = Fastlane::Helper::VersioningHelper.append_phc_version_if_necessary(
-          params.append_hybrid_common_version,
+          params.append_phc_version_if_next_version_is_not_prerelease,
           params.include_prereleases,
           params.hybrid_common_version,
           params.new_version_number

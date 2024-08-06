@@ -178,8 +178,8 @@ module Fastlane
         end
       end
 
-      def self.append_phc_version_if_necessary(append_hybrid_common_version, include_prereleases, hybrid_common_version, new_version_number)
-        if append_hybrid_common_version && should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
+      def self.append_phc_version_if_necessary(append_phc_version_if_next_version_is_not_prerelease, include_prereleases, hybrid_common_version, new_version_number)
+        if append_phc_version_if_next_version_is_not_prerelease && should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
           UI.important(
             "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
           )
