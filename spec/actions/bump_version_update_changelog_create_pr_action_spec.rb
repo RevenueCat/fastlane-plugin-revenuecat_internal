@@ -266,9 +266,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
+      expected_version = "#{new_version}+#{hybrid_common_version}"
 
       test_actual_version(
         interactive,
@@ -282,9 +282,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "#{new_version}+#{hybrid_common_version}"
-      # We are providing expected_version, with the correct PHC version already appended as metadata
-      new_version_provided = expected_version
+      # We are providing a version with the correct PHC version already appended as metadata.
+      new_version_provided = "#{new_version}+#{hybrid_common_version}"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
@@ -298,9 +298,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'appends the PHC version automatically if append_phc_version_if_next_version_is_not_prerelease is true and provided version lacks metadata - non-interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "#{new_version}+#{hybrid_common_version}"
       # We are providing new_version, without PHC appended as metadata
       new_version_provided = new_version
+      expected_version = "#{new_version}+#{hybrid_common_version}"
 
       test_actual_version(
         interactive,
@@ -314,9 +314,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'succeeds if append_phc_version_if_next_version_is_not_prerelease is true and provided version metadata matches - non-interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "#{new_version}+#{hybrid_common_version}"
-      # We are providing expected_version, with the correct PHC version already appended as metadata
-      new_version_provided = expected_version
+      # We are providing a version with the correct PHC version already appended as metadata
+      new_version_provided = "#{new_version}+#{hybrid_common_version}"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
@@ -330,9 +330,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'does not add phc version if next version is pre-release - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "1.2.3-alpha.1"
-      # We are providing expected_version, which is pre-release
-      new_version_provided = expected_version
+      # We are providing a pre-release version
+      new_version_provided = "1.2.3-alpha.1"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
@@ -346,9 +346,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'does not add phc version if next version is pre-release - non-interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "1.2.3-alpha.1"
-      # We are providing expected_version, which is pre-release
-      new_version_provided = expected_version
+      # We are providing a pre-release version
+      new_version_provided = "1.2.3-alpha.1"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
@@ -362,9 +362,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'does not add phc version if is_prerelease is true - interactive' do
       interactive = true
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "1.2.3"
-      # We are providing expected_version, which is not pre-release
-      new_version_provided = expected_version
+      # We are providing a version which is not pre-release
+      new_version_provided = "1.2.3"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
@@ -378,9 +378,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'does not add phc version if is_prerelease is true - interactive' do
       interactive = false
       append_phc_version_if_next_version_is_not_prerelease = true
-      expected_version = "1.2.3"
-      # We are providing expected_version, which is not pre-release
-      new_version_provided = expected_version
+      # We are providing a version which is not pre-release
+      new_version_provided = "1.2.3"
+      expected_version = new_version_provided
 
       test_actual_version(
         interactive,
