@@ -189,13 +189,31 @@ module Fastlane
       end
 
       private_class_method def self.should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
-        !include_prereleases &&
-        !hybrid_common_version.nil? &&
-        !hybrid_common_version.strip.empty? &&
-        !new_version_number.nil? &&
-        !new_version_number.strip.empty? &&
-        !new_version_number.include?("-") &&
-        !new_version_number.include?("+")
+        if include_prereleases
+          # The BumpVersionUpdateChangelogCreatePrAction's parameter is called is_prerelease.
+          UI.important("Not appending PHC version, because is_prerelease is true.")
+          return false
+        elsif hybrid_common_version.nil?
+          UI.important("Not appending PHC version, because PHC version is nil.")
+          return false
+        elsif hybrid_common_version.strip.empty?
+          UI.important("Not appending PHC version, because PHC version is empty.")
+          return false
+        elsif new_version_number.nil?
+          UI.important("Not appending PHC version, because new version is nil.")
+          return false
+        elsif new_version_number.strip.empty?
+          UI.important("Not appending PHC version, because new version is empty.")
+          return false
+        elsif new_version_number.include?("-")
+          UI.important("Not appending PHC version, because new version is a pre-release version.")
+          return false
+        elsif new_version_number.include?("+")
+          UI.important("Not appending PHC version, because new version already contains build metadata.")
+          return false
+        end
+
+        true
       end
 
       private_class_method def self.latest_version_number(include_prereleases: false)

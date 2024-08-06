@@ -291,7 +291,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because new version already contains build metadata.") }
       )
     end
 
@@ -323,7 +324,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because new version already contains build metadata.") }
       )
     end
 
@@ -339,7 +341,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because new version is a pre-release version.") }
       )
     end
 
@@ -355,7 +358,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         false,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because new version is a pre-release version.") }
       )
     end
 
@@ -371,7 +375,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         true,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because is_prerelease is true.") }
       )
     end
 
@@ -387,7 +392,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         true,
         new_version_provided,
         append_phc_version_if_next_version_is_not_prerelease,
-        expected_version
+        expected_version,
+        -> { expect(FastlaneCore::UI).to receive(:important).with("Not appending PHC version, because is_prerelease is true.") }
       )
     end
 
@@ -503,12 +509,13 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    def test_actual_version(interactive, is_prerelease, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version)
+    def test_actual_version(interactive, is_prerelease, new_version_provided, append_phc_version_if_next_version_is_not_prerelease, expected_version, additional_assertions = nil)
       new_branch_name = "release/#{expected_version}"
       allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(interactive)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_provided) if interactive
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
+      allow(FastlaneCore::UI).to receive(:important).with(anything)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
         .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil)
@@ -538,6 +545,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
         .with("Release/#{expected_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
         .once
+
+      if additional_assertions
+        additional_assertions.call
+      end
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
