@@ -1,3 +1,14 @@
+AppendPhcVersionIfNecessaryParams = Struct.new(
+  :interactive,
+  :append_on_confirmation,
+  :append_phc_version_if_next_version_is_not_prerelease,
+  :include_prereleases,
+  :hybrid_common_version,
+  :new_version_number,
+  :expected_version,
+  keyword_init: true
+)
+
 describe Fastlane::Helper::VersioningHelper do
   before(:each) do
     allow(Fastlane::Actions).to receive(:git_branch).and_return('main')
@@ -527,6 +538,17 @@ amazon-latest
 latest
         GIT_TAG
       end
+      let(:git_tag_output_with_build_metadata) do
+        <<~GIT_TAG
+5.7.0
+5.7.1
+6.0.0-alpha.1
+6.0.0-alpha.2
+6.0.0+3.2.1
+amazon-latest
+latest
+        GIT_TAG
+      end
       it 'finds latest version number' do
         allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output)
 
@@ -539,6 +561,13 @@ latest
 
         latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number, include_prereleases: true)
         expect(latest_version).to eq("6.0.0-alpha.2")
+      end
+
+      it 'finds latest version number with build metadata' do
+        allow(Fastlane::Actions).to receive(:sh).and_return(git_tag_output_with_build_metadata)
+
+        latest_version = Fastlane::Helper::VersioningHelper.send(:latest_version_number, include_prereleases: false)
+        expect(latest_version).to eq("6.0.0+3.2.1")
       end
     end
 
@@ -723,6 +752,31 @@ latest
       expect(next_version).to eq('2.0.0-SNAPSHOT')
     end
 
+    it 'increasing patch version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :patch, false)
+      expect(next_version).to eq('1.2.4')
+    end
+
+    it 'increasing minor version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :minor, false)
+      expect(next_version).to eq('1.3.0')
+    end
+
+    it 'increasing major version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :major, false)
+      expect(next_version).to eq('2.0.0')
+    end
+
+    it 'increasing minor snapshot version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :minor, true)
+      expect(next_version).to eq('1.3.0-SNAPSHOT')
+    end
+
+    it 'increasing major snapshot version number ignores build metadata' do
+      next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+3.2.1', :major, true)
+      expect(next_version).to eq('2.0.0-SNAPSHOT')
+    end
+
     it 'keeps version with snapshot but removing alpha modifier if it appears' do
       next_version = Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha.1', :major, true)
       expect(next_version).to eq('1.2.3-SNAPSHOT')
@@ -752,6 +806,18 @@ latest
     it 'fails if given unsupported version to bump' do
       expect do
         Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-alpha', :patch, false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given version with both prerelease modifier and build metadata to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3-rc.1+2.3.1', :patch, false)
+      end.to raise_exception(StandardError)
+    end
+
+    it 'fails if given version with incorrect build metadata to bump' do
+      expect do
+        Fastlane::Helper::VersioningHelper.calculate_next_version('1.2.3+meta data', :patch, false)
       end.to raise_exception(StandardError)
     end
   end
@@ -791,6 +857,122 @@ latest
         .once
       bump_type = Fastlane::Helper::VersioningHelper.detect_bump_type('1.3', '1.2')
       expect(bump_type).to eq(:none)
+    end
+  end
+
+  describe 'append_phc_version_if_necessary' do
+    params_set = [
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: nil,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: true,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0+12.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: false,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: true,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: " ",
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: nil,
+        new_version_number: "2.0.0",
+        expected_version: "2.0.0"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: " ",
+        expected_version: " "
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: nil,
+        expected_version: nil
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-SNAPSHOT",
+        expected_version: "2.0.0-SNAPSHOT"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-alpha.1",
+        expected_version: "2.0.0-alpha.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0-beta.1",
+        expected_version: "2.0.0-beta.1"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+meta",
+        expected_version: "2.0.0+meta"
+      ),
+      AppendPhcVersionIfNecessaryParams.new(
+        append_phc_version_if_next_version_is_not_prerelease: nil,
+        include_prereleases: false,
+        hybrid_common_version: "12.0.0",
+        new_version_number: "2.0.0+",
+        expected_version: "2.0.0+"
+      )
+    ]
+
+    params_set.each_with_index do |params, i|
+      it "#{i} - params: #{params}" do
+        actual_version = Fastlane::Helper::VersioningHelper.append_phc_version_if_necessary(
+          params.append_phc_version_if_next_version_is_not_prerelease,
+          params.include_prereleases,
+          params.hybrid_common_version,
+          params.new_version_number
+        )
+
+        expect(actual_version).to eq(params.expected_version)
+      end
     end
   end
 
