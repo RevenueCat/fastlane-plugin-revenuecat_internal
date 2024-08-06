@@ -169,11 +169,11 @@ module Fastlane
       end
 
       def self.validate_new_version_if_appending_phc_version?(append_phc_version_if_next_version_is_not_prerelease, new_version_number, hybrid_common_version)
-        if append_phc_version_if_next_version_is_not_prerelease && (new_version_number.include?("+") && new_version_number.partition("+").last != hybrid_common_version)
+        if append_phc_version_if_next_version_is_not_prerelease && (new_version_number.include?(DELIMITER_BUILD_METADATA) && new_version_number.partition(DELIMITER_BUILD_METADATA).last != hybrid_common_version)
           UI.user_error!(
             "Asked to append PHC version (+#{hybrid_common_version}), " \
             "but the provided version (#{new_version_number}) already has metadata " \
-            "(+#{new_version_number.partition('+').last})."
+            "(+#{new_version_number.partition(DELIMITER_BUILD_METADATA).last})."
           )
         end
       end
@@ -206,10 +206,10 @@ module Fastlane
         elsif new_version_number.strip.empty?
           UI.important("Not appending PHC version, because new version is empty.")
           return false
-        elsif new_version_number.include?("-")
+        elsif new_version_number.include?(DELIMITER_PRERELEASE)
           UI.important("Not appending PHC version, because new version is a pre-release version.")
           return false
-        elsif new_version_number.include?("+")
+        elsif new_version_number.include?(DELIMITER_BUILD_METADATA)
           UI.important("Not appending PHC version, because new version already contains build metadata.")
           return false
         end
@@ -224,7 +224,7 @@ module Fastlane
                .strip
                .split("\n")
                .select do |tag|
-                 version, metadata = tag.split('+')
+                 version, metadata = tag.split(DELIMITER_BUILD_METADATA)
                  Gem::Version.correct?(version) && (metadata.nil? || is_build_metadata(metadata))
                end
 
@@ -233,7 +233,7 @@ module Fastlane
         end
 
         tags.max_by do |tag|
-          version, = tag.split('+')
+          version, = tag.split(DELIMITER_BUILD_METADATA)
           Gem::Version.new(version)
         end
       end

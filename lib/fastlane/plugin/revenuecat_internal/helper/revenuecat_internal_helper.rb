@@ -19,8 +19,8 @@ module Fastlane
                                       files_to_update_with_patterns,
                                       files_to_update_without_prerelease_modifiers,
                                       files_to_update_on_latest_stable_releases)
-        previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
-        new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
+        previous_version_number_without_prerelease_modifiers = previous_version_number.split(DELIMITER_PRERELEASE)[0]
+        new_version_number_without_prerelease_modifiers = new_version_number.split(DELIMITER_PRERELEASE)[0]
         files_to_update_with_patterns.each do |file_to_update, patterns|
           replace_in(previous_version_number, new_version_number, file_to_update, patterns)
         end
@@ -144,7 +144,7 @@ module Fastlane
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
         commit_hash = Actions.last_git_commit_dict[:commit_hash]
-        is_prerelease = release_version.include?("-")
+        is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
 
         Actions::SetGithubReleaseAction.run(
           repository_name: "RevenueCat/#{repo_name}",
@@ -243,7 +243,7 @@ module Fastlane
       end
 
       private_class_method def self.drop_build_metadata(version)
-        version.split('+')[0]
+        version.split(DELIMITER_BUILD_METADATA)[0]
       end
     end
   end
