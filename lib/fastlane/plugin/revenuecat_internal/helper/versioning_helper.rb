@@ -229,7 +229,7 @@ module Fastlane
                end
 
         unless include_prereleases
-          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{BUILD_METADATA_PATTERN}))?$") }
+          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{PATTERN_BUILD_METADATA}))?$") }
         end
 
         tags.max_by do |tag|
@@ -369,7 +369,7 @@ module Fastlane
       end
 
       private_class_method def self.is_build_metadata(string)
-        !!(string =~ ANCHORED_BUILD_METADATA_PATTERN)
+        !!(string =~ PATTERN_BUILD_METADATA_ANCHORED)
       end
     end
   end

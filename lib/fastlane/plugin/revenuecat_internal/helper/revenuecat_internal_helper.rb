@@ -232,7 +232,7 @@ module Fastlane
       private_class_method def self.replace_stable_version_number_using_regex(new_text, path, patterns = ['{x}'])
         original_text = File.read(path)
         replaced_text = original_text
-        semver_regex = /(\d+\.\d+\.\d+)(\\+(#{BUILD_METADATA_PATTERN}))?/o
+        semver_regex = /(\d+\.\d+\.\d+)(\\+(#{PATTERN_BUILD_METADATA}))?/o
         patterns.each do |pattern|
           previous_regex = Regexp.new(pattern.gsub('{x}', semver_regex.source))
           replaced_new_text = pattern.gsub('{x}', new_text)
