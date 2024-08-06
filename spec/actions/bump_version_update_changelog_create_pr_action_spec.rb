@@ -202,20 +202,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    it 'does not fail trying to append PHC version if is_prerelease is true' do
-      new_version_provided = new_version
-      is_prerelease = true
-
-      test_does_not_fail_trying_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
-    end
-
-    it 'does not fail trying to append PHC version if new version is prerelease' do
-      new_version_provided = '1.13.0-alpha.1'
-      is_prerelease = false
-
-      test_does_not_fail_trying_to_append_phc_version_if_new_version_is_prerelease(is_prerelease, new_version_provided)
-    end
-
     it 'fails trying to append a nil PHC version' do
       hybrid_common_version_provided = nil
       expected_error = "Cannot append a nil PHC version."
@@ -405,61 +391,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    it 'asks to append a PHC version if all conditions are met' do
-      new_version_appended = "#{new_version}+#{hybrid_common_version}"
-      new_branch_name = "release/#{new_version_appended}"
-      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
-      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
-      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
-      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, nil)
-        .and_return(auto_generated_changelog)
-        .once
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
-        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
-        .once
-
-      expect(FastlaneCore::UI).to receive(:confirm)
-        .with("Would you like to append the PHC version (+#{hybrid_common_version})?")
-        .once
-        .and_return(true)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-        .with(new_branch_name, mock_github_pr_token)
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-        .with(current_version,
-              new_version_appended,
-              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
-        .with(new_version_appended, mock_changelog_latest_path, mock_changelog_path)
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/#{new_version_appended}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
-        .once
-
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-        current_version: current_version,
-        changelog_latest_path: mock_changelog_latest_path,
-        changelog_path: mock_changelog_path,
-        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
-        repo_name: mock_repo_name,
-        github_pr_token: mock_github_pr_token,
-        github_token: mock_github_token,
-        github_rate_limit: 3,
-        editor: editor,
-        hybrid_common_version: hybrid_common_version,
-        is_prerelease: false,
-        append_phc_version_if_next_version_is_not_prerelease: nil
-      )
-    end
-
     it 'does not ask to append a PHC version if hybrid_common_version is nil' do
       test_does_not_ask_to_append_phc_version(nil)
     end
@@ -580,7 +511,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, nil)
+        .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil)
         .and_return(auto_generated_changelog)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
