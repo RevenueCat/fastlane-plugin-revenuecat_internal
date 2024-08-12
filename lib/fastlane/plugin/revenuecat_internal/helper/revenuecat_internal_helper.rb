@@ -19,15 +19,15 @@ module Fastlane
                                       files_to_update_with_patterns,
                                       files_to_update_without_prerelease_modifiers,
                                       files_to_update_on_latest_stable_releases)
-        previous_version_number_without_prerelease_modifiers = previous_version_number.split("-")[0]
-        new_version_number_without_prerelease_modifiers = new_version_number.split("-")[0]
+        previous_version_number_without_prerelease_modifiers = previous_version_number.split(DELIMITER_PRERELEASE)[0]
+        new_version_number_without_prerelease_modifiers = new_version_number.split(DELIMITER_PRERELEASE)[0]
         files_to_update_with_patterns.each do |file_to_update, patterns|
           replace_in(previous_version_number, new_version_number, file_to_update, patterns)
         end
         files_to_update_without_prerelease_modifiers.each do |file_to_update, patterns|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
         end
-        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(new_version_number).prerelease?
+        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(drop_build_metadata(new_version_number)).prerelease?
           files_to_update_on_latest_stable_releases.each do |file_to_update, patterns|
             replace_stable_version_number_using_regex(new_version_number_without_prerelease_modifiers, file_to_update, patterns)
           end
@@ -39,7 +39,7 @@ module Fastlane
         latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?
 
-        Gem::Version.new(latest_published_version) < Gem::Version.new(version_number)
+        Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -144,7 +144,7 @@ module Fastlane
 
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
         commit_hash = Actions.last_git_commit_dict[:commit_hash]
-        is_prerelease = release_version.include?("-")
+        is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
 
         Actions::SetGithubReleaseAction.run(
           repository_name: "RevenueCat/#{repo_name}",
@@ -232,7 +232,7 @@ module Fastlane
       private_class_method def self.replace_stable_version_number_using_regex(new_text, path, patterns = ['{x}'])
         original_text = File.read(path)
         replaced_text = original_text
-        semver_regex = /(\d+\.\d+\.\d+)/
+        semver_regex = /(\d+\.\d+\.\d+)(\\+(#{PATTERN_BUILD_METADATA}))?/o
         patterns.each do |pattern|
           previous_regex = Regexp.new(pattern.gsub('{x}', semver_regex.source))
           replaced_new_text = pattern.gsub('{x}', new_text)
@@ -240,6 +240,10 @@ module Fastlane
         end
 
         File.write(path, replaced_text)
+      end
+
+      private_class_method def self.drop_build_metadata(version)
+        version.split(DELIMITER_BUILD_METADATA)[0]
       end
     end
   end

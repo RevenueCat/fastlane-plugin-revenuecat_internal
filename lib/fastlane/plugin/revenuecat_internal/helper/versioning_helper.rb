@@ -102,11 +102,11 @@ module Fastlane
         return current_version if type_of_bump == :skip
 
         is_prerelease = %w(alpha beta rc).any? { |prerelease| current_version.include?(prerelease) }
-        is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?$")
+        is_valid_version = current_version.match?("^[0-9]+.[0-9]+.[0-9]+((-(alpha|beta|rc).[0-9]+)|(\\+[a-zA-Z0-9.]+))?$")
 
-        UI.user_error!("Invalid version number: #{current_version}. Expected 3 numbers separated by '.' with an optional prerelease modifier") unless is_valid_version
+        UI.user_error!("Invalid version number: #{current_version}. Expected 3 numbers separated by '.' optionally with either a prerelease modifier or build metadata") unless is_valid_version
 
-        delimiters = ['.', '-']
+        delimiters = %w[. - +]
         version_split = current_version.split(Regexp.union(delimiters))
 
         major = version_split[0]
@@ -161,18 +161,81 @@ module Fastlane
         end
       end
 
+      def self.validate_input_if_appending_phc_version?(append_phc_version_if_next_version_is_not_prerelease, hybrid_common_version)
+        if append_phc_version_if_next_version_is_not_prerelease
+          UI.user_error!("Cannot append a nil PHC version.") if hybrid_common_version.nil?
+          UI.user_error!("Cannot append a blank PHC version.") if hybrid_common_version.strip.empty?
+        end
+      end
+
+      def self.validate_new_version_if_appending_phc_version?(append_phc_version_if_next_version_is_not_prerelease, new_version_number, hybrid_common_version)
+        if append_phc_version_if_next_version_is_not_prerelease && (new_version_number.include?(DELIMITER_BUILD_METADATA) && new_version_number.partition(DELIMITER_BUILD_METADATA).last != hybrid_common_version)
+          UI.user_error!(
+            "Asked to append PHC version (+#{hybrid_common_version}), " \
+            "but the provided version (#{new_version_number}) already has metadata " \
+            "(+#{new_version_number.partition(DELIMITER_BUILD_METADATA).last})."
+          )
+        end
+      end
+
+      def self.append_phc_version_if_necessary(append_phc_version_if_next_version_is_not_prerelease, include_prereleases, hybrid_common_version, new_version_number)
+        if append_phc_version_if_next_version_is_not_prerelease && should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
+          UI.important(
+            "Appending PHC version (+#{hybrid_common_version}) to new version (#{new_version_number}), as instructed."
+          )
+          return "#{new_version_number}+#{hybrid_common_version}"
+        end
+        return new_version_number
+      end
+
+      # rubocop:disable Metrics/PerceivedComplexity
+      private_class_method def self.should_append_phc_version?(include_prereleases, hybrid_common_version, new_version_number)
+        if include_prereleases
+          # The BumpVersionUpdateChangelogCreatePrAction's parameter is called is_prerelease.
+          UI.important("Not appending PHC version, because is_prerelease is true.")
+          return false
+        elsif hybrid_common_version.nil?
+          UI.important("Not appending PHC version, because PHC version is nil.")
+          return false
+        elsif hybrid_common_version.strip.empty?
+          UI.important("Not appending PHC version, because PHC version is empty.")
+          return false
+        elsif new_version_number.nil?
+          UI.important("Not appending PHC version, because new version is nil.")
+          return false
+        elsif new_version_number.strip.empty?
+          UI.important("Not appending PHC version, because new version is empty.")
+          return false
+        elsif new_version_number.include?(DELIMITER_PRERELEASE)
+          UI.important("Not appending PHC version, because new version is a pre-release version.")
+          return false
+        elsif new_version_number.include?(DELIMITER_BUILD_METADATA)
+          UI.important("Not appending PHC version, because new version already contains build metadata.")
+          return false
+        end
+
+        true
+      end
+      # rubocop:enable Metrics/PerceivedComplexity
+
       private_class_method def self.latest_version_number(include_prereleases: false)
         tags = Actions
                .sh("git tag", log: false)
                .strip
                .split("\n")
-               .select { |tag| Gem::Version.correct?(tag) }
+               .select do |tag|
+                 version, metadata = tag.split(DELIMITER_BUILD_METADATA)
+                 Gem::Version.correct?(version) && (metadata.nil? || is_build_metadata(metadata))
+               end
 
         unless include_prereleases
-          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+$") }
+          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{PATTERN_BUILD_METADATA}))?$") }
         end
 
-        tags.max_by { |tag| Gem::Version.new(tag) }
+        tags.max_by do |tag|
+          version, = tag.split(DELIMITER_BUILD_METADATA)
+          Gem::Version.new(version)
+        end
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
@@ -303,6 +366,10 @@ module Fastlane
         native_dependency_changelogs += platform_changelogs(android_releases, 'Android')
         native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
         native_dependency_changelogs.join("\n")
+      end
+
+      private_class_method def self.is_build_metadata(string)
+        !!(string =~ PATTERN_BUILD_METADATA_ANCHORED)
       end
     end
   end
