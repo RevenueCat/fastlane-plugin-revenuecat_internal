@@ -76,6 +76,9 @@ module Fastlane
             params_copy[:only_testing] = failed_tests
             params_copy[:output_directory] = report_dir
 
+            # Can't specify a test plan there are failed tests
+            params_copy.delete(:testplan) if failed_tests
+
             other_action.scan(**params_copy)
           ensure
             if attempt == 0
