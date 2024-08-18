@@ -13,7 +13,10 @@ module Fastlane
         # Delete option that is part of scan but we will replace
         output_directory = param_values.delete(:output_directory)
 
-        temp_dir = Dir.mktmpdir
+        # temp_dir = Dir.mktmpdir
+        temp_dir = File.absolute_path('./fastlane/flaky_test_output')
+        FileUtils.mkdir_p(temp_dir)
+
         run_test_and_retries_if_needed(
           params: param_values,
           output_dir: temp_dir,
