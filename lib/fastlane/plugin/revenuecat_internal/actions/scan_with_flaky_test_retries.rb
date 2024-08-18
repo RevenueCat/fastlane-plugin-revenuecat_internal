@@ -5,57 +5,68 @@ module Fastlane
   module Actions
     class ScanWithFlakyTestRetriesAction < Action
       def self.run(params)
+        # Pulling out the values from Fastlane::Configurations to 
+        # modify and pass into `scan`
         param_values = params.values
 
         # Delete option that isn't part of scan
         number_of_flaky_retries = param_values.delete(:number_of_flaky_retries)
+        
+        if number_of_flaky_retries == 0
+          # Run scan directly if no retries are needed
+          other_action.scan(**param_values)
+        else
+          # Delete option that is part of scan but we will replace
+          output_directory = param_values.delete(:output_directory)
 
-        # Delete option that is part of scan but we will replace
-        output_directory = param_values.delete(:output_directory)
+          # Storing all scan output in a separate temp directory
+          Dir.mktmpdir do |dir|
+            artifacts_dir, last_attempt = run_test_and_retries_if_needed(
+              params: param_values,
+              output_dir: dir,
+              number_of_flaky_retries: number_of_flaky_retries
+            )
+          ensure
+            # Copies outputs from temp artifact directory to the one specificed in scan option
+            source_dir = artifacts_dir
+            destination_dir = output_directory
 
-        Dir.mktmpdir do |dir|
-          run_test_and_retries_if_needed(
-            params: param_values,
-            output_dir: dir,
-            number_of_flaky_retries: number_of_flaky_retries
-          )
-        ensure
-          source_dir = retry_output_dir(dir: dir, attempt: 0)
-          destination_dir = output_directory
+            FileUtils.mkdir_p(destination_dir)
+            Dir.glob("#{source_dir}/*").each do |file|
+              FileUtils.cp_r(file, destination_dir)
+            end
 
-          FileUtils.mkdir_p(destination_dir)
-          Dir.glob("#{source_dir}/*").each do |file|
-            FileUtils.cp_r(file, destination_dir)
+            if last_attempt == 0
+              UI.success("Finished tests without any retries!")
+            else
+              UI.important("Finished running scan with flaky test retries")
+              UI.important("Retried flaky tests: #{last_attempt} time(s)")
+            end
           end
         end
       end
 
-      def self.retry_output_dir(dir:, attempt:)
-        if attempt == 0
-          File.join(dir, 'original')
-        else
-          File.join(dir, "retry_#{attempt}")
-        end
-      end
-
-      def self.failed_tests_path(dir:)
-        File.join(dir, 'failed_tests.txt')
-      end
-
+      # Runs the initial tests and any retry iterations if needed
+      #
+      # @param params [Hash] The params to pass to scan
+      # @param output_dir [String] The output dir for this iteration of test
+      # @param number_of_flaky_retries [Integer] The number of times to retry flaky tests
       def self.run_test_and_retries_if_needed(params:, output_dir:, number_of_flaky_retries:)
-        artifact_dir = retry_output_dir(dir: output_dir, attempt: 0)
+        artifacts_dir = File.join(output_dir, 'original')
+        failed_tests_path = File.join(output_dir, 'failed_tests.txt')
       
+        last_attempt = 0
         failed_tests = nil
-        (0..number_of_flaky_retries).each do |retry_attempt|
-          # Print out retry number
-          UI.message("Scan retry attempt #{retry_attempt} out of #{number_of_flaky_retries}") if retry_attempt > 0
+        (0..number_of_flaky_retries).each do |attempt|
+          last_attempt = attempt
+          UI.message("Scan retry attempt #{attempt} out of #{number_of_flaky_retries}") if attempt > 0
       
           # Separate report dir for each retry
-          report_dir = retry_output_dir(dir: output_dir, attempt: retry_attempt)
+          report_dir = attempt == 0 ? artifacts_dir : File.join(output_dir, "retry_#{attempt}")
           report_path = File.join(report_dir, "report.junit")
       
-          # This is where scan happens
-          fail_build = retry_attempt == number_of_flaky_retries
+          # Run tests
+          fail_build = attempt == number_of_flaky_retries
           begin
             params_copy = params.clone
             params_copy[:fail_build] = fail_build
@@ -65,49 +76,57 @@ module Fastlane
             other_action.scan(**params_copy)
           ensure
 
-            if retry_attempt == 0
-              # Only copy original junit report
-              # and save list of failed tests
-              retry_scan_save_failed_tests(
-                junit_report_path: report_path,
-                copy_path: File.join(artifact_dir, 'report.junit.original'),
-                failed_tests_path: failed_tests_path(dir: artifact_dir)
+            if attempt == 0
+              # Only copy original junit report and save list of failed tests
+              move_junit_and_save_failed_tests(
+                source_path: report_path,
+                destination_path: File.join(artifacts_dir, 'report.junit.original'),
+                failed_tests_path: failed_tests_path
               )
             else
-              # Copy retry junit report and merge with main
-              # and save list of failed tests
-              retry_scan_save_failed_tests(
-                junit_report_path: report_path,
-                copy_path: File.join(artifact_dir, "report.junit.retry.#{retry_attempt}"),
-                merge_path: File.join(artifact_dir, "report.junit"),
-                failed_tests_path: failed_tests_path(dir: artifact_dir)
+              # Copy retry junit report and merge with main and save list of failed tests
+              move_junit_and_save_failed_tests(
+                source_path: report_path,
+                destination_path: File.join(artifacts_dir, "report.junit.retry.#{attempt}"),
+                merge_path: File.join(artifacts_dir, "report.junit"),
+                failed_tests_path: failed_tests_path
               )
             end
           end
       
           # Break out of retry loop if no tests failed
-          failed_tests = File.read(failed_tests_path(dir: artifact_dir)).split("\n")
+          failed_tests = File.read(failed_tests_path).split("\n")
           if failed_tests.empty?
-            UI.message('No failed tests to retry')
+            UI.verbose('No failed tests to retry')
             break
           end
         end
+
+        return artifacts_dir, last_attempt
       end
 
-      def self.retry_scan_save_failed_tests(junit_report_path:, copy_path:, merge_path: nil, failed_tests_path:)
-        report_path = junit_report_path
-        report_path = File.absolute_path(report_path)
+      # Copies the junit file to a new location (and a new name).
+      # Saves the failed tests to a text file for the next retry run.
+      #
+      # @param source_path [String] The path of the junit file
+      # @param destination_path [String] The path where the junit file should be moved to
+      # @param failed_tests_path [String] The path where failed tests should be saved
+      def self.move_junit_and_save_failed_tests(source_path:, destination_path:, merge_path: nil, failed_tests_path:)
+        # Copy to junit report to 
+        FileUtils.cp(source_path, destination_path)
 
-        # original
-        FileUtils.cp(report_path, copy_path)
+        save_failed_tests(report_path: source_path, failed_tests_path: failed_tests_path)
 
-        save_failed_tests(report_path: report_path, failed_tests_path: failed_tests_path)
-
+        # Need to merge if not the first run
         if merge_path
-          merge_and_replace_junit(report_path, merge_path)
+          merge_and_replace_junit(source_path, merge_path)
         end
       end
 
+      # Merges the first junit report into the second.
+      #
+      # @param retry_report_path [String] The path of the retry junit file
+      # @param original_report [String] The path where the original junit file
       def self.merge_and_replace_junit(retry_report_path, original_report)
         merged_report = merge_reports(original_report, retry_report_path)
         save_report(merged_report, original_report)
@@ -172,6 +191,10 @@ module Fastlane
         File.open(output_path, 'w') { |file| file.write(doc.to_xml) }
       end
 
+      # Saves all the failed method signatures into a text field from a junit report
+      #
+      # @param report_path [String] The path of the junit file
+      # @param failed_tests_path [String] The path where failed tests should be saved
       def self.save_failed_tests(report_path:, failed_tests_path:)
         failed_tests = []
         
