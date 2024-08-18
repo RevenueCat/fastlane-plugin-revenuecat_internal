@@ -23,10 +23,11 @@ module Fastlane
           output_directory = param_values.delete(:output_directory)
 
           # Storing all scan output in a separate temp directory
-          Dir.mktmpdir do |dir|
+          begin
+            temp_dir = Dir.mktmpdir
             artifacts_dir, last_attempt = run_test_and_retries_if_needed(
               params: param_values,
-              output_dir: dir,
+              output_dir: temp_dir,
               number_of_flaky_retries: number_of_flaky_retries
             )
           ensure
