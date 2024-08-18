@@ -11,3 +11,5 @@ fastlane/report.xml
 coverage
 test-results
 .idea/
+
+fastlane/test_output/

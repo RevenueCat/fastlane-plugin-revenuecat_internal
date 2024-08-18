@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   # since this would cause a circular dependency
 
   spec.add_dependency('rest-client')
+  spec.add_dependency('nokogiri')
 
   spec.add_development_dependency('bundler')
   spec.add_development_dependency('fastlane', '2.207.0')
