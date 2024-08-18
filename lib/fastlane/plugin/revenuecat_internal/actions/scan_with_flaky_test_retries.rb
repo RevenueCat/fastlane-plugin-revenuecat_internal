@@ -21,11 +21,13 @@ module Fastlane
           )
 
         ensure
-          copy_from = retry_output_dir(dir: dir, attempt: 0)
-          copy_to = output_directory
+          source_dir = retry_output_dir(dir: dir, attempt: 0)
+          destination_dir = output_directory
 
-          FileUtils.mkdir_p(copy_to)
-          FileUtils.cp_r(copy_from, copy_to)
+          FileUtils.mkdir_p(destination_dir)
+          Dir.glob("#{source_dir}/*").each do |file|
+            FileUtils.cp_r(file, destination_dir)
+          end
         end
       end
 

@@ -89,6 +89,7 @@ lane :sample_flaky_test do
 
     output_types: 'junit',
     output_directory: test_artifact_path,
+    result_bundle: true,
 
     number_of_flaky_retries: 5
   )
