@@ -32,13 +32,14 @@ module Fastlane
             )
           ensure
             # Copies outputs from temp artifact directory to the one specificed in scan option
-            source_dir = artifacts_dir
+            source_dir = File.join(artifacts_dir, '.')
             destination_dir = output_directory
 
+            UI.message("Copying '#{source_dir}' to '#{destination_dir}'")
+            sh("ls -al #{source_dir}")
+
             FileUtils.mkdir_p(destination_dir)
-            Dir.glob("#{source_dir}/*").each do |file|
-              FileUtils.cp_r(file, destination_dir)
-            end
+            FileUtils.cp_r(source_dir, destination_dir)
 
             if last_attempt == 0
               UI.success("Finished tests without any retries!")
