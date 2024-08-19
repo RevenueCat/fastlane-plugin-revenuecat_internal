@@ -25,14 +25,17 @@ module Fastlane
           # Storing all scan output in a separate temp directory
           begin
             temp_dir = Dir.mktmpdir
-            artifacts_dir, last_attempt = run_test_and_retries_if_needed(
+            temp_artifacts_dir = File.join(temp_dir, 'original')
+
+            last_attempt = run_test_and_retries_if_needed(
               params: param_values,
               output_dir: temp_dir,
+              artifacts_dir: temp_artifacts_dir,
               number_of_flaky_retries: number_of_flaky_retries
             )
           ensure
             # Copies outputs from temp artifact directory to the one specificed in scan option
-            source_dir = File.join(artifacts_dir, '.')
+            source_dir = File.join(temp_artifacts_dir, '.')
             destination_dir = output_directory
 
             UI.message("Copying '#{source_dir}' to '#{destination_dir}'")
@@ -55,9 +58,9 @@ module Fastlane
       #
       # @param params [Hash] The params to pass to scan
       # @param output_dir [String] The output dir for this iteration of test
+      # @param artifacts_dir [String] The dir where all scan retry artifacts will go
       # @param number_of_flaky_retries [Integer] The number of times to retry flaky tests
-      def self.run_test_and_retries_if_needed(params:, output_dir:, number_of_flaky_retries:)
-        artifacts_dir = File.join(output_dir, 'original')
+      def self.run_test_and_retries_if_needed(params:, output_dir:, artifacts_dir:, number_of_flaky_retries:)
         failed_tests_path = File.join(output_dir, 'failed_tests.txt')
 
         last_attempt = 0
@@ -109,7 +112,7 @@ module Fastlane
           end
         end
 
-        return artifacts_dir, last_attempt
+        return last_attempt
       end
 
       # Copies the junit file to a new location (and a new name).
