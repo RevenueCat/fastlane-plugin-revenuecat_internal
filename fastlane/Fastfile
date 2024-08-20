@@ -80,3 +80,17 @@ lane :sample_determine_next_version_using_labels_action do |options|
     current_version: 'current_version_number'
   )
 end
+
+lane :sample_flaky_test do
+  test_artifact_path = File.absolute_path('./test_output/xctest/ios')
+
+  scan_with_flaky_test_retries(
+    project: './test_projects/FlakyTests/FlakyTests.xcodeproj',
+
+    output_types: 'junit',
+    output_directory: test_artifact_path,
+    result_bundle: true,
+
+    number_of_flaky_retries: 5
+  )
+end
