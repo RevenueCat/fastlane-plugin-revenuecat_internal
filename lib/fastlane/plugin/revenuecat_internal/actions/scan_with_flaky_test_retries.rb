@@ -23,8 +23,7 @@ module Fastlane
           output_directory = param_values.delete(:output_directory)
 
           # Storing all scan output in a separate temp directory
-          begin
-            temp_dir = Dir.mktmpdir
+          Dir.mktmpdir do |temp_dir|
             temp_artifacts_dir = File.join(temp_dir, 'original')
 
             last_attempt = run_test_and_retries_if_needed(

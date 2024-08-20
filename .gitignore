@@ -13,3 +13,4 @@ test-results
 .idea/
 
 fastlane/test_output/
+.DS_Store
