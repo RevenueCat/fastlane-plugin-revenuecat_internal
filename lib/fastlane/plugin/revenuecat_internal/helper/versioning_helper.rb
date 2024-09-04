@@ -264,15 +264,15 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        if change_types.any?("pr:breaking")
+        if change_types.include?("pr:breaking")
           :breaking_changes
-        elsif change_types.any?("pr:revenuecatui")
+        elsif change_types.include?("pr:revenuecatui")
           :paywalls
-        elsif change_types.any?("pr:feat")
+        elsif change_types.include?("pr:feat")
           :new_features
-        elsif change_types.any?("pr:fix")
+        elsif change_types.include?("pr:fix")
           :fixes
-        elsif change_types.any?("pr:perf")
+        elsif change_types.include?("pr:perf")
           :performance
         elsif change_types.any? { |type| type == "pr:dependencies" || type == "pr:phc_dependencies" }
           :dependency_updates
