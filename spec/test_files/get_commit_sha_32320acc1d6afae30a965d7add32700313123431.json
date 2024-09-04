@@ -37,8 +37,8 @@
                 {
                     "id": 3165687060,
                     "node_id": "MDU6TGFiZWwzMTY1Njg3MDYw",
-                    "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/labels/phc_dependencies",
-                    "name": "phc_dependencies",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/labels/pr:phc_dependencies",
+                    "name": "pr:phc_dependencies",
                     "color": "0366d6",
                     "default": false,
                     "description": "Pull requests that update a dependency file"

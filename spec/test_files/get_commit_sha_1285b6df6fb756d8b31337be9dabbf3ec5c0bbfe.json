@@ -37,8 +37,8 @@
                 {
                     "id": 2141594729,
                     "node_id": "MDU6TGFiZWwyMTQxNTk0NzI5",
-                    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/labels/next_release",
-                    "name": "next_release",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/labels/pr:next_release",
+                    "name": "pr:next_release",
                     "color": "e11d21",
                     "default": false,
                     "description": null
