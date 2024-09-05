@@ -15,10 +15,10 @@ module Fastlane
   }
 
   BUMP_PER_LABEL = {
-    major: %w[breaking].to_set,
-    minor: %w[feat minor].to_set,
-    patch: %w[docs fix perf dependencies phc_dependencies revenuecatui].to_set,
-    skip: %w[build ci refactor style test next_release].to_set
+    major: %w[pr:breaking].to_set,
+    minor: %w[pr:feat pr:minor].to_set,
+    patch: %w[pr:docs pr:fix pr:perf pr:dependencies pr:phc_dependencies pr:revenuecatui].to_set,
+    skip: %w[pr:build pr:ci pr:refactor pr:style pr:test pr:next_release].to_set
   }
 
   module Helper
@@ -66,12 +66,12 @@ module Fastlane
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
             types_of_change = get_type_of_change_from_pr_info(item)
-            next if types_of_change.include?("next_release")
+            next if types_of_change.include?("pr:next_release")
 
             section = get_section_depending_on_types_of_change(types_of_change)
 
             line = "* #{message} via #{name} (@#{username})"
-            if types_of_change.include?("phc_dependencies")
+            if types_of_change.include?("pr:phc_dependencies")
               # Append links to native releases
               line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
             end
@@ -264,17 +264,17 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        if change_types.include?("breaking")
+        if change_types.include?("pr:breaking")
           :breaking_changes
-        elsif change_types.include?("revenuecatui")
+        elsif change_types.include?("pr:revenuecatui")
           :paywalls
-        elsif change_types.include?("feat")
+        elsif change_types.include?("pr:feat")
           :new_features
-        elsif change_types.include?("fix")
+        elsif change_types.include?("pr:fix")
           :fixes
-        elsif change_types.include?("perf")
+        elsif change_types.include?("pr:perf")
           :performance
-        elsif change_types.include?("dependencies") || change_types.include?("phc_dependencies")
+        elsif change_types.any? { |type| type == "pr:dependencies" || type == "pr:phc_dependencies" }
           :dependency_updates
         else
           :other

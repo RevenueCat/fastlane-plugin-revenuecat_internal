@@ -7,7 +7,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
     let(:base_branch) { 'main' }
     let(:next_version) { '1.13.0-SNAPSHOT' }
     let(:new_branch_name) { 'bump/1.13.0-SNAPSHOT' }
-    let(:labels) { ['next_release'] }
+    let(:labels) { ['pr:next_release'] }
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)

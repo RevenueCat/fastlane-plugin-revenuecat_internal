@@ -19,7 +19,7 @@ module Fastlane
 
         next_version_snapshot = Helper::RevenuecatInternalHelper.calculate_next_snapshot_version(previous_version_number)
         new_branch_name = "bump/#{next_version_snapshot}"
-        label = 'next_release'
+        label = 'pr:next_release'
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 

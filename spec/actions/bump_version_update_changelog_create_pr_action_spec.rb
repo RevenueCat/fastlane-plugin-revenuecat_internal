@@ -12,7 +12,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:base_branch) { 'main' }
     let(:new_version) { '1.13.0' }
     let(:new_branch_name) { 'release/1.13.0' }
-    let(:labels) { ['next_release'] }
+    let(:labels) { ['pr:next_release'] }
     let(:hybrid_common_version) { '4.5.3' }
     let(:versions_file_path) { '../VERSIONS.md' }
 

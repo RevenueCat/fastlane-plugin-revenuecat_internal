@@ -81,7 +81,7 @@ module Fastlane
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Release/#{new_version_number}"
-        label = 'next_release'
+        label = 'pr:next_release'
         body = changelog
 
         if automatic_release

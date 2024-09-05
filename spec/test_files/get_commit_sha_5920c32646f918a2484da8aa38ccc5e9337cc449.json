@@ -37,8 +37,8 @@
                 {
                     "id": 2141594741,
                     "node_id": "MDU6TGFiZWwyMTQxNTk0NzQx",
-                    "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/labels/next_release",
-                    "name": "next_release",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-flutter/labels/pr:next_release",
+                    "name": "pr:next_release",
                     "color": "e11d21",
                     "default": false,
                     "description": null
