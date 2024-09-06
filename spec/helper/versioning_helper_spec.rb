@@ -140,17 +140,7 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'generates changelog automatically from github commits including wip section' do
-      setup_tag_stubs
-      mock_commits_since_last_release('cfdd80f73d8c91121313d72227b4cbe283b57c1e', get_commits_response_wip)
-      hashes_to_responses_wip.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_wip)
 
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
@@ -172,18 +162,8 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'includes native dependencies links automatically' do
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -205,18 +185,9 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'includes native dependencies links automatically. Also works for unity style VERSIONS.md' do
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -238,20 +209,11 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'handles empty VERSIONS.md' do
-      setup_tag_stubs
       expect(FastlaneCore::UI).to receive(:error)
         .with("Can't detect iOS and Android version for version 4.5.3 of purchases-hybrid-common. Empty VERSIONS.md")
         .once
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -266,20 +228,11 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'handles broken VERSIONS.md' do
-      setup_tag_stubs
       expect(FastlaneCore::UI).to receive(:error)
         .with("Malformed iOS version - for version 4.5.3 of purchases-hybrid-common.")
         .once
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -295,18 +248,9 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'includes native dependencies links automatically. only includes new versions' do
       hybrid_common_version = '4.5.3'
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -333,18 +277,9 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'includes native dependencies links automatically. skips if no updates to native' do
       hybrid_common_version = '4.5.3'
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -1037,9 +972,11 @@ describe Fastlane::Helper::VersioningHelper do
       .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
   end
 
-  def setup_commit_search_stubs(hashes_to_responses)
+  def setup_commit_search_stubs(hashes_to_responses,
+                                commits_response = get_commits_response,
+                                last_release_sha = 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
     setup_tag_stubs
-    mock_commits_since_last_release('cfdd80f73d8c91121313d72227b4cbe283b57c1e', get_commits_response)
+    mock_commits_since_last_release(last_release_sha, commits_response)
     hashes_to_responses.each do |hash, response|
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
