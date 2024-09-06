@@ -249,25 +249,25 @@ module Fastlane
 
           case section_name
           when :breaking_changes
-            title = "### Breaking Changes"
+            title = "### 💥 Breaking Changes"
           when :fixes
-            title = "### Bugfixes"
+            title = "### 🐞 Bugfixes"
           when :new_features
-            title = "### New Features"
+            title = "### ✨ New Features"
           when :paywalls
-            title = "### RevenueCatUI"
+            title = "### 🖼️ RevenueCatUI"
           when :performance
-            title = "### Performance Improvements"
+            title = "### ⚡ Performance Improvements"
           when :dependency_updates
-            title = "### Dependency Updates"
+            title = "### 📦 Dependency Updates"
           when :work_in_progress
-            title = "### Work in Progress"
+            title = "### 🚧 Work in Progress"
             wip_sections = prs.map do |subsection, items|
               capitalized_subsection = subsection.split.map(&:capitalize).join(' ')
               "#### #{capitalized_subsection}\n#{items.join("\n")}"
             end
           else
-            title = "### Other Changes"
+            title = "### 🔄 Other Changes"
           end
           if section_name == :work_in_progress
             lines = wip_sections
