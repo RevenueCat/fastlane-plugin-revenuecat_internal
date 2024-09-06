@@ -20,6 +20,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commits_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release.json") }
     end
+    let(:get_commits_response_wip) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_wip.json") }
+    end
     let(:get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
@@ -34,6 +37,15 @@ describe Fastlane::Helper::VersioningHelper do
     end
     let(:get_commit_5_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_1625e195a117ad0435864dc8a561e6a0c6052bdf.json") }
+    end
+    let(:get_commit_6_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_2625e195a117ad0435864dc8a561e6a0c6052bda.json") }
+    end
+    let(:get_commit_7_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_3625e195a117ad0435864dc8a561e6a0c6052bdf.json") }
+    end
+    let(:get_commit_8_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4625e195a117ad0435864dc8a561e6a0c6052bdd.json") }
     end
     let(:get_commit_923_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9237147947bcbce00f36ae3ab51acccc54690782.json") }
@@ -87,6 +99,16 @@ describe Fastlane::Helper::VersioningHelper do
       }
     end
 
+    let(:hashes_to_responses_wip) do
+      {
+        'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
+        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
+        '3625e195a117ad0435864dc8a561e6a0c6052bdf' => get_commit_6_response,
+        '2625e195a117ad0435864dc8a561e6a0c6052bda' => get_commit_7_response,
+        '4625e195a117ad0435864dc8a561e6a0c6052bdd' => get_commit_8_response
+      }
+    end
+
     let(:hashes_to_responses_hybrid) do
       {
         '32320acc1d6afae30a965d7add32700313123431' => get_commit_323_response,
@@ -115,6 +137,38 @@ describe Fastlane::Helper::VersioningHelper do
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### Performance Improvements\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+    end
+
+    it 'generates changelog automatically from github commits including wip section' do
+      setup_tag_stubs
+      mock_commits_since_last_release('cfdd80f73d8c91121313d72227b4cbe283b57c1e', get_commits_response_wip)
+      hashes_to_responses_wip.each do |hash, response|
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(response)
+      end
+
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil,
+        nil
+      )
+      expect(changelog).to eq("### New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "### Work in Progress\n" \
+                              "#### Customer Center\n" \
+                              "* `Customer Center`: contact support (#2949) via aboedo (@nachosoto)\n" \
+                              "#### Paywall Components\n" \
+                              "* `Paywalls Components`: this is amazing (#2949) via aboedo (@nachosoto)\n" \
+                              "* `Paywalls Components`: another amazing thing (#2949) via aboedo (@nachosoto)")
     end
 
     it 'includes native dependencies links automatically' do
@@ -530,23 +584,23 @@ describe Fastlane::Helper::VersioningHelper do
     describe '#latest_version_number' do
       let(:git_tag_output) do
         <<~GIT_TAG
-5.7.0
-5.7.1
-6.0.0-alpha.1
-6.0.0-alpha.2
-amazon-latest
-latest
+          5.7.0
+          5.7.1
+          6.0.0-alpha.1
+          6.0.0-alpha.2
+          amazon-latest
+          latest
         GIT_TAG
       end
       let(:git_tag_output_with_build_metadata) do
         <<~GIT_TAG
-5.7.0
-5.7.1
-6.0.0-alpha.1
-6.0.0-alpha.2
-6.0.0+3.2.1
-amazon-latest
-latest
+          5.7.0
+          5.7.1
+          6.0.0-alpha.1
+          6.0.0-alpha.2
+          6.0.0+3.2.1
+          amazon-latest
+          latest
         GIT_TAG
       end
       it 'finds latest version number' do

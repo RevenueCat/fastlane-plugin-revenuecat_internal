@@ -51,7 +51,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], new_features: [], paywalls: [], fixes: [], performance: [], dependency_updates: [], other: [] }
+        changelog_sections = { breaking_changes: [], new_features: [], paywalls: [], fixes: [], performance: [], dependency_updates: [], other: [], work_in_progress: {} }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -68,14 +68,18 @@ module Fastlane
             types_of_change = get_type_of_change_from_pr_info(item)
             next if types_of_change.include?("pr:next_release")
 
-            section = get_section_depending_on_types_of_change(types_of_change)
-
+            section, subsection = get_section_depending_on_types_of_change(types_of_change)
             line = "* #{message} via #{name} (@#{username})"
             if types_of_change.include?("pr:phc_dependencies")
               # Append links to native releases
               line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
             end
-            changelog_sections[section].push(line)
+            if section == :work_in_progress
+              changelog_sections[section][subsection] ||= []
+              changelog_sections[section][subsection].push(line)
+            else
+              changelog_sections[section].push(line)
+            end
           when 0
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
             message = commit["commit"]["message"]
@@ -238,9 +242,10 @@ module Fastlane
         end
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.build_changelog_sections(changelog_sections)
         changelog_sections.reject { |_, v| v.empty? }.map do |section_name, prs|
-          next unless prs.size > 0
+          next if prs.empty?
 
           case section_name
           when :breaking_changes
@@ -255,16 +260,29 @@ module Fastlane
             title = "### Performance Improvements"
           when :dependency_updates
             title = "### Dependency Updates"
+          when :work_in_progress
+            title = "### Work in Progress"
+            wip_sections = prs.map do |subsection, items|
+              capitalized_subsection = subsection.split.map(&:capitalize).join(' ')
+              "#### #{capitalized_subsection}\n#{items.join("\n")}"
+            end
           else
             title = "### Other Changes"
           end
-          "#{title}\n#{prs.join("\n")}"
+          if section_name == :work_in_progress
+            lines = wip_sections
+          else
+            lines = prs
+          end
+          "#{title}\n#{lines.join("\n")}"
         end.join("\n")
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        if change_types.include?("pr:breaking")
+        wip_label = change_types.find { |type| type.end_with?(":wip") }
+        if wip_label
+          [:work_in_progress, wip_label.chomp(":wip")]
+        elsif change_types.include?("pr:breaking")
           :breaking_changes
         elsif change_types.include?("pr:revenuecatui")
           :paywalls
@@ -297,7 +315,7 @@ module Fastlane
       private_class_method def self.get_type_of_change_from_pr_info(pr_info)
         pr_info["labels"]
           .map { |label_info| label_info["name"].downcase }
-          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) }
+          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) || label.end_with?(":wip") }
           .to_set
       end
 

@@ -1,0 +1,85 @@
+{
+    "total_count": 1,
+    "incomplete_results": false,
+    "items": [
+        {
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949",
+            "repository_url": "https://api.github.com/repos/RevenueCat/purchases-ios",
+            "labels_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949/labels{/name}",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949/comments",
+            "events_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949/events",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/pull/2949",
+            "id": 1293434654,
+            "node_id": "PR_kwDOBnB8hc46z_fk",
+            "number": 2949,
+            "title": "`Customer Center`: contact support",
+            "user": {
+                "login": "nachosoto",
+                "id": 808417,
+                "node_id": "MDQ6VXNlcjgwODQxNw==",
+                "avatar_url": "https://avatars.githubusercontent.com/u/808417?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/nachosoto",
+                "html_url": "https://github.com/nachosoto",
+                "followers_url": "https://api.github.com/users/nachosoto/followers",
+                "following_url": "https://api.github.com/users/nachosoto/following{/other_user}",
+                "gists_url": "https://api.github.com/users/nachosoto/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/nachosoto/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/nachosoto/subscriptions",
+                "organizations_url": "https://api.github.com/users/nachosoto/orgs",
+                "repos_url": "https://api.github.com/users/nachosoto/repos",
+                "events_url": "https://api.github.com/users/nachosoto/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/nachosoto/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "labels": [
+                {
+                    "id": 4352868120,
+                    "node_id": "LB_kwDOBnB8hc8AABACA3N_HQ",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/RevenueCatUI",
+                    "name": "Customer Center:wip",
+                    "color": "8E3E6B",
+                    "default": false,
+                    "description": ""
+                }
+            ],
+            "state": "closed",
+            "locked": false,
+            "assignee": null,
+            "assignees": [],
+            "milestone": null,
+            "comments": 0,
+            "created_at": "2022-07-04T17:32:45Z",
+            "updated_at": "2022-07-05T04:49:19Z",
+            "closed_at": "2022-07-05T04:49:18Z",
+            "author_association": "CONTRIBUTOR",
+            "active_lock_reason": null,
+            "draft": false,
+            "pull_request": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/pulls/2949",
+                "html_url": "https://github.com/RevenueCat/purchases-ios/pull/2949",
+                "diff_url": "https://github.com/RevenueCat/purchases-ios/pull/2949.diff",
+                "patch_url": "https://github.com/RevenueCat/purchases-ios/pull/2949.patch",
+                "merged_at": "2022-07-05T04:49:18Z"
+            },
+            "body": "![image](https://github.com/RevenueCat/purchases-ios/assets/685609/a5cc3f4b-99d0-40a2-8a85-82f243383978)",
+            "reactions": {
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949/reactions",
+                "total_count": 0,
+                "+1": 0,
+                "-1": 0,
+                "laugh": 0,
+                "hooray": 0,
+                "confused": 0,
+                "heart": 0,
+                "rocket": 0,
+                "eyes": 0
+            },
+            "timeline_url": "https://api.github.com/repos/RevenueCat/purchases-ios/issues/2949/timeline",
+            "performed_via_github_app": null,
+            "state_reason": null,
+            "score": 1.0
+        }
+    ]
+}
