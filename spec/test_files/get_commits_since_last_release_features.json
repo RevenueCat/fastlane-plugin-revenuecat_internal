@@ -247,6 +247,85 @@
             ]
         },
         {
+            "sha": "5625e195a117ad0435864dc8a561e6a0c6052bda",
+            "node_id": "C_kwDOBnB8hdoAKGE3MmMwNDM1ZWNmNzEyNDhmMzExOTAwNDc1ZTg4MWNjMDdhYzJlYWY",
+            "commit": {
+                "author": {
+                    "name": "aboedo",
+                    "email": "andresboedo@gmail.com",
+                    "date": "2022-07-04T14:36:41Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2022-07-04T14:36:41Z"
+                },
+                "message": "`Customer Center`: contact support",
+                "tree": {
+                    "sha": "051c6736cff89107bd32cb3b8baa64627c7eac8a",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/trees/051c6736cff89107bd32cb3b8baa64627c7eac8a"
+                },
+                "url": "https://api.github.com/repos/RevenueCat/purchases-ios/git/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJiwvr5CRBK7hj4Ov3rIwAAaHoIAGNCSoN7wVbeuBBMMr0PutDS\n4m2wl5q6is2hXgjFVZTDAToX6K+6c8FbHtmnOwgzjjEdY3T+ewIWNQ1IZFGDcarx\nzAxbk1r5jsyrrs2wGb53XK/HvT87IpWTARh5g1h+NUCT0/jmyIIReHgxNgSzUzhr\nGlM2MowmwE2qrlV062L33A7NIFP267lIfyriTPUHfmpfKkZN/EKdIcGX+2dtOX49\nFMpVxF1AFsp+GTiDLr6N1LIIByevGRliaQWcGYNvQWoeqG/h7bU87gq9ZeitMCEH\nVizJTA2YiGl4mGIBocTicWAoqauHBrPZmqHd1N4rcW0c3LQLEAIyFX5xk8V24Do=\n=7PGO\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree 051c6736cff89107bd32cb3b8baa64627c7eac8a\nparent bb8687d51190e42cd48e6cdd8039392f208601c3\nauthor aboedo <andresboedo@gmail.com> 1656945401 -0300\ncommitter GitHub <noreply@github.com> 1656945401 -0300\n\nadded log when setting `autoSyncPurchases` to false (#1749)\n\n"
+                }
+            },
+            "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf",
+            "html_url": "https://github.com/RevenueCat/purchases-ios/commit/a72c0435ecf71248f311900475e881cc07ac2eaf",
+            "comments_url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/a72c0435ecf71248f311900475e881cc07ac2eaf/comments",
+            "author": {
+                "login": "aboedo",
+                "id": 3922667,
+                "node_id": "MDQ6VXNlcjM5MjI2Njc=",
+                "avatar_url": "https://avatars.githubusercontent.com/u/3922667?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/aboedo",
+                "html_url": "https://github.com/aboedo",
+                "followers_url": "https://api.github.com/users/aboedo/followers",
+                "following_url": "https://api.github.com/users/aboedo/following{/other_user}",
+                "gists_url": "https://api.github.com/users/aboedo/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/aboedo/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/aboedo/subscriptions",
+                "organizations_url": "https://api.github.com/users/aboedo/orgs",
+                "repos_url": "https://api.github.com/users/aboedo/repos",
+                "events_url": "https://api.github.com/users/aboedo/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/aboedo/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "bb8687d51190e42cd48e6cdd8039392f208601c3",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/commits/bb8687d51190e42cd48e6cdd8039392f208601c3",
+                    "html_url": "https://github.com/RevenueCat/purchases-ios/commit/bb8687d51190e42cd48e6cdd8039392f208601c3"
+                }
+            ]
+        },
+        {
             "sha": "2625e195a117ad0435864dc8a561e6a0c6052bda",
             "node_id": "C_kwDOBnB8hdoAKGE3MmMwNDM1ZWNmNzEyNDhmMzExOTAwNDc1ZTg4MWNjMDdhYzJlYWY",
             "commit": {

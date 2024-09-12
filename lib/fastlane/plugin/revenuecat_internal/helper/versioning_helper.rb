@@ -43,6 +43,7 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path)
         base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
@@ -75,15 +76,18 @@ module Fastlane
             types_of_change = get_type_of_change_from_pr_info(item)
             next if types_of_change.include?("pr:next_release")
 
-            section, subsection = get_section_depending_on_types_of_change(types_of_change)
+            section = get_section_depending_on_types_of_change(types_of_change)
             line = "* #{message} via #{name} (@#{username})"
             if types_of_change.include?("pr:phc_dependencies")
               # Append links to native releases
               line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
             end
-            if section == :features
-              changelog_sections[section][subsection] ||= []
-              changelog_sections[section][subsection].push(line)
+
+            if section.kind_of?(Array)
+              feature_section, feature_name, subsection = section
+              changelog_sections[feature_section][feature_name] ||= {}
+              changelog_sections[feature_section][feature_name][subsection] ||= []
+              changelog_sections[feature_section][feature_name][subsection].push(line)
             else
               changelog_sections[section].push(line)
             end
@@ -100,6 +104,7 @@ module Fastlane
         end
         build_changelog_sections(changelog_sections)
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def self.platform_changelogs(releases, platform)
         platform_changelogs = []
@@ -265,12 +270,25 @@ module Fastlane
           sections << "#{title}\n#{changelog_sections[section_name].join("\n")}"
         end
 
-        # Handle feature sections (including feat:Paywalls)
-        changelog_sections[:features].each do |subsection, items|
-          next if items.empty?
+        # Handle feature sections
+        changelog_sections[:features].each do |feature, subsections|
+          feature_section = ["### #{feature.split.map(&:capitalize).join(' ')}"]
 
-          capitalized_subsection = subsection.split.map(&:capitalize).join(' ')
-          sections << "### #{capitalized_subsection}\n#{items.join("\n")}"
+          available_subsections = [:new_features, :fixes]
+          available_subsections.each do |subsection|
+            next if subsections[subsection].nil? || subsections[subsection].empty?
+
+            case subsection
+            when :new_features
+              feature_section << "#### ✨ New Features"
+            when :fixes
+              feature_section << "#### 🐞 Bugfixes"
+            end
+
+            feature_section << subsections[subsection].join("\n")
+          end
+
+          sections << feature_section.join("\n") unless feature_section.size == 1
         end
 
         # Handle other changes
@@ -282,15 +300,20 @@ module Fastlane
       end
 
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        feature_label = change_types.find { |type| type.start_with?("feat:") }
-        if feature_label
-          [:features, feature_label.sub("feat:", "").strip]
-        elsif change_types.include?("pr:breaking")
+        if change_types.include?("pr:breaking")
           :breaking_changes
         elsif change_types.include?("pr:feat")
-          :new_features
+          if (feature_label = change_types.find { |type| type.start_with?("feat:") })
+            [:features, feature_label.sub("feat:", "").strip, :new_features]
+          else
+            :new_features
+          end
         elsif change_types.include?("pr:fix")
-          :fixes
+          if (feature_label = change_types.find { |type| type.start_with?("feat:") })
+            [:features, feature_label.sub("feat:", "").strip, :fixes]
+          else
+            :fixes
+          end
         elsif change_types.any? { |type| type == "pr:dependencies" || type == "pr:phc_dependencies" }
           :dependency_updates
         else

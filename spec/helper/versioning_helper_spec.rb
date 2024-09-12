@@ -20,8 +20,8 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commits_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release.json") }
     end
-    let(:get_commits_response_wip) do
-      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_wip.json") }
+    let(:get_commits_response_features) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_features.json") }
     end
     let(:get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
@@ -46,6 +46,9 @@ describe Fastlane::Helper::VersioningHelper do
     end
     let(:get_commit_8_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4625e195a117ad0435864dc8a561e6a0c6052bdd.json") }
+    end
+    let(:get_commit_9_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_5625e195a117ad0435864dc8a561e6a0c6052bda.json") }
     end
     let(:get_commit_923_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9237147947bcbce00f36ae3ab51acccc54690782.json") }
@@ -105,7 +108,8 @@ describe Fastlane::Helper::VersioningHelper do
         'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
         '3625e195a117ad0435864dc8a561e6a0c6052bdf' => get_commit_6_response,
         '2625e195a117ad0435864dc8a561e6a0c6052bda' => get_commit_7_response,
-        '4625e195a117ad0435864dc8a561e6a0c6052bdd' => get_commit_8_response
+        '4625e195a117ad0435864dc8a561e6a0c6052bdd' => get_commit_8_response,
+        '5625e195a117ad0435864dc8a561e6a0c6052bda' => get_commit_9_response
       }
     end
 
@@ -134,13 +138,14 @@ describe Fastlane::Helper::VersioningHelper do
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
     it 'generates changelog automatically from github commits including feat section' do
-      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_wip)
+      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features)
 
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
@@ -154,9 +159,14 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).to eq("### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### Customer Center\n" \
+                              "#### ✨ New Features\n" \
                               "* `Customer Center`: contact support (#2949) via aboedo (@nachosoto)\n" \
+                              "#### 🐞 Bugfixes\n" \
+                              "* `Customer Center`: a fix (#2949) via aboedo (@nachosoto)\n" \
                               "### Paywall Components\n" \
+                              "#### ✨ New Features\n" \
                               "* `Paywalls Components`: this is amazing (#2949) via aboedo (@nachosoto)\n" \
+                              "### 🔄 Other Changes\n" \
                               "* `Paywalls Components`: another amazing thing (#2949) via aboedo (@nachosoto)")
     end
 
@@ -317,6 +327,7 @@ describe Fastlane::Helper::VersioningHelper do
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
@@ -366,6 +377,7 @@ describe Fastlane::Helper::VersioningHelper do
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
@@ -392,6 +404,7 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).to eq("### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
                               "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
                               "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
