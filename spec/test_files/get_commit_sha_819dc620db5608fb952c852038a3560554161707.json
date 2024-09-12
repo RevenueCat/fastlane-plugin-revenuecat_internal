@@ -38,7 +38,7 @@
           "id": 4396672443,
           "node_id": "LA_kwDOBnB8hc8AAAABBg_luw",
           "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/ci",
-          "name": "pr:ci",
+          "name": "pr:other",
           "color": "506B91",
           "default": false,
           "description": "Changes to our CI configuration files and scripts"

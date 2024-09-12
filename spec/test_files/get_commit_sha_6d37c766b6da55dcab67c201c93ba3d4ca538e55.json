@@ -38,7 +38,7 @@
           "id": 4396681492,
           "node_id": "LA_kwDOBnB8hc8AAAABBhAJFA",
           "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/refactor",
-          "name": "pr:refactor",
+          "name": "pr:ci",
           "color": "e99695",
           "default": false,
           "description": "A code change that neither fixes a bug nor adds a feature"

@@ -131,15 +131,15 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### 🖼️ RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### ⚡ Performance Improvements\n" \
+                              "### 🖼 Paywalls\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
-    it 'generates changelog automatically from github commits including wip section' do
+    it 'generates changelog automatically from github commits including feat section' do
       setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_wip)
 
       expect_any_instance_of(Object).not_to receive(:sleep)
@@ -153,10 +153,9 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### 🚧 Work in Progress\n" \
-                              "#### Customer Center\n" \
+                              "### Customer Center\n" \
                               "* `Customer Center`: contact support (#2949) via aboedo (@nachosoto)\n" \
-                              "#### Paywall Components\n" \
+                              "### Paywall Components\n" \
                               "* `Paywalls Components`: this is amazing (#2949) via aboedo (@nachosoto)\n" \
                               "* `Paywalls Components`: another amazing thing (#2949) via aboedo (@nachosoto)")
     end
@@ -315,11 +314,11 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### 🖼️ RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### ⚡ Performance Improvements\n" \
+                              "### 🖼 Paywalls\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
@@ -364,11 +363,11 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("### 💥 Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### 🖼️ RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### ⚡ Performance Improvements\n" \
+                              "### 🖼 Paywalls\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
     end
 
@@ -390,13 +389,12 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### 🖼️ RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
-                              "### 🐞 Bugfixes\n" \
+      expect(changelog).to eq("### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### ⚡ Performance Improvements\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
+                              "### 🖼 Paywalls\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
                               "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
 

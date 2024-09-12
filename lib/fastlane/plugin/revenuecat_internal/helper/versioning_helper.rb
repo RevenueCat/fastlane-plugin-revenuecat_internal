@@ -16,9 +16,9 @@ module Fastlane
 
   BUMP_PER_LABEL = {
     major: %w[pr:breaking].to_set,
-    minor: %w[pr:feat pr:minor].to_set,
-    patch: %w[pr:docs pr:fix pr:perf pr:dependencies pr:phc_dependencies pr:revenuecatui].to_set,
-    skip: %w[pr:build pr:ci pr:refactor pr:style pr:test pr:next_release].to_set
+    minor: %w[pr:feat pr:force_minor].to_set,
+    patch: %w[pr:fix pr:dependencies pr:phc_dependencies pr:force_patch].to_set,
+    skip: %w[pr:other pr:next_release].to_set
   }
 
   module Helper
@@ -51,7 +51,14 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = { breaking_changes: [], new_features: [], paywalls: [], fixes: [], performance: [], dependency_updates: [], other: [], work_in_progress: {} }
+        changelog_sections = {
+          breaking_changes: [],
+          new_features: [],
+          fixes: [],
+          dependency_updates: [],
+          features: {},
+          other: []
+        }
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -74,7 +81,7 @@ module Fastlane
               # Append links to native releases
               line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
             end
-            if section == :work_in_progress
+            if section == :features
               changelog_sections[section][subsection] ||= []
               changelog_sections[section][subsection].push(line)
             else
@@ -244,54 +251,46 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.build_changelog_sections(changelog_sections)
-        changelog_sections.reject { |_, v| v.empty? }.map do |section_name, prs|
-          next if prs.empty?
+        sections = []
 
-          case section_name
-          when :breaking_changes
-            title = "### 💥 Breaking Changes"
-          when :fixes
-            title = "### 🐞 Bugfixes"
-          when :new_features
-            title = "### ✨ New Features"
-          when :paywalls
-            title = "### 🖼️ RevenueCatUI"
-          when :performance
-            title = "### ⚡ Performance Improvements"
-          when :dependency_updates
-            title = "### 📦 Dependency Updates"
-          when :work_in_progress
-            title = "### 🚧 Work in Progress"
-            wip_sections = prs.map do |subsection, items|
-              capitalized_subsection = subsection.split.map(&:capitalize).join(' ')
-              "#### #{capitalized_subsection}\n#{items.join("\n")}"
-            end
-          else
-            title = "### 🔄 Other Changes"
-          end
-          if section_name == :work_in_progress
-            lines = wip_sections
-          else
-            lines = prs
-          end
-          "#{title}\n#{lines.join("\n")}"
-        end.join("\n")
+        # Handle standard sections
+        [
+          [:breaking_changes, "### 💥 Breaking Changes"],
+          [:new_features, "### ✨ New Features"],
+          [:fixes, "### 🐞 Bugfixes"],
+          [:dependency_updates, "### 📦 Dependency Updates"]
+        ].each do |section_name, title|
+          next if changelog_sections[section_name].empty?
+
+          sections << "#{title}\n#{changelog_sections[section_name].join("\n")}"
+        end
+
+        # Handle feature sections (including feat:Paywalls)
+        changelog_sections[:features].each do |subsection, items|
+          next if items.empty?
+
+          capitalized_subsection = subsection.split.map(&:capitalize).join(' ')
+          sections << "### #{capitalized_subsection}\n#{items.join("\n")}"
+        end
+
+        # Handle other changes
+        unless changelog_sections[:other].empty?
+          sections << "### 🔄 Other Changes\n#{changelog_sections[:other].join("\n")}"
+        end
+
+        sections.join("\n")
       end
 
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
-        wip_label = change_types.find { |type| type.end_with?(":wip") }
-        if wip_label
-          [:work_in_progress, wip_label.chomp(":wip")]
+        feature_label = change_types.find { |type| type.start_with?("feat:") }
+        if feature_label
+          [:features, feature_label.sub("feat:", "").strip]
         elsif change_types.include?("pr:breaking")
           :breaking_changes
-        elsif change_types.include?("pr:revenuecatui")
-          :paywalls
         elsif change_types.include?("pr:feat")
           :new_features
         elsif change_types.include?("pr:fix")
           :fixes
-        elsif change_types.include?("pr:perf")
-          :performance
         elsif change_types.any? { |type| type == "pr:dependencies" || type == "pr:phc_dependencies" }
           :dependency_updates
         else
@@ -315,7 +314,7 @@ module Fastlane
       private_class_method def self.get_type_of_change_from_pr_info(pr_info)
         pr_info["labels"]
           .map { |label_info| label_info["name"].downcase }
-          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) || label.end_with?(":wip") }
+          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) || label.start_with?("feat:") }
           .to_set
       end
 
@@ -341,8 +340,7 @@ module Fastlane
           item = items.first
           commit_supported_labels = get_type_of_change_from_pr_info(item)
           type_of_bump_for_commit = get_type_of_bump_from_types_of_change(commit_supported_labels)
-
-          type_of_bump = BUMP_VALUES.key([BUMP_VALUES[type_of_bump_for_commit], BUMP_VALUES[type_of_bump]].max)
+          type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
         end
         type_of_bump
       end
