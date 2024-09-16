@@ -22,6 +22,7 @@ module Fastlane
   }
 
   module Helper
+    # rubocop:disable Metrics/ClassLength
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
@@ -53,12 +54,21 @@ module Fastlane
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         changelog_sections = {
-          breaking_changes: [],
-          new_features: [],
-          fixes: [],
-          dependency_updates: [],
-          features: {},
-          other: []
+          revenuecat_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            features: {}
+          },
+          revenuecatui_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            features: {}
+          },
+          other: [] # Global 'other' section
         }
 
         commits.map do |commit|
@@ -84,12 +94,17 @@ module Fastlane
             end
 
             if section.kind_of?(Array)
-              feature_section, feature_name, subsection = section
-              changelog_sections[feature_section][feature_name] ||= {}
-              changelog_sections[feature_section][feature_name][subsection] ||= []
-              changelog_sections[feature_section][feature_name][subsection].push(line)
+              _, feature_name, subsection = section
+              sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
+              changelog_sections[sdk_section][:features][feature_name] ||= {}
+              changelog_sections[sdk_section][:features][feature_name][subsection] ||= []
+              changelog_sections[sdk_section][:features][feature_name][subsection].push(line)
+            elsif section == :other
+              changelog_sections[:other].push(line)
+              UI.important("Added to Other Changes: #{line}") # Debug output
             else
-              changelog_sections[section].push(line)
+              sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
+              changelog_sections[sdk_section][section].push(line) if changelog_sections[sdk_section].key?(section)
             end
           when 0
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
@@ -258,45 +273,54 @@ module Fastlane
       private_class_method def self.build_changelog_sections(changelog_sections)
         sections = []
 
-        # Handle standard sections
-        [
-          [:breaking_changes, "### 💥 Breaking Changes"],
-          [:new_features, "### ✨ New Features"],
-          [:fixes, "### 🐞 Bugfixes"],
-          [:dependency_updates, "### 📦 Dependency Updates"]
-        ].each do |section_name, title|
-          next if changelog_sections[section_name].empty?
+        [:revenuecat_sdk, :revenuecatui_sdk].each do |sdk|
+          sdk_content = []
+          sdk_name = sdk == :revenuecat_sdk ? "RevenueCat SDK" : "RevenueCatUI SDK"
+          sdk_content << "## #{sdk_name}"
 
-          sections << "#{title}\n#{changelog_sections[section_name].join("\n")}"
-        end
+          # Handle standard sections (non-feature specific changes)
+          standard_sections = [
+            [:breaking_changes, "### 💥 Breaking Changes"],
+            [:new_features, "### ✨ New Features"],
+            [:fixes, "### 🐞 Bugfixes"],
+            [:dependency_updates, "### 📦 Dependency Updates"]
+          ]
+          standard_sections.each do |section_name, title|
+            items = changelog_sections[sdk][section_name]
+            next if items.empty?
 
-        # Handle feature sections
-        changelog_sections[:features].each do |feature, subsections|
-          feature_section = ["### #{feature.split.map(&:capitalize).join(' ')}"]
-
-          available_subsections = [:new_features, :fixes]
-          available_subsections.each do |subsection|
-            next if subsections[subsection].nil? || subsections[subsection].empty?
-
-            case subsection
-            when :new_features
-              feature_section << "#### ✨ New Features"
-            when :fixes
-              feature_section << "#### 🐞 Bugfixes"
-            end
-
-            feature_section << subsections[subsection].join("\n")
+            sdk_content << "#{title}\n#{items.join("\n")}"
           end
 
-          sections << feature_section.join("\n") unless feature_section.size == 1
+          # Handle feature-specific sections
+          changelog_sections[sdk][:features].each do |feature, subsections|
+            feature_content = []
+
+            subsections_to_show = [:new_features, :fixes]
+            subsections_to_show.each do |subsection|
+              next if subsections[subsection].nil? || subsections[subsection].empty?
+
+              title = subsection == :new_features ? "#### ✨ New Features" : "#### 🐞 Bugfixes"
+              feature_content << "#{title}\n#{subsections[subsection].join("\n")}"
+            end
+
+            unless feature_content.empty?
+              sdk_content << "### #{feature.split.map(&:capitalize).join(' ')}"
+              sdk_content.concat(feature_content)
+            end
+          end
+
+          sections << sdk_content.join("\n") unless sdk_content.size == 1
         end
 
-        # Handle other changes
+        # Add global Other Changes section
         unless changelog_sections[:other].empty?
           sections << "### 🔄 Other Changes\n#{changelog_sections[:other].join("\n")}"
         end
 
-        sections.join("\n")
+        result = sections.join("\n")
+        UI.important("Final changelog:\n#{result}") # Debug output
+        result
       end
 
       private_class_method def self.get_section_depending_on_types_of_change(change_types)
@@ -322,22 +346,10 @@ module Fastlane
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
-        if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
-          :major
-        elsif change_types.intersection(BUMP_PER_LABEL[:minor]).size > 0
-          :minor
-        elsif change_types.intersection(BUMP_PER_LABEL[:patch]).size > 0
-          :patch
-        else
-          :skip
-        end
-      end
-
       private_class_method def self.get_type_of_change_from_pr_info(pr_info)
         pr_info["labels"]
           .map { |label_info| label_info["name"].downcase }
-          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) || label.start_with?("feat:") }
+          .select { |label| Helper::GitHubHelper::SUPPORTED_PR_LABELS.include?(label) || label.start_with?("feat:") || label == "pr:revenuecatui" }
           .to_set
       end
 
@@ -366,6 +378,18 @@ module Fastlane
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
         end
         type_of_bump
+      end
+
+      private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
+        if change_types.intersection(BUMP_PER_LABEL[:major]).size > 0
+          :major
+        elsif change_types.intersection(BUMP_PER_LABEL[:minor]).size > 0
+          :minor
+        elsif change_types.intersection(BUMP_PER_LABEL[:patch]).size > 0
+          :patch
+        else
+          :skip
+        end
       end
 
       private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path)
@@ -411,5 +435,6 @@ module Fastlane
         !!(string =~ PATTERN_BUILD_METADATA_ANCHORED)
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

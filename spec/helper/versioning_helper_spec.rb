@@ -133,15 +133,17 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### ✨ New Features\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
                               "### 🔄 Other Changes\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
     it 'generates changelog automatically from github commits including feat section' do
@@ -156,8 +158,10 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### ✨ New Features\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "## RevenueCatUI SDK\n" \
                               "### Customer Center\n" \
                               "#### ✨ New Features\n" \
                               "* `Customer Center`: contact support (#2949) via aboedo (@nachosoto)\n" \
@@ -166,7 +170,6 @@ describe Fastlane::Helper::VersioningHelper do
                               "### Paywall Components\n" \
                               "#### ✨ New Features\n" \
                               "* `Paywalls Components`: this is amazing (#2949) via aboedo (@nachosoto)\n" \
-                              "### 🔄 Other Changes\n" \
                               "* `Paywalls Components`: another amazing thing (#2949) via aboedo (@nachosoto)")
     end
 
@@ -186,7 +189,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
@@ -210,7 +214,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         unity_versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
@@ -232,7 +237,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         empty_versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
@@ -251,7 +257,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         broken_versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
@@ -278,7 +285,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
                               "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
@@ -307,7 +315,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### 📦 Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
@@ -322,15 +331,17 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### ✨ New Features\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
                               "### 🔄 Other Changes\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
     it 'fails if it finds multiple commits with same sha' do
@@ -372,15 +383,17 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### 💥 Breaking Changes\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 💥 Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
                               "### 🔄 Other Changes\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
     it 'change is classified as Other Changes if pr has no label' do
@@ -401,13 +414,15 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### 🐞 Bugfixes\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 🐞 Bugfixes\n" \
                               "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
                               "### 🔄 Other Changes\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
 

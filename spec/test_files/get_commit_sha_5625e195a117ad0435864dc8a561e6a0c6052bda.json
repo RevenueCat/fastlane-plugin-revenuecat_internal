@@ -51,6 +51,15 @@
                     "color": "8E3E6B",
                     "default": false,
                     "description": ""
+                },
+                {
+                    "id": 4352868120,
+                    "node_id": "LB_kwDOBnB8hc8AABACA3N_HQ",
+                    "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/RevenueCatUI",
+                    "name": "pr:revenuecatui",
+                    "color": "8E3E6B",
+                    "default": false,
+                    "description": ""
                 }
             ],
             "state": "closed",
