@@ -20,6 +20,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_commits_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release.json") }
     end
+    let(:get_commits_response_features) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commits_since_last_release_features.json") }
+    end
     let(:get_commit_1_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
@@ -34,6 +37,18 @@ describe Fastlane::Helper::VersioningHelper do
     end
     let(:get_commit_5_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_1625e195a117ad0435864dc8a561e6a0c6052bdf.json") }
+    end
+    let(:get_commit_6_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_2625e195a117ad0435864dc8a561e6a0c6052bda.json") }
+    end
+    let(:get_commit_7_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_3625e195a117ad0435864dc8a561e6a0c6052bdf.json") }
+    end
+    let(:get_commit_8_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_4625e195a117ad0435864dc8a561e6a0c6052bdd.json") }
+    end
+    let(:get_commit_9_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_5625e195a117ad0435864dc8a561e6a0c6052bda.json") }
     end
     let(:get_commit_923_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_9237147947bcbce00f36ae3ab51acccc54690782.json") }
@@ -87,6 +102,17 @@ describe Fastlane::Helper::VersioningHelper do
       }
     end
 
+    let(:hashes_to_responses_wip) do
+      {
+        'a72c0435ecf71248f311900475e881cc07ac2eaf' => get_commit_1_response,
+        'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
+        '3625e195a117ad0435864dc8a561e6a0c6052bdf' => get_commit_6_response,
+        '2625e195a117ad0435864dc8a561e6a0c6052bda' => get_commit_7_response,
+        '4625e195a117ad0435864dc8a561e6a0c6052bdd' => get_commit_8_response,
+        '5625e195a117ad0435864dc8a561e6a0c6052bda' => get_commit_9_response
+      }
+    end
+
     let(:hashes_to_responses_hybrid) do
       {
         '32320acc1d6afae30a965d7add32700313123431' => get_commit_323_response,
@@ -107,29 +133,49 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### New Features\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
-                              "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### Performance Improvements\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                              "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
+    end
+
+    it 'generates changelog automatically from github commits including feat section' do
+      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features)
+
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil,
+        nil
+      )
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### Customer Center\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Customer Center`: contact support (#2949) via aboedo (@nachosoto)\n" \
+                              "#### 🐞 Bugfixes\n" \
+                              "* `Customer Center`: a fix (#2949) via aboedo (@nachosoto)\n" \
+                              "### Paywall Components\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls Components`: this is amazing (#2949) via aboedo (@nachosoto)\n" \
+                              "* `Paywalls Components`: another amazing thing (#2949) via aboedo (@nachosoto)")
     end
 
     it 'includes native dependencies links automatically' do
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -143,7 +189,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
@@ -151,18 +198,9 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'includes native dependencies links automatically. Also works for unity style VERSIONS.md' do
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -176,7 +214,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         unity_versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
@@ -184,20 +223,11 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'handles empty VERSIONS.md' do
-      setup_tag_stubs
       expect(FastlaneCore::UI).to receive(:error)
         .with("Can't detect iOS and Android version for version 4.5.3 of purchases-hybrid-common. Empty VERSIONS.md")
         .once
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -207,25 +237,17 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         empty_versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
     it 'handles broken VERSIONS.md' do
-      setup_tag_stubs
       expect(FastlaneCore::UI).to receive(:error)
         .with("Malformed iOS version - for version 4.5.3 of purchases-hybrid-common.")
         .once
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -235,24 +257,16 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         broken_versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
     it 'includes native dependencies links automatically. only includes new versions' do
       hybrid_common_version = '4.5.3'
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -271,7 +285,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
                               "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
                               "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
@@ -279,18 +294,9 @@ describe Fastlane::Helper::VersioningHelper do
 
     it 'includes native dependencies links automatically. skips if no updates to native' do
       hybrid_common_version = '4.5.3'
-      setup_tag_stubs
-      mock_commits_since_last_release("9237147947bcbce00f36ae3ab51acccc54690782", get_commits_response_hybrid)
       mock_native_releases
-      hashes_to_responses_hybrid.each do |hash, response|
-        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(server_url: server_url,
-                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{hash}",
-                http_method: http_method,
-                body: {},
-                api_token: 'mock-github-token')
-          .and_return(response)
-      end
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
         .with(hybrid_common_version).and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
@@ -309,7 +315,8 @@ describe Fastlane::Helper::VersioningHelper do
         hybrid_common_version,
         versions_path
       )
-      expect(changelog).to eq("### Dependency Updates\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)")
     end
 
@@ -324,14 +331,17 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### New Features\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
-                              "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### Performance Improvements\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                              "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
     it 'fails if it finds multiple commits with same sha' do
@@ -373,14 +383,17 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### Breaking Changes\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 💥 Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
-                              "### RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
-                              "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### Performance Improvements\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)")
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                              "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
     it 'change is classified as Other Changes if pr has no label' do
@@ -401,13 +414,15 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### RevenueCatUI\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Nacho Soto (@nachosoto)\n" \
-                              "### Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
-                              "### Performance Improvements\n" \
-                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Nacho Soto (@nachosoto)\n" \
-                              "### Other Changes\n" \
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                              "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
     end
 
@@ -431,7 +446,7 @@ describe Fastlane::Helper::VersioningHelper do
         nil,
         nil
       )
-      expect(changelog).to eq("### Other Changes\n" \
+      expect(changelog).to eq("### 🔄 Other Changes\n" \
                               "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")
     end
 
@@ -530,23 +545,23 @@ describe Fastlane::Helper::VersioningHelper do
     describe '#latest_version_number' do
       let(:git_tag_output) do
         <<~GIT_TAG
-5.7.0
-5.7.1
-6.0.0-alpha.1
-6.0.0-alpha.2
-amazon-latest
-latest
+          5.7.0
+          5.7.1
+          6.0.0-alpha.1
+          6.0.0-alpha.2
+          amazon-latest
+          latest
         GIT_TAG
       end
       let(:git_tag_output_with_build_metadata) do
         <<~GIT_TAG
-5.7.0
-5.7.1
-6.0.0-alpha.1
-6.0.0-alpha.2
-6.0.0+3.2.1
-amazon-latest
-latest
+          5.7.0
+          5.7.1
+          6.0.0-alpha.1
+          6.0.0-alpha.2
+          6.0.0+3.2.1
+          amazon-latest
+          latest
         GIT_TAG
       end
       it 'finds latest version number' do
@@ -983,9 +998,11 @@ latest
       .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
   end
 
-  def setup_commit_search_stubs(hashes_to_responses)
+  def setup_commit_search_stubs(hashes_to_responses,
+                                commits_response = get_commits_response,
+                                last_release_sha = 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
     setup_tag_stubs
-    mock_commits_since_last_release('cfdd80f73d8c91121313d72227b4cbe283b57c1e', get_commits_response)
+    mock_commits_since_last_release(last_release_sha, commits_response)
     hashes_to_responses.each do |hash, response|
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,

@@ -12,9 +12,9 @@
             "id": 1293434654,
             "node_id": "PR_kwDOBnB8hc46z_fk",
             "number": 2949,
-            "title": "`Paywalls`: multi-package horizontal template",
+            "title": "`Customer Center`: contact support",
             "user": {
-                "login": "tonidero",
+                "login": "nachosoto",
                 "id": 808417,
                 "node_id": "MDQ6VXNlcjgwODQxNw==",
                 "avatar_url": "https://avatars.githubusercontent.com/u/808417?v=4",
@@ -38,7 +38,7 @@
                     "id": 4352868120,
                     "node_id": "LB_kwDOBnB8hc8AABACA3N_HQ",
                     "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/RevenueCatUI",
-                    "name": "feat:\uD83D\uDDBC Paywalls",
+                    "name": "feat:Customer Center",
                     "color": "8E3E6B",
                     "default": false,
                     "description": ""
@@ -53,7 +53,7 @@
                     "description": ""
                 },
                 {
-                    "id": 4352868121,
+                    "id": 4352868120,
                     "node_id": "LB_kwDOBnB8hc8AABACA3N_HQ",
                     "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/RevenueCatUI",
                     "name": "pr:feat",

@@ -47,7 +47,7 @@
                     "id": 4352868120,
                     "node_id": "LA_kwDOBnB8hc8AAAACA3N_HD",
                     "url": "https://api.github.com/repos/RevenueCat/purchases-ios/labels/minor",
-                    "name": "pr:minor",
+                    "name": "pr:force_minor",
                     "color": "8B3E6C",
                     "default": false,
                     "description": ""
