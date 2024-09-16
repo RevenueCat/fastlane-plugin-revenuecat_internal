@@ -137,11 +137,11 @@ describe Fastlane::Helper::VersioningHelper do
                               "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
                               "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
@@ -160,7 +160,7 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("## RevenueCat SDK\n" \
                               "### ✨ New Features\n" \
-                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n\n" \
                               "## RevenueCatUI SDK\n" \
                               "### Customer Center\n" \
                               "#### ✨ New Features\n" \
@@ -335,11 +335,11 @@ describe Fastlane::Helper::VersioningHelper do
                               "### ✨ New Features\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
                               "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
@@ -387,11 +387,11 @@ describe Fastlane::Helper::VersioningHelper do
                               "### 💥 Breaking Changes\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
                               "### 🐞 Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
                               "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
@@ -416,11 +416,11 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(changelog).to eq("## RevenueCat SDK\n" \
                               "### 🐞 Bugfixes\n" \
-                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
                               "## RevenueCatUI SDK\n" \
                               "### 🖼 Paywalls\n" \
                               "#### ✨ New Features\n" \
-                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n" \
+                              "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
                               "### 🔄 Other Changes\n" \
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)\n" \
                               "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
