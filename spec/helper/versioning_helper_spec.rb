@@ -508,6 +508,9 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_minor_label_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/minor_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_patch_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/patch_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
     let(:get_ci_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_819dc620db5608fb952c852038a3560554161707.json") }
     end
@@ -600,6 +603,25 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:patch)
     end
 
+    it 'determines next version as patch if labeled as force_patch' do
+      # Every PR is labeled with both pr:other and pr:force_patch. Just pr:other would lead to this bump being skipped,
+      # but the force_patch label should take precedence.
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_patch_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false
+      )
+      expect(next_version).to eq("1.11.1")
+      expect(type_of_bump).to eq(:patch)
+    end
+
     it 'skips next version if no release is needed' do
       setup_commit_search_stubs(hashes_to_responses)
       mock_commits_since_last_release('1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe', get_commits_response_skip)
@@ -628,7 +650,12 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:minor)
     end
 
-    it 'determine next version as minor if labeled as minor' do
+    it 'determine next version as minor if labeled as force_minor' do
+      # Every PR is labeled with both pr:phc_dependencies and pr:force_minor. Just pr:phc_dependencies would lead to
+      # a patch bump, but the force_minor label should take precedence.
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_minor_label_commit_response
+      end
       setup_commit_search_stubs(hashes_to_responses)
 
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
