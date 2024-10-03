@@ -403,13 +403,13 @@ module Fastlane
           return ""
         end
 
-        previous_ios_version = versions_latest_release[IOS_VERSION_COLUMN]
+        previous_ios_version = extract_semver_from_versions_file(versions_latest_release[IOS_VERSION_COLUMN])
         unless Gem::Version.correct?(previous_ios_version)
           UI.error("Malformed iOS version #{previous_ios_version} for version #{phc_version} of purchases-hybrid-common.")
           return ""
         end
 
-        previous_android_version = versions_latest_release[ANDROID_VERSION_COLUMN]
+        previous_android_version = extract_semver_from_versions_file(versions_latest_release[ANDROID_VERSION_COLUMN])
         unless Gem::Version.correct?(previous_android_version)
           UI.error("Malformed Android version #{previous_android_version} for version #{phc_version} of purchases-hybrid-common.")
           return ""
@@ -427,6 +427,17 @@ module Fastlane
         native_dependency_changelogs += platform_changelogs(android_releases, 'Android')
         native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
         native_dependency_changelogs.join("\n")
+      end
+
+      private_class_method def self.extract_semver_from_versions_file(version_string)
+        # Check if the version is a markdown link
+        if version_string.start_with?('[') && version_string.include?('](')
+          # Extract the version from the markdown link
+          version_string.match(/\[(.*?)\]/).captures.first
+        else
+          # If it's not a markdown link, assume it's already a semver
+          version_string
+        end
       end
 
       private_class_method def self.is_build_metadata(string)
