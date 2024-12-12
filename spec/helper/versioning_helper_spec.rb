@@ -447,7 +447,7 @@ describe Fastlane::Helper::VersioningHelper do
         nil
       )
       expect(changelog).to eq("### 🔄 Other Changes\n" \
-                              "* Updating great support link via Miguel José Carranza Guisado (@MiguelCarranza)")
+                              "* Updating great support link via Miguel José Carranza Guisado")
     end
 
     def mock_native_releases
