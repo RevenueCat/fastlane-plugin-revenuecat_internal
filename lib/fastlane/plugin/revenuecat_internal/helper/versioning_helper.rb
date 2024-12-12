@@ -110,8 +110,7 @@ module Fastlane
             UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
             message = commit["commit"]["message"]
             name = commit["commit"]["author"]["name"]
-            username = commit["author"]["login"]
-            line = "* #{message} via #{name} (@#{username})"
+            line = "* #{message} via #{name}"
             changelog_sections[:other].push(line)
           else
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
