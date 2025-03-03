@@ -100,7 +100,7 @@ describe Fastlane::Helper::GitHubHelper do
     let(:release_description) { 'Release description' }
     let(:commit_hash) { 'commit-hash' }
     let(:is_prerelease) { false }
-    let(:is_latest_stable_release) { true }
+    let(:is_latest_stable_release) { 'true' }
     let(:create_release_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/create_release_response.json") }
     end

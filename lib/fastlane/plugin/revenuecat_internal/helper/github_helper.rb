@@ -90,7 +90,7 @@ module Fastlane
           'draft' => !!params[:is_draft],
           'prerelease' => !!params[:is_prerelease],
           'generate_release_notes' => !!params[:is_generate_release_notes],
-          'make_latest' => !!params[:make_latest]
+          'make_latest' => (!!params[:make_latest]).to_s
         }
         payload['name'] = params[:name] if params[:name]
         payload['body'] = params[:description] if params[:description]
