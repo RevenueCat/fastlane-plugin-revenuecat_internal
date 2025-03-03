@@ -121,7 +121,7 @@ module Fastlane
           }
         )
 
-        json = response[:json]
+        json = JSON.parse(response[:body])
         html_url = json['html_url']
         release_id = json['id']
 
@@ -147,6 +147,7 @@ module Fastlane
           if File.directory?(absolute_path)
             Dir.mktmpdir do |dir|
               tmpzip = File.join(dir, File.basename(absolute_path) + '.zip')
+              puts "cd \"#{File.dirname(absolute_path)}\"; zip -r --symlinks \"#{tmpzip}\" \"#{File.basename(absolute_path)}\" 2>&1 >/dev/null"
               system("cd \"#{File.dirname(absolute_path)}\"; zip -r --symlinks \"#{tmpzip}\" \"#{File.basename(absolute_path)}\" 2>&1 >/dev/null")
               upload_single_asset(tmpzip, upload_url_template, api_token)
             end
