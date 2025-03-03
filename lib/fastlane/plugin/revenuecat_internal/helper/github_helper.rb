@@ -124,7 +124,6 @@ module Fastlane
 
         json = JSON.parse(response[:body])
         html_url = json['html_url']
-        release_id = json['id']
 
         UI.success("Successfully created release at tag \"#{tag_name}\" on GitHub")
         UI.important("See release at \"#{html_url}\"")
@@ -140,15 +139,15 @@ module Fastlane
 
       def self.upload_assets(assets, upload_url_template, api_token)
         require 'addressable/template'
-        
+
         assets.each do |asset_path|
           absolute_path = File.absolute_path(asset_path)
           UI.user_error!("Asset #{absolute_path} doesn't exist") unless File.exist?(absolute_path)
-          
+
           if File.directory?(absolute_path)
             Dir.mktmpdir do |dir|
-              tmpzip = File.join(dir, File.basename(absolute_path) + '.zip')
-              puts "cd \"#{File.dirname(absolute_path)}\"; zip -r --symlinks \"#{tmpzip}\" \"#{File.basename(absolute_path)}\" 2>&1 >/dev/null"
+              tmpzip = File.join(dir, "#{File.basename(absolute_path)}.zip")
+              puts("cd \"#{File.dirname(absolute_path)}\"; zip -r --symlinks \"#{tmpzip}\" \"#{File.basename(absolute_path)}\" 2>&1 >/dev/null")
               system("cd \"#{File.dirname(absolute_path)}\"; zip -r --symlinks \"#{tmpzip}\" \"#{File.basename(absolute_path)}\" 2>&1 >/dev/null")
               upload_single_asset(tmpzip, upload_url_template, api_token)
             end
@@ -160,13 +159,13 @@ module Fastlane
 
       def self.upload_single_asset(file, url_template, api_token)
         require 'addressable/template'
-        
+
         file_name = File.basename(file)
         expanded_url = Addressable::Template.new(url_template).expand(name: file_name).to_s
         headers = { 'Content-Type' => 'application/zip' }
-        
+
         UI.important("Uploading #{file_name}")
-        
+
         Actions::GithubApiAction.run(
           api_token: api_token,
           http_method: 'POST',
@@ -180,7 +179,7 @@ module Fastlane
             end
           }
         )
-        
+
         UI.success("Successfully uploaded #{file_name}.")
       end
     end

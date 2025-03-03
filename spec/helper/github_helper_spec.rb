@@ -122,11 +122,11 @@ describe Fastlane::Helper::GitHubHelper do
         },
         api_token: github_token
       }
-      
+
       expect(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(hash_including(expected_params))
         .and_return(create_release_response)
-      
+
       Fastlane::Helper::GitHubHelper.create_github_release(
         repository_name: "RevenueCat/#{repo_name}",
         api_token: github_token,

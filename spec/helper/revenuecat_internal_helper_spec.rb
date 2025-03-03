@@ -705,7 +705,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'calls GitHubHelper with appropriate parameters for prerelease version' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
-  
+
       expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
         api_token: github_api_token,
