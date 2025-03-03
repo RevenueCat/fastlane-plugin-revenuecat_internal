@@ -650,8 +650,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       allow(Fastlane::Actions).to receive(:last_git_commit_dict).and_return(commit_hash: commit_hash)
     end
 
-    it 'calls SetGithubReleaseAction with appropriate parameters for non-prerelease version' do
-      expect(Fastlane::Actions::SetGithubReleaseAction).to receive(:run).with(
+    it 'calls GitHubHelper with appropriate parameters for non-prerelease that is newer than existing version' do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.10.0')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
         api_token: github_api_token,
         name: no_prerelease_version,
@@ -661,6 +664,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets: upload_assets,
         is_draft: false,
         is_prerelease: false,
+        is_latest_stable_release: true,
         server_url: server_url
       )
       Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
@@ -672,8 +676,37 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       )
     end
 
-    it 'calls SetGithubReleaseAction with appropriate parameters for prerelease version' do
-      expect(Fastlane::Actions::SetGithubReleaseAction).to receive(:run).with(
+    it 'calls GitHubHelper with appropriate parameters for non-prerelease that is older than existing version' do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.12.0')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: no_prerelease_version,
+        tag_name: no_prerelease_version,
+        description: release_description,
+        commitish: commit_hash,
+        upload_assets: upload_assets,
+        is_draft: false,
+        is_prerelease: false,
+        is_latest_stable_release: false,
+        server_url: server_url
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        no_prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token
+      )
+    end
+
+    it 'calls GitHubHelper with appropriate parameters for prerelease version' do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
+  
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
         api_token: github_api_token,
         name: prerelease_version,
@@ -683,6 +716,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets: upload_assets,
         is_draft: false,
         is_prerelease: true,
+        is_latest_stable_release: false,
         server_url: server_url
       )
       Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
