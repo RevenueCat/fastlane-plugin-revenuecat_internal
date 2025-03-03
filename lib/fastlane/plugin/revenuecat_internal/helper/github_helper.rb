@@ -75,6 +75,7 @@ module Fastlane
       end
 
       # This is a temporary workaround as the fastlane action does not support the `make_latest` parameter
+      # Forked from: https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/set_github_release.rb
       def self.create_github_release(params)
         UI.important("Creating release of #{params[:repository_name]} on tag \"#{params[:tag_name]}\" with name \"#{params[:name]}\".")
         UI.important("Will also upload assets #{params[:upload_assets]}.") if params[:upload_assets]
