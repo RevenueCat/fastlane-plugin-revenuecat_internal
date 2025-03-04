@@ -147,6 +147,8 @@ module Fastlane
         is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
         is_latest_stable_release = !is_prerelease && newer_than_latest_published_version?(release_version)
 
+        # This is a temporary workaround as the fastlane action does not support the `make_latest` parameter
+        # Forked from: https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/set_github_release.rb
         Helper::GitHubHelper.create_github_release(
           repository_name: "RevenueCat/#{repo_name}",
           api_token: github_api_token,
