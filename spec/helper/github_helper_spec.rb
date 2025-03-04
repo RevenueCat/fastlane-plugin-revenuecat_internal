@@ -90,4 +90,61 @@ describe Fastlane::Helper::GitHubHelper do
       end
     end
   end
+
+  describe '.create_github_release' do
+    let(:server_url) { 'https://api.github.com' }
+    let(:repo_name) { 'mock-repo-name' }
+    let(:http_method) { 'POST' }
+    let(:github_token) { 'mock-github-token' }
+    let(:release_version) { '1.11.0' }
+    let(:release_description) { 'Release description' }
+    let(:commit_hash) { 'commit-hash' }
+    let(:is_prerelease) { false }
+    let(:is_latest_stable_release) { 'true' }
+    let(:create_release_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/create_release_response.json") }
+    end
+
+    it 'creates a release' do
+      expected_params = {
+        server_url: server_url,
+        path: "repos/RevenueCat/#{repo_name}/releases",
+        http_method: http_method,
+        body: {
+          'tag_name' => release_version,
+          'draft' => false,
+          'prerelease' => is_prerelease,
+          'generate_release_notes' => true,
+          'make_latest' => is_latest_stable_release,
+          'name' => release_version,
+          'body' => release_description,
+          'target_commitish' => commit_hash
+        },
+        api_token: github_token
+      }
+
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(hash_including(expected_params))
+        .and_return(create_release_response)
+
+      Fastlane::Helper::GitHubHelper.create_github_release(
+        repository_name: "RevenueCat/#{repo_name}",
+        api_token: github_token,
+        name: release_version,
+        tag_name: release_version,
+        description: release_description,
+        commitish: commit_hash,
+        is_draft: false,
+        is_prerelease: is_prerelease,
+        make_latest: is_latest_stable_release,
+        is_generate_release_notes: true,
+        server_url: 'https://api.github.com'
+      )
+
+      github_response = create_release_response
+      body = JSON.parse(github_response[:body])
+
+      expect(body).not_to be_nil
+    end
+  end
 end

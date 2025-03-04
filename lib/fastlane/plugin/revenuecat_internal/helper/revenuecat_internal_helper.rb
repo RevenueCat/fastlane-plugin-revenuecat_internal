@@ -5,9 +5,9 @@ require 'fastlane/actions/push_to_git_remote'
 require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
-require 'fastlane/actions/set_github_release'
 require 'fastlane/actions/reset_git_repo'
 require_relative 'versioning_helper'
+require_relative 'github_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -35,8 +35,7 @@ module Fastlane
       end
 
       def self.newer_than_latest_published_version?(version_number)
-        Actions.sh("git fetch --tags -f")
-        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
+        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | grep -v '^#{version_number}$' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
@@ -145,8 +144,11 @@ module Fastlane
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
         commit_hash = Actions.last_git_commit_dict[:commit_hash]
         is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
+        is_latest_stable_release = !is_prerelease && newer_than_latest_published_version?(release_version)
 
-        Actions::SetGithubReleaseAction.run(
+        # This is a temporary workaround as the fastlane action does not support the `make_latest` parameter
+        # Forked from: https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/set_github_release.rb
+        Helper::GitHubHelper.create_github_release(
           repository_name: "RevenueCat/#{repo_name}",
           api_token: github_api_token,
           name: release_version,
@@ -156,6 +158,7 @@ module Fastlane
           upload_assets: upload_assets,
           is_draft: false,
           is_prerelease: is_prerelease,
+          make_latest: is_latest_stable_release,
           server_url: 'https://api.github.com'
         )
       end
