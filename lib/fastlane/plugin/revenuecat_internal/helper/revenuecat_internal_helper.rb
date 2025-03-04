@@ -35,8 +35,7 @@ module Fastlane
       end
 
       def self.newer_than_latest_published_version?(version_number)
-        Actions.sh("git fetch --tags -f")
-        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
+        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | grep -v '^#{version_number}$' | sort -r --version-sort | head -n1")
         return true if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
@@ -159,7 +158,7 @@ module Fastlane
           upload_assets: upload_assets,
           is_draft: false,
           is_prerelease: is_prerelease,
-          is_latest_stable_release: is_latest_stable_release,
+          make_latest: is_latest_stable_release,
           server_url: 'https://api.github.com'
         )
       end
