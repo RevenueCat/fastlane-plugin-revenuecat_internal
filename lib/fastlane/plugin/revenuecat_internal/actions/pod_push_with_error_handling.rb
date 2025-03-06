@@ -1,6 +1,7 @@
 require 'fastlane/action'
 require 'fastlane_core/ui/ui'
 require 'fastlane_core/configuration/config_item'
+require 'fastlane/actions/pod_push'
 require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
