@@ -32,7 +32,7 @@ module Fastlane
       
             if output_str.include?("[!] Unable to accept duplicate entry for:")
               FastlaneCore::UI.error("⚠️ Duplicate entry detected. Skipping push.")
-              return false
+              return true
             elsif output_str.include?("[!] Calling the GitHub commit API timed out.")
               if attempts <= MAX_RETRIES
                 delay = INITIAL_DELAY * (2**(attempts - 1)) # Exponential backoff (5s → 10s → 20s)
@@ -61,7 +61,7 @@ module Fastlane
       end
 
       def self.return_value
-        "Returns false if the push is skipped due to a duplicate entry or persistent GitHub timeout, true if successful."
+        "Returns true if successful (even with duplicate entry). Retries up to 3 times on GitHub API timeouts. Returns if fails due to an unexpected error."
       end
 
       def self.details
