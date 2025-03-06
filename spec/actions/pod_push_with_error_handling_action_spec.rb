@@ -40,30 +40,27 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
     end
 
     it 'retries up to 3 times on GitHub API timeout' do
-      error_message = "[!] Calling the GitHub commit API timed out."
-    
+      error_message = '[!] Calling the GitHub commit API timed out.'
       call_count = 0
-    
+
       allow(Fastlane::Actions::PodPushAction).to receive(:run) do
         call_count += 1
-        if call_count <= 3
-          raise StandardError.new(error_message) # Fail first 3 times
-        else
-          "Successfully pushed"
-        end
+        raise StandardError, error_message if call_count <= 3
+
+        'Successfully pushed' # ✅ Succeed on the 4th attempt
       end
-    
+
       expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
       expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times # 3 failures + 1 success
-    
+
       result = Fastlane::Actions::PodPushWithErrorHandlingAction.run(
-        path: "RevenueCat.podspec",
+        path: podspec_path,
         synchronous: true,
-        verbose: true,
-        allow_warnings: true
+        verbose: false,
+        allow_warnings: false
       )
-    
-      expect(result).to eq(true)
+
+      expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
     end
   end
 
