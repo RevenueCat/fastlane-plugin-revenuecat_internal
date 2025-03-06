@@ -30,7 +30,6 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       expect(FastlaneCore::UI).to have_received(:error).with("⚠️ Duplicate entry detected. Skipping push.")
     end
 
-
     it 'raises a PodPushUnknownError for other failures' do
       error_message = "Some unexpected failure"
       allow(Fastlane::Actions::PodPushAction).to receive(:run).and_raise(StandardError.new(error_message))
