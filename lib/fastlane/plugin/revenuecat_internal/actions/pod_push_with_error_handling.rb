@@ -38,7 +38,7 @@ module Fastlane
               delay = INITIAL_DELAY * (2**(attempts - 1)) # Exponential backoff (5s → 10s → 20s)
               FastlaneCore::UI.important("⚠️ GitHub API timeout detected. Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
               sleep(delay)
-              next 
+              next
             end
 
             FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to GitHub API timeouts.") if attempts > MAX_RETRIES
@@ -48,7 +48,7 @@ module Fastlane
           end
         end
 
-        false 
+        false
       end
 
       def self.description
