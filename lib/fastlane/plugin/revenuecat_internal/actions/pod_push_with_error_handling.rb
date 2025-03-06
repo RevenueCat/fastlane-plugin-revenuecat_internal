@@ -1,15 +1,17 @@
 module Fastlane
   module Actions
-    
+    class PodPushUnknownError < StandardError; end 
+
     class PodPushWithErrorHandlingAction < Action
       def self.run(params)
         begin
-          # Capture the output of pod_push
           UI.message("🚀 Running pod_push with path: #{params[:path]}")
           
           output = Fastlane::Actions::PodPushAction.run(
             path: params[:path],
-            synchronous: true 
+            synchronous: params[:synchronous],
+            verbose: params[:verbose],
+            allow_warnings: params[:allow_warnings]
           )
 
           return true
@@ -21,8 +23,8 @@ module Fastlane
             return false
           end
 
-          UI.error("❌ Pod push failed: #{e.message}")
-          UI.user_error!("Pod push failed.")
+          UI.user_error!("❌ Pod push failed: #{e.message}")
+          raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
         end
       end
 
@@ -31,7 +33,7 @@ module Fastlane
       end
 
       def self.authors
-        ["Your Name"]
+        ["facumenzella"]
       end
 
       def self.return_value
@@ -53,6 +55,27 @@ module Fastlane
             description: "Path to the .podspec file",
             optional: false,
             type: String
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :synchronous,
+            description: "Wait for push to complete before returning",
+            optional: true,
+            type: Boolean,
+            default_value: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :verbose,
+            description: "Show more debugging output",
+            optional: true,
+            type: Boolean,
+            default_value: false
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :allow_warnings,
+            description: "Allow warnings when pushing the podspec",
+            optional: true,
+            type: Boolean,
+            default_value: false
           )
         ]
       end
