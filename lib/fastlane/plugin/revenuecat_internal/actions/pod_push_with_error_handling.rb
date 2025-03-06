@@ -1,35 +1,36 @@
+require 'fastlane/action'
+require 'fastlane_core/ui/ui'
+require 'fastlane_core/configuration/config_item'
+
 module Fastlane
   module Actions
-    class PodPushUnknownError < StandardError; end 
+    class PodPushUnknownError < StandardError; end
 
     class PodPushWithErrorHandlingAction < Action
       def self.run(params)
-        begin
-          UI.message("🚀 Running pod_push with path: #{params[:path]}")
-          
-          output = Fastlane::Actions::PodPushAction.run(
-            path: params[:path],
-            synchronous: params[:synchronous],
-            verbose: params[:verbose],
-            allow_warnings: params[:allow_warnings]
-          )
+        UI.message("🚀 Running pod_push with path: #{params[:path]}")
 
-          return true
-        rescue => e
-          output_str = e.message
+        Fastlane::Actions::PodPushAction.run(
+          path: params[:path],
+          synchronous: params[:synchronous],
+          verbose: params[:verbose],
+          allow_warnings: params[:allow_warnings]
+        )
 
-          if output_str.include?("[!] Unable to accept duplicate entry for:")
-            UI.error("⚠️ Duplicate entry detected. Skipping push.")
-            return false
-          end
+        true
+      rescue StandardError => e
+        output_str = e.message
 
-          UI.user_error!("❌ Pod push failed: #{e.message}")
-          raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
+        if output_str.include?("[!] Unable to accept duplicate entry for:")
+          UI.error("⚠️ Duplicate entry detected. Skipping push.")
+          return false
         end
+
+        raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
       end
 
       def self.description
-        "Pushes a podspec to CocoaPods and gracefully handles duplicate entry errors"
+        "Pushes a podspec to CocoaPods with support for synchronous, verbose, and allow_warnings options."
       end
 
       def self.authors
@@ -41,7 +42,7 @@ module Fastlane
       end
 
       def self.details
-        "A custom Fastlane action that calls `pod_push` and catches duplicate entry errors."
+        "A custom Fastlane action that wraps `pod_push` and supports all relevant parameters."
       end
 
       def self.is_supported?(platform)
@@ -60,21 +61,21 @@ module Fastlane
             key: :synchronous,
             description: "Wait for push to complete before returning",
             optional: true,
-            type: Boolean,
+            type: TrueClass,
             default_value: true
           ),
           FastlaneCore::ConfigItem.new(
             key: :verbose,
             description: "Show more debugging output",
             optional: true,
-            type: Boolean,
+            type: TrueClass,
             default_value: false
           ),
           FastlaneCore::ConfigItem.new(
             key: :allow_warnings,
             description: "Allow warnings when pushing the podspec",
             optional: true,
-            type: Boolean,
+            type: TrueClass,
             default_value: false
           )
         ]
