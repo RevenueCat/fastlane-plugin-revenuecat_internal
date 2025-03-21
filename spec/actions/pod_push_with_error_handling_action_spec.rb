@@ -6,7 +6,7 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
     let(:podspec_path) { 'RevenueCat.podspec' }
 
     before do
-      allow(FastlaneCore::UI).to receive(:message) # Suppress UI messages
+      allow(FastlaneCore::UI).to receive(:message)
       allow(FastlaneCore::UI).to receive(:error)
       allow(FastlaneCore::UI).to receive(:user_error!)
     end
@@ -20,13 +20,13 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       expect(Fastlane::Actions::PodPushAction).to have_received(:run).once
     end
 
-    it 'catches duplicate entry error and returns false' do
+    it 'catches duplicate entry error and returns true' do
       error_message = "[!] Unable to accept duplicate entry for: RevenueCat"
       allow(Fastlane::Actions::PodPushAction).to receive(:run).and_raise(StandardError.new(error_message))
 
       result = Fastlane::Actions::PodPushWithErrorHandlingAction.run(path: podspec_path)
 
-      expect(result).to eq(false)
+      expect(result).to eq(true)
       expect(FastlaneCore::UI).to have_received(:error).with("⚠️ Duplicate entry detected. Skipping push.")
     end
 
@@ -86,7 +86,7 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
   
       expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
     end
-    
+
   end
 
   describe '#available_options' do

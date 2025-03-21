@@ -60,7 +60,7 @@ module Fastlane
       end
 
       def self.authors
-        ["facumenzella"]
+        ['facumenzella']
       end
 
       def self.return_value
@@ -79,27 +79,27 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(
             key: :path,
-            description: "Path to the .podspec file",
+            description: 'Path to the .podspec file',
             optional: false,
             type: String
           ),
           FastlaneCore::ConfigItem.new(
             key: :synchronous,
-            description: "Wait for push to complete before returning",
+            description: 'Wait for push to complete before returning',
             optional: true,
             type: TrueClass,
             default_value: true
           ),
           FastlaneCore::ConfigItem.new(
             key: :verbose,
-            description: "Show more debugging output",
+            description: 'Show more debugging output',
             optional: true,
             type: TrueClass,
             default_value: false
           ),
           FastlaneCore::ConfigItem.new(
             key: :allow_warnings,
-            description: "Allow warnings when pushing the podspec",
+            description: 'Allow warnings when pushing the podspec',
             optional: true,
             type: TrueClass,
             default_value: false
