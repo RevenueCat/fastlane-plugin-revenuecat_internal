@@ -31,7 +31,7 @@ module Fastlane
 
             if output_str.include?("[!] Unable to accept duplicate entry for:")
               UI.error("⚠️ Duplicate entry detected. Skipping push.")
-              return false
+              return true
             end
 
             if output_str.include?("[!] Calling the GitHub commit API timed out.") ||
