@@ -16,7 +16,7 @@ module Fastlane
 
         while attempts <= MAX_RETRIES
           attempts += 1
-          UI.message("🚀 Attempt #{attempts}: Running pod_push with path: #{params[:path]}")
+          FastlaneCore::UI.message("🚀 Attempt #{attempts}: Running pod_push with path: #{params[:path]}")
 
           begin
             Fastlane::Actions::PodPushAction.run(
@@ -29,22 +29,20 @@ module Fastlane
           rescue StandardError => e
             output_str = e.message
 
-            if output_str.include?("[!] Unable to accept duplicate entry for:")
-              UI.error("⚠️ Duplicate entry detected. Skipping push.")
+            if duplicate_entry?(output_str)
+              FastlaneCore::UI.error("⚠️ Duplicate entry detected. Skipping push.")
               return true
             end
 
-            if output_str.include?("[!] Calling the GitHub commit API timed out.") ||
-               output_str.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.")
+            if retryable_error?(output_str) && attempts <= MAX_RETRIES
+              delay = INITIAL_DELAY * (2**(attempts - 1))
+              FastlaneCore::UI.important("⚠️ Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
+              sleep(delay)
+              next
+            end
 
-              if attempts <= MAX_RETRIES
-                delay = INITIAL_DELAY * (2**(attempts - 1)) # Exponential backoff
-                UI.important("⚠️ Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
-                sleep(delay)
-                next
-              end
-
-              UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to persistent server issues.")
+            if attempts > MAX_RETRIES
+              FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to persistent server issues.")
               return false
             end
 
@@ -53,6 +51,15 @@ module Fastlane
         end
 
         false
+      end
+
+      def self.duplicate_entry?(msg)
+        msg.include?("[!] Unable to accept duplicate entry for:")
+      end
+
+      def self.retryable_error?(msg)
+        msg.include?("[!] Calling the GitHub commit API timed out.") ||
+          msg.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.")
       end
 
       def self.description
