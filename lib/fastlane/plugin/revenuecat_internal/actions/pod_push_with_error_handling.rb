@@ -14,7 +14,7 @@ module Fastlane
       def self.run(params)
         attempts = 0
 
-        while attempts < MAX_RETRIES + 1
+        while attempts <= MAX_RETRIES
           attempts += 1
           FastlaneCore::UI.message("🚀 Attempt #{attempts}: Running pod_push with path: #{params[:path]}")
 
@@ -29,20 +29,22 @@ module Fastlane
           rescue StandardError => e
             output_str = e.message
 
-            if output_str.include?("[!] Unable to accept duplicate entry for:")
+            if duplicate_entry?(output_str)
               FastlaneCore::UI.error("⚠️ Duplicate entry detected. Skipping push.")
               return true
             end
 
-            if output_str.include?("[!] Calling the GitHub commit API timed out.") && attempts <= MAX_RETRIES
-              delay = INITIAL_DELAY * (2**(attempts - 1)) # Exponential backoff (5s → 10s → 20s)
-              FastlaneCore::UI.important("⚠️ GitHub API timeout detected. Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
+            if retryable_error?(output_str) && attempts <= MAX_RETRIES
+              delay = INITIAL_DELAY * (2**(attempts - 1))
+              FastlaneCore::UI.important("⚠️ Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
               sleep(delay)
               next
             end
 
-            FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to GitHub API timeouts.") if attempts > MAX_RETRIES
-            return false if attempts > MAX_RETRIES
+            if attempts > MAX_RETRIES
+              FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to persistent server issues.")
+              return false
+            end
 
             raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
           end
@@ -51,8 +53,17 @@ module Fastlane
         false
       end
 
+      def self.duplicate_entry?(msg)
+        msg.include?("[!] Unable to accept duplicate entry for:")
+      end
+
+      def self.retryable_error?(msg)
+        msg.include?("[!] Calling the GitHub commit API timed out.") ||
+          msg.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.")
+      end
+
       def self.description
-        'Pushes a podspec to CocoaPods with retry handling for GitHub timeouts.'
+        'Pushes a podspec to CocoaPods with retry handling for GitHub timeouts and internal server errors.'
       end
 
       def self.authors
@@ -60,11 +71,11 @@ module Fastlane
       end
 
       def self.return_value
-        'Returns true if successful. Retries up to 3 times on GitHub API timeouts. Returns false if fails due to an unexpected error.'
+        'Returns true if successful. Retries up to 3 times on GitHub API timeouts and internal server errors. Returns false on persistent failure.'
       end
 
       def self.details
-        'A custom Fastlane action that wraps `pod_push`, handles duplicate entry errors, and retries on GitHub API timeouts.'
+        'A custom Fastlane action that wraps `pod_push`, handles duplicate entry errors, and retries on GitHub API timeouts and internal server errors.'
       end
 
       def self.is_supported?(platform)
