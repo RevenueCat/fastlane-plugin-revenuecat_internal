@@ -2,37 +2,61 @@ require 'fastlane/action'
 require 'fastlane_core/ui/ui'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane/actions/pod_push'
-require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
     class PodPushUnknownError < StandardError; end
 
     class PodPushWithErrorHandlingAction < Action
+      MAX_RETRIES = 3
+      INITIAL_DELAY = 5
+
       def self.run(params)
-        UI.message("🚀 Running pod_push with path: #{params[:path]}")
+        attempts = 0
 
-        Fastlane::Actions::PodPushAction.run(
-          path: params[:path],
-          synchronous: params[:synchronous],
-          verbose: params[:verbose],
-          allow_warnings: params[:allow_warnings]
-        )
+        while attempts <= MAX_RETRIES
+          attempts += 1
+          UI.message("🚀 Attempt #{attempts}: Running pod_push with path: #{params[:path]}")
 
-        true
-      rescue StandardError => e
-        output_str = e.message
+          begin
+            Fastlane::Actions::PodPushAction.run(
+              path: params[:path],
+              synchronous: params[:synchronous],
+              verbose: params[:verbose],
+              allow_warnings: params[:allow_warnings]
+            )
+            return true
+          rescue StandardError => e
+            output_str = e.message
 
-        if output_str.include?("[!] Unable to accept duplicate entry for:")
-          UI.error("⚠️ Duplicate entry detected. Skipping push.")
-          return false
+            if output_str.include?("[!] Unable to accept duplicate entry for:")
+              UI.error("⚠️ Duplicate entry detected. Skipping push.")
+              return false
+            end
+
+            if output_str.include?("[!] Calling the GitHub commit API timed out.") ||
+               output_str.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.")
+
+              if attempts <= MAX_RETRIES
+                delay = INITIAL_DELAY * (2**(attempts - 1)) # Exponential backoff
+                UI.important("⚠️ Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
+                sleep(delay)
+                next
+              end
+
+              UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to persistent server issues.")
+              return false
+            end
+
+            raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
+          end
         end
 
-        raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
+        false
       end
 
       def self.description
-        "Pushes a podspec to CocoaPods with support for synchronous, verbose, and allow_warnings options."
+        'Pushes a podspec to CocoaPods with retry handling for GitHub timeouts and internal server errors.'
       end
 
       def self.authors
@@ -40,11 +64,11 @@ module Fastlane
       end
 
       def self.return_value
-        "Returns false if the push is skipped due to a duplicate entry, true if successful."
+        'Returns true if successful. Retries up to 3 times on GitHub API timeouts and internal server errors. Returns false on persistent failure.'
       end
 
       def self.details
-        "A custom Fastlane action that wraps `pod_push` and supports all relevant parameters."
+        'A custom Fastlane action that wraps `pod_push`, handles duplicate entry errors, and retries on GitHub API timeouts and internal server errors.'
       end
 
       def self.is_supported?(platform)

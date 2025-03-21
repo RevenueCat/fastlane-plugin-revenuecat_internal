@@ -38,6 +38,55 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
         Fastlane::Actions::PodPushWithErrorHandlingAction.run(path: podspec_path)
       end.to raise_error(Fastlane::Actions::PodPushUnknownError, "❌ Pod push failed: Some unexpected failure")
     end
+
+    it 'retries up to 3 times on GitHub API timeout' do
+      error_message = '[!] Calling the GitHub commit API timed out.'
+      call_count = 0
+
+      allow(Fastlane::Actions::PodPushAction).to receive(:run) do
+        call_count += 1
+        raise StandardError, error_message if call_count <= 3
+
+        'Successfully pushed' # ✅ Succeed on the 4th attempt
+      end
+
+      expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
+      expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times # 3 failures + 1 success
+
+      result = Fastlane::Actions::PodPushWithErrorHandlingAction.run(
+        path: podspec_path,
+        synchronous: true,
+        verbose: false,
+        allow_warnings: false
+      )
+
+      expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
+    end
+
+    it 'retries up to 3 times on internal server error' do
+      error_message = '[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.'
+      call_count = 0
+  
+      allow(Fastlane::Actions::PodPushAction).to receive(:run) do
+        call_count += 1
+        raise StandardError, error_message if call_count <= 3
+  
+        'Successfully pushed' # ✅ Succeed on the 4th attempt
+      end
+  
+      expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
+      expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times # 3 failures + 1 success
+  
+      result = Fastlane::Actions::PodPushWithErrorHandlingAction.run(
+        path: podspec_path,
+        synchronous: true,
+        verbose: false,
+        allow_warnings: false
+      )
+  
+      expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
+    end
+    
   end
 
   describe '#available_options' do
