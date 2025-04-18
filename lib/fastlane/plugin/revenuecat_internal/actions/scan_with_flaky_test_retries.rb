@@ -215,28 +215,28 @@ module Fastlane
 
           # Get all test cases
           all_test_cases = doc.xpath('//testcase')
-          
+
           # Group test cases by their unique identifier (suitename/classname/name)
           test_cases_by_id = {}
-          
+
           all_test_cases.each do |test_case|
             suitename = test_case.parent['name'] # Retrieve the suitename
             classname = test_case['classname']
             name = test_case['name']
             test_id = "#{suitename}/#{classname}/#{name}"
-            
+
             test_cases_by_id[test_id] ||= []
             test_cases_by_id[test_id] << test_case
           end
-          
+
           # For each test, check if it has a failure and no successful retry
           test_cases_by_id.each do |test_id, test_cases|
             # Find test cases with failures
             failed_cases = test_cases.select { |tc| tc.at('failure') }
-            
+
             # Find test cases without failures (successful retries)
             successful_cases = test_cases.select { |tc| !tc.at('failure') }
-            
+
             # If there are failed cases but no successful retries, add to failed tests
             if !failed_cases.empty? && successful_cases.empty?
               failed_tests << test_id
