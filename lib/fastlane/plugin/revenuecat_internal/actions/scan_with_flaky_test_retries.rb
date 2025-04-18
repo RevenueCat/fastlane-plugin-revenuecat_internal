@@ -217,7 +217,7 @@ module Fastlane
             # Skip tests that have a retry_count attribute and no failure node
             # This indicates they failed initially but succeeded in a retry
             next if test_case['retry_count'] && !test_case.at('failure')
-            
+
             suitename = test_case.parent['name'] # Retrieve the suitename
             classname = test_case['classname']
             name = test_case['name']
