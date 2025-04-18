@@ -207,6 +207,7 @@ module Fastlane
       #
       # @param report_path [String] The path of the junit file
       # @param failed_tests_path [String] The path where failed tests should be saved
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.save_failed_tests(report_path:, failed_tests_path:)
         failed_tests = []
 
@@ -235,7 +236,7 @@ module Fastlane
             failed_cases = test_cases.select { |tc| tc.at('failure') }
 
             # Find test cases without failures (successful retries)
-            successful_cases = test_cases.select { |tc| !tc.at('failure') }
+            successful_cases = test_cases.reject { |tc| tc.at('failure') }
 
             # If there are failed cases but no successful retries, add to failed tests
             if !failed_cases.empty? && successful_cases.empty?
@@ -250,6 +251,7 @@ module Fastlane
           end
         end
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       #####################################################
       # @!group Documentation
