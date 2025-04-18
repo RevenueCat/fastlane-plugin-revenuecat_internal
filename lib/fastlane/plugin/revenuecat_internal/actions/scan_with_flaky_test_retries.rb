@@ -203,6 +203,7 @@ module Fastlane
       end
 
       # Saves all the failed method signatures into a text field from a junit report
+      # Only records tests that failed and didn't succeed in retries
       #
       # @param report_path [String] The path of the junit file
       # @param failed_tests_path [String] The path where failed tests should be saved
@@ -213,6 +214,10 @@ module Fastlane
           doc = Nokogiri::XML(File.open(report_path))
 
           doc.xpath('//testcase[failure]').each do |test_case|
+            # Skip tests that have a retry_count attribute and no failure node
+            # This indicates they failed initially but succeeded in a retry
+            next if test_case['retry_count'] && !test_case.at('failure')
+            
             suitename = test_case.parent['name'] # Retrieve the suitename
             classname = test_case['classname']
             name = test_case['name']
