@@ -213,15 +213,34 @@ module Fastlane
         if File.exist?(report_path)
           doc = Nokogiri::XML(File.open(report_path))
 
-          doc.xpath('//testcase[failure]').each do |test_case|
-            # Skip tests that have a retry_count attribute and no failure node
-            # This indicates they failed initially but succeeded in a retry
-            next if test_case['retry_count'] && !test_case.at('failure')
-
+          # Get all test cases
+          all_test_cases = doc.xpath('//testcase')
+          
+          # Group test cases by their unique identifier (suitename/classname/name)
+          test_cases_by_id = {}
+          
+          all_test_cases.each do |test_case|
             suitename = test_case.parent['name'] # Retrieve the suitename
             classname = test_case['classname']
             name = test_case['name']
-            failed_tests << "#{suitename}/#{classname}/#{name}"
+            test_id = "#{suitename}/#{classname}/#{name}"
+            
+            test_cases_by_id[test_id] ||= []
+            test_cases_by_id[test_id] << test_case
+          end
+          
+          # For each test, check if it has a failure and no successful retry
+          test_cases_by_id.each do |test_id, test_cases|
+            # Find test cases with failures
+            failed_cases = test_cases.select { |tc| tc.at('failure') }
+            
+            # Find test cases without failures (successful retries)
+            successful_cases = test_cases.select { |tc| !tc.at('failure') }
+            
+            # If there are failed cases but no successful retries, add to failed tests
+            if !failed_cases.empty? && successful_cases.empty?
+              failed_tests << test_id
+            end
           end
 
           failed_tests = failed_tests.uniq
