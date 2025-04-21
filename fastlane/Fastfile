@@ -91,6 +91,8 @@ lane :sample_flaky_test do
     output_directory: test_artifact_path,
     result_bundle: true,
 
+    number_of_retries: 2,
+
     number_of_flaky_retries: 5
   )
 end
