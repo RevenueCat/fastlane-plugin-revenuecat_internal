@@ -203,20 +203,45 @@ module Fastlane
       end
 
       # Saves all the failed method signatures into a text field from a junit report
+      # Only records tests that failed and didn't succeed in retries
       #
       # @param report_path [String] The path of the junit file
       # @param failed_tests_path [String] The path where failed tests should be saved
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.save_failed_tests(report_path:, failed_tests_path:)
         failed_tests = []
 
         if File.exist?(report_path)
           doc = Nokogiri::XML(File.open(report_path))
 
-          doc.xpath('//testcase[failure]').each do |test_case|
+          # Get all test cases
+          all_test_cases = doc.xpath('//testcase')
+
+          # Group test cases by their unique identifier (suitename/classname/name)
+          test_cases_by_id = {}
+
+          all_test_cases.each do |test_case|
             suitename = test_case.parent['name'] # Retrieve the suitename
             classname = test_case['classname']
             name = test_case['name']
-            failed_tests << "#{suitename}/#{classname}/#{name}"
+            test_id = "#{suitename}/#{classname}/#{name}"
+
+            test_cases_by_id[test_id] ||= []
+            test_cases_by_id[test_id] << test_case
+          end
+
+          # For each test, check if it has a failure and no successful retry
+          test_cases_by_id.each do |test_id, test_cases|
+            # Find test cases with failures
+            failed_cases = test_cases.select { |tc| tc.at('failure') }
+
+            # Find test cases without failures (successful retries)
+            successful_cases = test_cases.reject { |tc| tc.at('failure') }
+
+            # If there are failed cases but no successful retries, add to failed tests
+            if !failed_cases.empty? && successful_cases.empty?
+              failed_tests << test_id
+            end
           end
 
           failed_tests = failed_tests.uniq
@@ -226,6 +251,7 @@ module Fastlane
           end
         end
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       #####################################################
       # @!group Documentation
