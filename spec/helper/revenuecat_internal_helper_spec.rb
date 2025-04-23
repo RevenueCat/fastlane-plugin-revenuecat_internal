@@ -517,6 +517,57 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
+  describe '.create_or_checkout_branch' do
+    let(:branch_name) { 'test-branch' }
+
+    it 'creates a new branch when it does not exist locally or remotely' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "branch", "--list", branch_name).and_return("")
+      allow(Fastlane::Actions).to receive(:sh).with("git", "ls-remote", "--heads", "origin", branch_name).and_return("")
+      allow(FastlaneCore::UI).to receive(:message)
+
+      expect(FastlaneCore::UI).to receive(:message).with("Creating new branch #{branch_name}").once
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout -b '#{branch_name}'").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_or_checkout_branch(branch_name)
+    end
+
+    it 'checks out existing branch when it exists locally but not remotely' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "branch", "--list", branch_name).and_return(branch_name)
+      allow(Fastlane::Actions).to receive(:sh).with("git", "ls-remote", "--heads", "origin", branch_name).and_return("")
+      allow(FastlaneCore::UI).to receive(:message)
+
+      expect(FastlaneCore::UI).to receive(:message).with("Branch #{branch_name} already exists, checking it out").once
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout '#{branch_name}'").once
+      expect(Fastlane::Actions).not_to receive(:sh).with("git pull 'origin' '#{branch_name}'")
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_or_checkout_branch(branch_name)
+    end
+
+    it 'checks out and pulls when branch exists remotely but not locally' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "branch", "--list", branch_name).and_return("")
+      allow(Fastlane::Actions).to receive(:sh).with("git", "ls-remote", "--heads", "origin", branch_name).and_return("refs/heads/#{branch_name}")
+      allow(FastlaneCore::UI).to receive(:message)
+
+      expect(FastlaneCore::UI).to receive(:message).with("Branch #{branch_name} already exists, checking it out").once
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout '#{branch_name}'").once
+      expect(Fastlane::Actions).to receive(:sh).with("git pull 'origin' '#{branch_name}'").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_or_checkout_branch(branch_name)
+    end
+
+    it 'checks out and pulls when branch exists both locally and remotely' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "branch", "--list", branch_name).and_return(branch_name)
+      allow(Fastlane::Actions).to receive(:sh).with("git", "ls-remote", "--heads", "origin", branch_name).and_return("refs/heads/#{branch_name}")
+      allow(FastlaneCore::UI).to receive(:message)
+
+      expect(FastlaneCore::UI).to receive(:message).with("Branch #{branch_name} already exists, checking it out").once
+      expect(Fastlane::Actions).to receive(:sh).with("git checkout '#{branch_name}'").once
+      expect(Fastlane::Actions).to receive(:sh).with("git pull 'origin' '#{branch_name}'").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_or_checkout_branch(branch_name)
+    end
+  end
+
   describe '.commmit_changes_and_push_current_branch' do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with(anything)
@@ -554,6 +605,87 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           team_reviewers: ['coresdk']
         ).once
       Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
+    end
+  end
+
+  describe '.create_pr_if_necessary' do
+    let(:title) { 'Test PR Title' }
+    let(:body) { 'Test PR Body' }
+    let(:repo_name) { 'test-repo' }
+    let(:base_branch) { 'main' }
+    let(:head_branch) { 'feature-branch' }
+    let(:github_pr_token) { 'fake-github-token' }
+    let(:labels) { ['label1', 'label2'] }
+    let(:team_reviewers) { ['team1', 'team2'] }
+    let(:repo_with_owner) { "RevenueCat/#{repo_name}" }
+
+    it 'creates a PR when no matching PR exists' do
+      # Mock the API call to check for existing PRs
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
+        api_token: github_pr_token,
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+      ).and_return({ json: [] })
+
+      # Mock the create PR action
+      expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
+        repo: repo_with_owner,
+        title: title,
+        body: body,
+        base: base_branch,
+        head: head_branch,
+        api_token: github_pr_token,
+        labels: labels,
+        team_reviewers: team_reviewers
+      ).and_return('https://github.com/RevenueCat/test-repo/pull/123')
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr_if_necessary(
+        title, body, repo_name, base_branch, head_branch, github_pr_token, labels, team_reviewers
+      )
+    end
+
+    it 'does not create a PR when a matching PR already exists' do
+      # Mock the API call to check for existing PRs - return a PR
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
+        api_token: github_pr_token,
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+      ).and_return({ json: [{ number: 123, html_url: 'https://github.com/RevenueCat/test-repo/pull/123' }] })
+
+      # The create PR action should not be called
+      expect(Fastlane::Actions::CreatePullRequestAction).not_to receive(:run)
+
+      # Expect a UI message
+      expect(FastlaneCore::UI).to receive(:message).with("PR already exists.")
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr_if_necessary(
+        title, body, repo_name, base_branch, head_branch, github_pr_token, labels, team_reviewers
+      )
+    end
+
+    it 'raises an error when PR creation fails' do
+      # Mock the API call to check for existing PRs
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
+        api_token: github_pr_token,
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+      ).and_return({ json: [] })
+
+      # Mock the create PR action to return nil (failure)
+      expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
+        repo: repo_with_owner,
+        title: title,
+        body: body,
+        base: base_branch,
+        head: head_branch,
+        api_token: github_pr_token,
+        labels: labels,
+        team_reviewers: team_reviewers
+      ).and_return(nil)
+
+      # Expect an error to be raised
+      expect(FastlaneCore::UI).to receive(:user_error!).with("Failed to create pull request.")
+
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr_if_necessary(
+        title, body, repo_name, base_branch, head_branch, github_pr_token, labels, team_reviewers
+      )
     end
   end
 
@@ -814,6 +946,63 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Actions).to receive(:sh).with('git add -u').once
       expect(Fastlane::Actions).to receive(:sh).with("git commit -m 'fake-commit-message'").once
       Fastlane::Helper::RevenuecatInternalHelper.commit_current_changes('fake-commit-message')
+    end
+  end
+
+  describe '.commit_all_changes' do
+    it 'stages all changes and commits with message' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "status", "--porcelain").and_return("M file.txt")
+      allow(File).to receive(:basename).with(Dir.pwd).and_return("not-fastlane")
+
+      expect(Fastlane::Actions).to receive(:sh).with("git", "add", "--all", ".").once
+      expect(Fastlane::Actions).to receive(:sh).with("git", "commit", "-m", "fake-commit-message").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.commit_all_changes('fake-commit-message')
+    end
+
+    it 'does not commit when there are no changes' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "status", "--porcelain").and_return("")
+      allow(FastlaneCore::UI).to receive(:message)
+
+      expect(Fastlane::Actions).not_to receive(:sh).with("git", "add", "--all", ".")
+      expect(Fastlane::Actions).not_to receive(:sh).with("git", "commit", "-m", "fake-commit-message")
+      expect(FastlaneCore::UI).to receive(:message).with("No changes to commit").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.commit_all_changes('fake-commit-message')
+    end
+
+    it 'changes to parent directory when in fastlane directory' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "status", "--porcelain").and_return("M file.txt")
+      allow(File).to receive(:basename).with(Dir.pwd).and_return("fastlane")
+
+      expect(Dir).to receive(:chdir).with("..").and_yield.once
+      expect(Fastlane::Actions).to receive(:sh).with("git", "add", "--all", ".").once
+      expect(Fastlane::Actions).to receive(:sh).with("git", "commit", "-m", "fake-commit-message").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.commit_all_changes('fake-commit-message')
+    end
+
+    it 'stays in current directory when not in fastlane directory' do
+      allow(Fastlane::Actions).to receive(:sh).with("git", "status", "--porcelain").and_return("M file.txt")
+      allow(File).to receive(:basename).with(Dir.pwd).and_return("src")
+
+      expect(Dir).not_to receive(:chdir).with("..")
+      expect(Fastlane::Actions).to receive(:sh).with("git", "add", "--all", ".").once
+      expect(Fastlane::Actions).to receive(:sh).with("git", "commit", "-m", "fake-commit-message").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.commit_all_changes('fake-commit-message')
+    end
+
+    it 'commits untracked files unlike commit_current_changes' do
+      # This test highlights a difference between commit_all_changes and commit_current_changes
+      # git add --all . stages untracked files, while git add -u doesn't
+      allow(Fastlane::Actions).to receive(:sh).with("git", "status", "--porcelain").and_return("?? new_file.txt")
+      allow(File).to receive(:basename).with(Dir.pwd).and_return("not-fastlane")
+
+      expect(Fastlane::Actions).to receive(:sh).with("git", "add", "--all", ".").once
+      expect(Fastlane::Actions).to receive(:sh).with("git", "commit", "-m", "fake-commit-message").once
+
+      Fastlane::Helper::RevenuecatInternalHelper.commit_all_changes('fake-commit-message')
     end
   end
 

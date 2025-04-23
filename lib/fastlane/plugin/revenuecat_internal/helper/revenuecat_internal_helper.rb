@@ -95,6 +95,22 @@ module Fastlane
         Actions.sh("git checkout -b '#{branch_name}'")
       end
 
+      def self.create_or_checkout_branch(branch_name)
+        branch_exists_locally = Actions.sh("git", "branch", "--list", branch_name).length > 0
+        branch_exists_remotely = Actions.sh("git", "ls-remote", "--heads", "origin", branch_name).length > 0
+
+        if branch_exists_locally || branch_exists_remotely
+          UI.message("Branch #{branch_name} already exists, checking it out")
+          Actions.sh("git checkout '#{branch_name}'")
+          if branch_exists_remotely
+            Actions.sh("git pull 'origin' '#{branch_name}'")
+          end
+        else
+          UI.message("Creating new branch #{branch_name}")
+          Actions.sh("git checkout -b '#{branch_name}'")
+        end
+      end
+
       def self.commit_changes_and_push_current_branch(commit_message)
         commit_current_changes(commit_message)
         Actions::PushToGitRemoteAction.run(remote: 'origin')
@@ -112,6 +128,33 @@ module Fastlane
           labels: labels,
           team_reviewers: ['coresdk']
         )
+      end
+
+      def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])
+        repo_with_owner = "RevenueCat/#{repo_name}"
+        existing_pr = Actions::GithubApiAction.run(
+          api_token: github_pr_token,
+          path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+        )
+
+        if existing_pr[:json].length == 0
+          pr_url = Actions::CreatePullRequestAction.run(
+            repo: repo_with_owner,
+            title: title,
+            body: body,
+            base: base_branch,
+            head: head_branch,
+            api_token: github_pr_token,
+            labels: labels,
+            team_reviewers: team_reviewers
+          )
+
+          if pr_url.nil?
+            UI.user_error!("Failed to create pull request.")
+          end
+        else
+          UI.message("PR already exists.")
+        end
       end
 
       def self.validate_local_config_status_for_bump(new_branch, github_pr_token)
@@ -181,6 +224,23 @@ module Fastlane
       def self.commit_current_changes(commit_message)
         Actions.sh('git add -u')
         Actions.sh("git commit -m '#{commit_message}'")
+      end
+
+      def self.commit_all_changes(commit_message)
+        if Actions.sh("git", "status", "--porcelain").empty?
+          UI.message("No changes to commit")
+        else
+          commit_changes = lambda do
+            Actions.sh("git", "add", "--all", ".")
+            Actions.sh("git", "commit", "-m", commit_message)
+          end
+          # Assume any fastlane directory is a subdirectory of the root directory.
+          if File.basename(Dir.pwd) == "fastlane"
+            Dir.chdir("..") { commit_changes.call }
+          else
+            commit_changes.call
+          end
+        end
       end
 
       def self.get_github_release_tag_names(repo_name)
