@@ -19,6 +19,10 @@ module Fastlane
                                       files_to_update_with_patterns,
                                       files_to_update_without_prerelease_modifiers,
                                       files_to_update_on_latest_stable_releases)
+        # Strip whitespace from version numbers to handle newlines from .version files
+        previous_version_number = previous_version_number.to_s.strip
+        new_version_number = new_version_number.to_s.strip
+        
         previous_version_number_without_prerelease_modifiers = previous_version_number.split(DELIMITER_PRERELEASE)[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split(DELIMITER_PRERELEASE)[0]
         files_to_update_with_patterns.each do |file_to_update, patterns|
@@ -210,16 +214,6 @@ module Fastlane
         if new_text.to_s.strip.empty? && !allow_empty
           UI.user_error!("Missing `new_text` in call to `replace_in`, looking for replacement for #{previous_text} 😵.")
         end
-        
-        # Strip whitespace from version numbers to handle newlines in .version files
-        previous_text = previous_text.to_s.strip
-        new_text = new_text.to_s.strip
-        
-        unless File.exist?(path)
-          UI.error("File does not exist: #{path}")
-          return
-        end
-        
         original_text = File.read(path)
         replaced_text = original_text
         patterns.each do |pattern|
@@ -228,9 +222,7 @@ module Fastlane
           replaced_text = replaced_text.gsub(replaced_previous_text, replaced_new_text)
         end
 
-        if original_text != replaced_text
-          File.write(path, replaced_text)
-        end
+        File.write(path, replaced_text)
       end
 
       def self.commit_current_changes(commit_message)
