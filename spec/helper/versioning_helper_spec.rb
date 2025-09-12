@@ -466,6 +466,188 @@ describe Fastlane::Helper::VersioningHelper do
               api_token: 'mock-github-token')
         .and_return(purchases_ios_releases)
     end
+
+    context 'warning text functionality' do
+      let(:empty_changelog_sections) do
+        {
+          revenuecat_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            functionalities: {}
+          },
+          revenuecatui_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            functionalities: {}
+          },
+          other: []
+        }
+      end
+
+      it 'includes warning text for Unity SDK' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'purchases-unity')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 8.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n"
+
+        expect(result).to eq(expected_result)
+      end
+
+      it 'includes warning text for Flutter SDK with correct version' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'purchases-flutter')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 9.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n"
+
+        expect(result).to eq(expected_result)
+      end
+
+      it 'includes warning text for React Native SDK' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'react-native-purchases')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 9.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n"
+
+        expect(result).to eq(expected_result)
+      end
+
+      it 'does not include warning text for non-SDK repositories' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'some-other-repo')
+        expect(result).to eq("")
+      end
+
+      it 'does not include warning text when repo_name is nil' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, nil)
+        expect(result).to eq("")
+      end
+
+      it 'includes warning text for Android SDK' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'purchases-android')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 9.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n"
+
+        expect(result).to eq(expected_result)
+      end
+
+      it 'includes warning text for KMP SDK' do
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, empty_changelog_sections, 'purchases-kmp')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 2.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n"
+
+        expect(result).to eq(expected_result)
+      end
+
+      it 'includes warning text along with changelog content' do
+        changelog_sections_with_content = empty_changelog_sections.dup
+        changelog_sections_with_content[:revenuecat_sdk][:new_features] = ["* Some new feature"]
+
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, changelog_sections_with_content, 'purchases-unity')
+
+        # Check that warning appears at the very top before any sections
+        expect(result).to start_with("> [!WARNING]")
+        expect(result).to include("version 8.0.0")
+        expect(result).to include("## RevenueCat SDK")
+        expect(result).to include("### ✨ New Features")
+        expect(result).to include("* Some new feature")
+      end
+
+      it 'includes warning text in correct position with full comprehensive changelog' do
+        # Create a full changelog with all types of sections
+        full_changelog_sections = {
+          revenuecat_sdk: {
+            breaking_changes: ["* Breaking change in API (#1000) via Developer (@dev1)"],
+            new_features: [
+              "* Added awesome new feature (#1001) via Developer (@dev2)",
+              "* Another amazing feature (#1002) via Developer (@dev3)"
+            ],
+            fixes: [
+              "* Fixed critical bug (#1003) via Developer (@dev4)",
+              "* Fixed memory leak (#1004) via Developer (@dev5)"
+            ],
+            dependency_updates: ["* Updated native SDK to v10.0.0 (#1005) via Developer (@dev6)"],
+            functionalities: {
+              "customer center" => {
+                new_features: ["* Customer Center: Added support page (#1006) via Developer (@dev7)"],
+                fixes: ["* Customer Center: Fixed crash (#1007) via Developer (@dev8)"]
+              }
+            }
+          },
+          revenuecatui_sdk: {
+            breaking_changes: [],
+            new_features: ["* RevenueCatUI: New paywall template (#1008) via Developer (@dev9)"],
+            fixes: [],
+            dependency_updates: [],
+            functionalities: {}
+          },
+          other: ["* Updated documentation (#1009) via Developer (@dev10)"]
+        }
+
+        result = Fastlane::Helper::VersioningHelper.send(:build_changelog_sections, full_changelog_sections, 'purchases-android')
+
+        expected_result = "> [!WARNING]  \n" \
+                          "> If you don't have any login system in your app, please make sure your one-time purchase products have been correctly configured in the RevenueCat dashboard as either " \
+                          "consumable or non-consumable. If they're incorrectly configured as consumables, RevenueCat will consume these purchases. This means that " \
+                          "users won't be able to restore them from version 9.0.0 onward.\n" \
+                          "> Non-consumables are products that are meant to be bought only once, for example, lifetime subscriptions.\n\n\n" \
+                          "## RevenueCat SDK\n" \
+                          "### 💥 Breaking Changes\n" \
+                          "* Breaking change in API (#1000) via Developer (@dev1)\n" \
+                          "### ✨ New Features\n" \
+                          "* Added awesome new feature (#1001) via Developer (@dev2)\n" \
+                          "* Another amazing feature (#1002) via Developer (@dev3)\n" \
+                          "### 🐞 Bugfixes\n" \
+                          "* Fixed critical bug (#1003) via Developer (@dev4)\n" \
+                          "* Fixed memory leak (#1004) via Developer (@dev5)\n" \
+                          "### 📦 Dependency Updates\n" \
+                          "* Updated native SDK to v10.0.0 (#1005) via Developer (@dev6)\n" \
+                          "### Customer Center\n" \
+                          "#### ✨ New Features\n" \
+                          "* Customer Center: Added support page (#1006) via Developer (@dev7)\n" \
+                          "#### 🐞 Bugfixes\n" \
+                          "* Customer Center: Fixed crash (#1007) via Developer (@dev8)\n\n" \
+                          "## RevenueCatUI SDK\n" \
+                          "### ✨ New Features\n" \
+                          "* RevenueCatUI: New paywall template (#1008) via Developer (@dev9)\n\n" \
+                          "### 🔄 Other Changes\n" \
+                          "* Updated documentation (#1009) via Developer (@dev10)"
+
+        expect(result).to eq(expected_result)
+
+        # Also verify that the warning appears at the very top before any sections
+        lines = result.split("\n")
+        warning_line_index = lines.index("> [!WARNING]  ")
+        revenuecat_sdk_index = lines.index("## RevenueCat SDK")
+        first_section_index = lines.index("### 💥 Breaking Changes")
+
+        expect(warning_line_index).not_to be_nil
+        expect(revenuecat_sdk_index).not_to be_nil
+        expect(first_section_index).not_to be_nil
+        expect(warning_line_index).to eq(0) # Warning should be the very first line
+        expect(revenuecat_sdk_index).to be > warning_line_index # SDK header should be after warning
+        expect(first_section_index).to be > revenuecat_sdk_index # First section should be after SDK header
+      end
+    end
   end
 
   describe '.determine_next_version_using_labels' do

@@ -116,7 +116,7 @@ module Fastlane
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
         end
-        build_changelog_sections(changelog_sections)
+        build_changelog_sections(changelog_sections, repo_name)
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
@@ -269,8 +269,15 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      private_class_method def self.build_changelog_sections(changelog_sections)
+      private_class_method def self.build_changelog_sections(changelog_sections, repo_name = nil)
         sections = []
+
+        if repo_name && SDK_WARNING_VERSIONS[repo_name]
+          warning_version = SDK_WARNING_VERSIONS[repo_name]
+          warning_text = format(OTP_WARNING_TEXT, version: warning_version)
+          sections << warning_text
+        end
+
         standard_sections = [
           [:breaking_changes, "### 💥 Breaking Changes"],
           [:new_features, "### ✨ New Features"],
