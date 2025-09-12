@@ -332,11 +332,11 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'handles version numbers with trailing newlines (like from .version files)' do
       File.write(file_to_update_1, 'return "7.1.1"')
       File.write(file_to_update_2, '"version": "7.1.1"')
-      
+
       # Simulate version read from .version file with trailing newline
       version_with_newline = "7.1.1\n"
       new_version = '7.2.0'
-      
+
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('7.2.0')).and_return('7.0.0')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         version_with_newline,
@@ -345,18 +345,18 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         {},
         {}
       )
-      
+
       expect(File.read(file_to_update_1)).to eq('return "7.2.0"')
       expect(File.read(file_to_update_2)).to eq('"version": "7.2.0"')
     end
 
     it 'handles version numbers with trailing whitespace and newlines' do
       File.write(file_to_update_1, 'PLUGIN_VERSION = "5.1.0"')
-      
+
       # Simulate version read from file with various whitespace
       version_with_whitespace = "  5.1.0\n\t  "
-      new_version = '  5.2.0  '  # Also test new version with whitespace
-      
+      new_version = '  5.2.0  ' # Also test new version with whitespace
+
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('5.2.0')).and_return('5.0.0')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         version_with_whitespace,
@@ -365,7 +365,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         {},
         {}
       )
-      
+
       expect(File.read(file_to_update_1)).to eq('PLUGIN_VERSION = "5.2.0"')
     end
   end
@@ -979,7 +979,6 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3', '4.4.0-SNAPSHOT', tmp_test_file_path)
       expect(File.read(tmp_test_file_path)).to eq(contents)
     end
-
   end
 
   describe '.commit_current_changes' do

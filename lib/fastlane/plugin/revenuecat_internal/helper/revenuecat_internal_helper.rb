@@ -22,7 +22,7 @@ module Fastlane
         # Strip whitespace from version numbers to handle newlines from .version files
         previous_version_number = previous_version_number.to_s.strip
         new_version_number = new_version_number.to_s.strip
-        
+
         previous_version_number_without_prerelease_modifiers = previous_version_number.split(DELIMITER_PRERELEASE)[0]
         new_version_number_without_prerelease_modifiers = new_version_number.split(DELIMITER_PRERELEASE)[0]
         files_to_update_with_patterns.each do |file_to_update, patterns|
