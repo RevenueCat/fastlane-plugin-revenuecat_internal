@@ -271,13 +271,13 @@ module Fastlane
       # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.build_changelog_sections(changelog_sections, repo_name = nil)
         sections = []
-        
+
         warning_text = nil
         if repo_name && SDK_WARNING_VERSIONS[repo_name]
           warning_version = SDK_WARNING_VERSIONS[repo_name]
-          warning_text = OTP_WARNING_TEXT % { version: warning_version }
+          warning_text = format(OTP_WARNING_TEXT, version: warning_version)
         end
-        
+
         standard_sections = [
           [:breaking_changes, "### 💥 Breaking Changes"],
           [:new_features, "### ✨ New Features"],
