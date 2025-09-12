@@ -272,10 +272,10 @@ module Fastlane
       private_class_method def self.build_changelog_sections(changelog_sections, repo_name = nil)
         sections = []
 
-        warning_text = nil
         if repo_name && SDK_WARNING_VERSIONS[repo_name]
           warning_version = SDK_WARNING_VERSIONS[repo_name]
           warning_text = format(OTP_WARNING_TEXT, version: warning_version)
+          sections << warning_text
         end
 
         standard_sections = [
@@ -290,10 +290,6 @@ module Fastlane
           sdk_content = []
           sdk_name = sdk == :revenuecat_sdk ? "RevenueCat SDK" : "RevenueCatUI SDK"
           sdk_content << "## #{sdk_name}"
-
-          if sdk == :revenuecat_sdk && warning_text
-            sdk_content << warning_text
-          end
 
           # Handle standard sections (non-functionality specific changes)
           standard_sections.each do |section_name, title|
