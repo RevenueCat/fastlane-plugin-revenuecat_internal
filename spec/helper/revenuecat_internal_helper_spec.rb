@@ -939,6 +939,26 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.replace_in('4.1.3', '4.4.0-SNAPSHOT', tmp_test_file_path)
       expect(File.read(tmp_test_file_path)).to eq(contents)
     end
+
+    it 'handles version numbers with trailing newlines (like from .version files)' do
+      File.write(tmp_test_file_path, 'return "7.1.1"')
+      version_with_newline = "7.1.1\n"
+      new_version = '7.2.0'
+      pattern = 'return "{x}"'
+      
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in(version_with_newline, new_version, tmp_test_file_path, [pattern])
+      expect(File.read(tmp_test_file_path)).to eq('return "7.2.0"')
+    end
+
+    it 'handles version numbers with trailing whitespace and newlines' do
+      File.write(tmp_test_file_path, '"version": "5.1.0"')
+      version_with_whitespace = "  5.1.0\n\t  "
+      new_version = '  5.2.0  '
+      pattern = '"version": "{x}"'
+      
+      Fastlane::Helper::RevenuecatInternalHelper.replace_in(version_with_whitespace, new_version, tmp_test_file_path, [pattern])
+      expect(File.read(tmp_test_file_path)).to eq('"version": "5.2.0"')
+    end
   end
 
   describe '.commit_current_changes' do
