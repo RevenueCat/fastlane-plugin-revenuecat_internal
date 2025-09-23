@@ -27,6 +27,34 @@ module Fastlane
         return items
       end
 
+      def self.check_authentication_and_rate_limits(github_token)
+        if github_token.nil? || github_token.empty?
+          UI.message("No GitHub token provided - requests will be unauthenticated (60 req/hour)")
+          return { authenticated: false, primary_limit: 60 }
+        end
+
+        begin
+          # Get rate limit status (doesn't count against rate limit)
+          response = Actions::GithubApiAction.run(
+            server_url: 'https://api.github.com',
+            path: '/rate_limit',
+            http_method: 'GET',
+            api_token: github_token
+          )
+
+          rate_data = JSON.parse(response[:body].force_encoding('UTF-8'))
+          core_remaining = rate_data.dig('resources', 'core', 'remaining') || 0
+          core_limit = rate_data.dig('resources', 'core', 'limit') || 0
+
+          UI.message("GitHub rate limit: #{core_remaining}/#{core_limit} remaining")
+
+          return { authenticated: core_limit > 60, rate_limit_remaining: core_remaining }
+        rescue StandardError => e
+          UI.message("Could not check rate limits: #{e.message}")
+          return { authenticated: false, error: e.message }
+        end
+      end
+
       def self.get_commits_since_old_version(github_token, old_version, repo_name)
         commit_head = Actions::LastGitCommitAction.run({})
         path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...#{commit_head[:commit_hash]}"
