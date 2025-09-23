@@ -49,7 +49,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with('release/1.13.0', mock_github_pr_token)
         .once
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, nil, nil)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version)
         .and_return(auto_generated_changelog)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
