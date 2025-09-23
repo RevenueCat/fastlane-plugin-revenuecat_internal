@@ -61,7 +61,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag: new_version_number)
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)

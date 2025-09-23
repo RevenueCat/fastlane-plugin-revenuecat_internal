@@ -45,10 +45,10 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag)
         base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
-        old_version = latest_version_number(include_prereleases: include_prereleases)
+        old_version = latest_version_number_less_than(target_tag, include_prereleases: include_prereleases)
         UI.important("Auto-generating changelog since #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -263,6 +263,38 @@ module Fastlane
         end
 
         tags.max_by do |tag|
+          version, = tag.split(DELIMITER_BUILD_METADATA)
+          Gem::Version.new(version)
+        end
+      end
+
+      private_class_method def self.latest_version_number_less_than(target_tag, include_prereleases: false)
+        return nil if target_tag.nil? || target_tag.strip.empty?
+
+        target_version, = target_tag.split(DELIMITER_BUILD_METADATA)
+        unless Gem::Version.correct?(target_version)
+          UI.user_error!("Invalid target tag: #{target_tag}")
+        end
+
+        tags = Actions
+               .sh("git tag", log: false)
+               .strip
+               .split("\n")
+               .select do |tag|
+                 version, metadata = tag.split(DELIMITER_BUILD_METADATA)
+                 Gem::Version.correct?(version) && (metadata.nil? || is_build_metadata(metadata))
+               end
+
+        unless include_prereleases
+          tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{PATTERN_BUILD_METADATA}))?$") }
+        end
+
+        lower_tags = tags.select do |tag|
+          version, = tag.split(DELIMITER_BUILD_METADATA)
+          Gem::Version.new(version) < Gem::Version.new(target_version)
+        end
+
+        lower_tags.max_by do |tag|
           version, = tag.split(DELIMITER_BUILD_METADATA)
           Gem::Version.new(version)
         end

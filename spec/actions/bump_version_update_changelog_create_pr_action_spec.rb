@@ -94,7 +94,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'generates changelog with appropriate parameters when bumping a hybrid SDK' do
       setup_stubs
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, versions_file_path)
+        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, versions_file_path, new_version)
         .and_return(auto_generated_changelog)
         .once
 
@@ -465,7 +465,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, nil)
+        .with(mock_repo_name, mock_github_token, 3, false, hybrid_common_version, nil, new_version)
         .and_return(auto_generated_changelog)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
@@ -518,7 +518,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:important).with(anything)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil)
+        .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil, new_version)
         .and_return(auto_generated_changelog)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
@@ -609,7 +609,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with('release/1.13.0', mock_github_pr_token)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, nil, nil)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version)
         .and_return(auto_generated_changelog)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path)
