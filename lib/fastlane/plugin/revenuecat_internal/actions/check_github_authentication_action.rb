@@ -14,6 +14,9 @@ module Fastlane
           UI.message("- Set environment variable")
           UI.message("- Ensure your token has the required permissions")
           UI.message("- Check that the token hasn't expired")
+          if github_token && github_token.length > 4
+            UI.message("- Token ending in: ...#{github_token[-4..]}")
+          end
         end
 
         auth_status
