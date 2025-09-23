@@ -6,6 +6,7 @@ require_relative '../helper/versioning_helper'
 module Fastlane
   module Actions
     class BumpVersionUpdateChangelogCreatePrAction < Action
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         repo_name = params[:repo_name]
         github_pr_token = params[:github_pr_token]
@@ -61,6 +62,15 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.validate_local_config_status_for_bump(new_branch_name, github_pr_token)
 
+        if github_token && !github_token.empty?
+          auth_status = Helper::GitHubHelper.check_authentication_and_rate_limits(github_token)
+          unless auth_status[:authenticated]
+            UI.user_error!("GitHub authentication failed.")
+          end
+        else
+          UI.important("No github_token provided.")
+        end
+
         generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path)
 
         if UI.interactive?
@@ -91,6 +101,7 @@ module Fastlane
 
         Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def self.description
         "Bumps sdk version, asks to update changelog and creates PR with changes."
@@ -166,7 +177,7 @@ module Fastlane
                                        type: Integer),
           FastlaneCore::ConfigItem.new(key: :editor,
                                        env_name: "RC_INTERNAL_FASTLANE_EDITOR",
-                                       description: "Allows to override editor to be used when editting the changelog",
+                                       description: "Allows to override editor to be used when editing the changelog",
                                        optional: true,
                                        default_value: "vim",
                                        type: String),

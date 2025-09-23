@@ -50,6 +50,9 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
         'Successfully pushed' # ✅ Succeed on the 4th attempt
       end
 
+      # Mock sleep to prevent actual delays during testing
+      allow_any_instance_of(Object).to receive(:sleep)
+
       expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
       expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times # 3 failures + 1 success
 
@@ -73,6 +76,9 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
 
         'Successfully pushed' # ✅ Succeed on the 4th attempt
       end
+
+      # Mock sleep to prevent actual delays during testing
+      allow_any_instance_of(Object).to receive(:sleep)
 
       expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
       expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times # 3 failures + 1 success
