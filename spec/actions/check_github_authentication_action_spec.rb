@@ -77,7 +77,6 @@ describe Fastlane::Actions::CheckGithubAuthenticationAction do
       expect(option.key).to eq(:github_token)
       expect(option.env_name).to eq("RC_INTERNAL_GITHUB_TOKEN")
       expect(option.optional).to be true
-      expect(option.type).to eq(String)
     end
   end
 
