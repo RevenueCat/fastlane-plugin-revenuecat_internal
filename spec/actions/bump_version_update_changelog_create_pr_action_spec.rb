@@ -112,8 +112,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(auto_generated_changelog, mock_changelog_latest_path, editor)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:create_new_branch_and_checkout)
-        .with(new_branch_name)
-        .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version,
               new_version,
@@ -124,12 +122,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
-        .with("Version bump for #{new_version}")
-        .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
-        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:commit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:create_pr)
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
