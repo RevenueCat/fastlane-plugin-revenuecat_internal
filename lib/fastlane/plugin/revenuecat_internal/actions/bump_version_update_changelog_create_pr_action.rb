@@ -24,6 +24,7 @@ module Fastlane
         versions_file_path = params[:versions_file_path]
         include_prereleases = params[:is_prerelease]
         append_phc_version_if_next_version_is_not_prerelease = params[:append_phc_version_if_next_version_is_not_prerelease]
+        dry_run = params[:dry_run]
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -32,7 +33,10 @@ module Fastlane
         )
 
         current_branch = Actions.git_branch
-        if UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
+        if dry_run
+          UI.important("Dry run mode enabled. No changes will be made.")
+          UI.important("Current branch is #{current_branch}")
+        elsif UI.interactive? && !UI.confirm("Current branch is #{current_branch}. Are you sure this is the base branch for your bump?")
           UI.user_error!("Cancelled during branch confirmation")
         end
 
@@ -71,25 +75,31 @@ module Fastlane
 
         changelog = File.read(changelog_latest_path)
 
-        Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
+        unless dry_run
+          Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
+        end
+        
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,
                                                                 files_to_update_without_prerelease_modifiers,
                                                                 files_to_update_on_latest_stable_releases)
         Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
-        Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
-        pr_title = "Release/#{new_version_number}"
-        label = 'pr:next_release'
-        body = changelog
+        unless dry_run
+          Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
-        if automatic_release
-          body = "**This is an automatic release.**\n\n#{body}"
-          pr_title = "[AUTOMATIC] #{pr_title}"
+          pr_title = "Release/#{new_version_number}"
+          label = 'pr:next_release'
+          body = changelog
+
+          if automatic_release
+            body = "**This is an automatic release.**\n\n#{body}"
+            pr_title = "[AUTOMATIC] #{pr_title}"
+          end
+
+          Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
         end
-
-        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
       end
 
       def self.description
@@ -196,7 +206,12 @@ module Fastlane
                                        description: "Whether to append the hybrid_common_version to the new version number, if that new version number is not a pre-release version",
                                        optional: true,
                                        is_string: false,
-                                       default_value: nil)
+                                       default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :dry_run,
+                                       description: "Whether to run the action in dry run mode",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 
