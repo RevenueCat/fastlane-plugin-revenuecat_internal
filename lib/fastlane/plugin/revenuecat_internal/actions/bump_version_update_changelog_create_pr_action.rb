@@ -88,7 +88,7 @@ module Fastlane
         unless dry_run
           Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(new_branch_name)
         end
-        
+
         Helper::RevenuecatInternalHelper.replace_version_number(version_number,
                                                                 new_version_number,
                                                                 files_to_update,

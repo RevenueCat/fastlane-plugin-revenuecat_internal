@@ -99,8 +99,10 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-      expect(FastlaneCore::UI).to receive(:important).with("Dry run mode enabled. No changes will be made.")
-      expect(FastlaneCore::UI).to receive(:important).with("Current branch is #{base_branch}")
+      allow(Fastlane::Helper::GitHubHelper).to receive(:check_authentication_and_rate_limits)
+        .with(mock_github_token)
+        .and_return({ authenticated: true, rate_limit_remaining: 5000 })
+      expect(FastlaneCore::UI).not_to receive(:confirm)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
         .with('release/1.13.0', mock_github_pr_token)
         .once
@@ -111,7 +113,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
         .with(auto_generated_changelog, mock_changelog_latest_path, editor)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:create_new_branch_and_checkout)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_new_branch_and_checkout))
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
         .with(current_version,
               new_version,
@@ -122,8 +124,8 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:commit_changes_and_push_current_branch)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:create_pr)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:commit_changes_and_push_current_branch))
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_pr))
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
@@ -575,7 +577,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(FastlaneCore::UI).to receive(:important).with(anything)
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
       allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil, new_version)
+        .with(mock_repo_name, mock_github_token, 3, is_prerelease, hybrid_common_version, nil, expected_version)
         .and_return(auto_generated_changelog)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
