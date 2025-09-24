@@ -38,6 +38,14 @@ module Fastlane
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+        
+        if type_of_bump == :major && current_version
+          latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
+          current_major = current_version.split('.').first
+          if latest_major != current_major
+            UI.user_error!("Cannot release a new major version after #{current_major} because there already exists a greater major version (#{latest_major})")
+          end
+        end
 
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
