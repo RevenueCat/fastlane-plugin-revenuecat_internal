@@ -91,6 +91,60 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
+    it 'calls all the appropriate methods with appropriate parameters in dry run mode' do
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
+      expect(FastlaneCore::UI).to receive(:important).with("Dry run mode enabled. No changes will be made.")
+      expect(FastlaneCore::UI).to receive(:important).with("Current branch is #{base_branch}")
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
+        .with('release/1.13.0', mock_github_pr_token)
+        .once
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version)
+        .and_return(auto_generated_changelog)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
+        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not receive(:create_new_branch_and_checkout)
+        .with(new_branch_name)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
+        .with(current_version,
+              new_version,
+              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+        .with(new_version, mock_changelog_latest_path, mock_changelog_path)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
+        .with("Version bump for #{new_version}")
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .once
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        is_prerelease: false,
+        dry_run: true
+      )
+    end
+
     it 'generates changelog with appropriate parameters when bumping a hybrid SDK' do
       setup_stubs
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
