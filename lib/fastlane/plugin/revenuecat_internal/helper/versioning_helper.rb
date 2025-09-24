@@ -31,8 +31,8 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
-        old_version = latest_version_number(include_prereleases: include_prereleases)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version = nil)
+        old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
@@ -248,7 +248,7 @@ module Fastlane
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      private_class_method def self.latest_version_number(include_prereleases: false)
+      private_class_method def self.latest_version_number(include_prereleases: false, current_version: nil)
         tags = Actions
                .sh("git tag", log: false)
                .strip
@@ -260,6 +260,11 @@ module Fastlane
 
         unless include_prereleases
           tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{PATTERN_BUILD_METADATA}))?$") }
+        end
+
+        # If current_version is provided, consider only the tags for the same major
+        if current_version
+          tags = tags.select { |tag| tag.split('.')[0] == current_version.split('.')[0] }
         end
 
         tags.max_by do |tag|
