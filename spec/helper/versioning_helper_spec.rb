@@ -131,7 +131,8 @@ describe Fastlane::Helper::VersioningHelper do
         0,
         false,
         nil,
-        nil
+        nil,
+        '4.6.0'
       )
       expect(changelog).to eq("## RevenueCat SDK\n" \
                               "### ✨ New Features\n" \
@@ -156,7 +157,8 @@ describe Fastlane::Helper::VersioningHelper do
         0,
         false,
         nil,
-        nil
+        nil,
+        '4.6.0'
       )
       expect(changelog).to eq("## RevenueCat SDK\n" \
                               "### ✨ New Features\n" \
