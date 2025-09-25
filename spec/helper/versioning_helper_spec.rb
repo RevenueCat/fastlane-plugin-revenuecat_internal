@@ -150,7 +150,7 @@ describe Fastlane::Helper::VersioningHelper do
     end
 
     it 'generates changelog automatically from github commits including feat section' do
-      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features)
+      setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features, 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
 
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
