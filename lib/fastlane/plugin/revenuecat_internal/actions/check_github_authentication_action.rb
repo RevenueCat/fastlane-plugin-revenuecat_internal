@@ -37,7 +37,7 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :github_token,
-                                       env_name: "RC_INTERNAL_GITHUB_TOKEN",
+                                       env_name: "GITHUB_TOKEN",
                                        description: "GitHub token to check authentication for",
                                        optional: true,
                                        type: String)
