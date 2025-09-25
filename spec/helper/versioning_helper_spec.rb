@@ -14,6 +14,8 @@ describe Fastlane::Helper::VersioningHelper do
     allow(Fastlane::Actions).to receive(:git_branch).and_return('main')
   end
 
+  let(:all_existing_tags) { ['0.1.0', '0.1.1', '1.11.0', '1.1.1.1', '1.1.1-alpha.1', '1.10.1'] }
+
   describe '.auto_generate_changelog' do
     let(:server_url) { 'https://api.github.com' }
     let(:http_method) { 'GET' }
@@ -806,6 +808,26 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:patch)
     end
 
+    it 'determines next version as patch if labeled as force_patch if current version is provided' do
+      # Every PR is labeled with both pr:other and pr:force_patch. Just pr:other would lead to this bump being skipped,
+      # but the force_patch label should take precedence.
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_patch_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        '1.11.0-SNAPSHOT'
+      )
+      expect(next_version).to eq("1.11.1")
+      expect(type_of_bump).to eq(:patch)
+    end
+
     it 'skips next version if no release is needed' do
       setup_commit_search_stubs(hashes_to_responses)
       mock_commits_since_last_release('1285b6df6fb756d8b31337be9dabbf3ec5c0bbfe', get_commits_response_skip)
@@ -860,6 +882,31 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:minor)
     end
 
+    it 'determine next version as minor if labeled as force_minor if current version is provided' do
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_minor_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_minor_label_commit_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        '1.12.0-SNAPSHOT'
+      )
+      expect(next_version).to eq("1.12.0")
+      expect(type_of_bump).to eq(:minor)
+    end
+
     it 'determines next version as major correctly' do
       setup_commit_search_stubs(hashes_to_responses)
 
@@ -879,6 +926,52 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(next_version).to eq("2.0.0")
       expect(type_of_bump).to eq(:major)
+    end
+
+    it 'determines next version as major correctly when current version is provided' do
+      setup_commit_search_stubs(hashes_to_responses)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_breaking_commit_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        '1.12.0-SNAPSHOT'
+      )
+      expect(next_version).to eq("2.0.0")
+      expect(type_of_bump).to eq(:major)
+    end
+
+    it 'determine next version throws error for major when current version is from a previous major' do
+      v2_tags = ['2.0.0', '2.1.0', '2.1.1']
+      setup_commit_search_stubs(hashes_to_responses, tags: all_existing_tags + v2_tags)
+
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:a72c0435ecf71248f311900475e881cc07ac2eaf',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return(get_breaking_commit_response)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      
+      expect do
+        Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          '1.12.0-SNAPSHOT'
+        )
+      end.to raise_exception(StandardError)
     end
 
     it 'sleeps between getting commits info if passing rate limit sleep' do
@@ -1202,17 +1295,18 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
-  def setup_tag_stubs
+  def setup_tag_stubs(tags: all_existing_tags)
     allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
     allow(Fastlane::Actions).to receive(:sh)
       .with("git tag", log: false)
-      .and_return("0.1.0\n0.1.1\n1.11.0\n1.1.1.1\n1.1.1-alpha.1\n1.10.1")
+      .and_return(tags.join("\n"))
   end
 
   def setup_commit_search_stubs(hashes_to_responses,
                                 commits_response = get_commits_response,
-                                last_release_sha = 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
-    setup_tag_stubs
+                                last_release_sha = 'cfdd80f73d8c91121313d72227b4cbe283b57c1e',
+                                tags: ['0.1.0', '0.1.1', '1.11.0', '1.1.1.1', '1.1.1-alpha.1', '1.10.1'])
+    setup_tag_stubs(tags: tags)
     mock_commits_since_last_release(last_release_sha, commits_response)
     hashes_to_responses.each do |hash, response|
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
