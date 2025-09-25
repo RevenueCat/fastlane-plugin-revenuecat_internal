@@ -175,7 +175,7 @@ module Fastlane
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :github_token,
-                                       env_name: "RC_INTERNAL_GITHUB_TOKEN",
+                                       env_name: "GITHUB_TOKEN",
                                        description: "Github token to use to prepopulate the changelog",
                                        optional: true,
                                        type: String),

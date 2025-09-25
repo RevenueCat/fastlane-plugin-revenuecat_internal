@@ -75,7 +75,7 @@ describe Fastlane::Actions::CheckGithubAuthenticationAction do
     it 'has github_token option with correct configuration' do
       option = Fastlane::Actions::CheckGithubAuthenticationAction.available_options.first
       expect(option.key).to eq(:github_token)
-      expect(option.env_name).to eq("RC_INTERNAL_GITHUB_TOKEN")
+      expect(option.env_name).to eq("GITHUB_TOKEN")
       expect(option.optional).to be true
     end
   end
