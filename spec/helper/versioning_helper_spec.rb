@@ -962,7 +962,7 @@ describe Fastlane::Helper::VersioningHelper do
               api_token: 'mock-github-token')
         .and_return(get_breaking_commit_response)
       expect_any_instance_of(Object).not_to receive(:sleep)
-      
+
       expect do
         Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
           'mock-repo-name',

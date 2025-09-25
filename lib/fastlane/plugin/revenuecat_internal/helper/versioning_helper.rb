@@ -38,7 +38,7 @@ module Fastlane
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
-        
+
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
           current_major = current_version.split('.').first
@@ -254,7 +254,6 @@ module Fastlane
 
         true
       end
-      # rubocop:enable Metrics/PerceivedComplexity
 
       private_class_method def self.latest_version_number(include_prereleases: false, current_version: nil)
         tags = Actions
@@ -281,7 +280,6 @@ module Fastlane
         end
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.latest_version_number_smaller_than(target_tag, include_prereleases: false)
         return latest_version_number(include_prereleases: include_prereleases) if target_tag.nil? || target_tag.strip.empty?
 
