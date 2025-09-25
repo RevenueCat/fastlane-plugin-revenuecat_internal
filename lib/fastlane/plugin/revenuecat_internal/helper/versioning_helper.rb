@@ -31,13 +31,21 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases)
-        old_version = latest_version_number(include_prereleases: include_prereleases)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version = nil)
+        old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
         type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+
+        if type_of_bump == :major && current_version
+          latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
+          current_major = current_version.split('.').first
+          if latest_major != current_major
+            UI.user_error!("Cannot release a new major version after #{current_major} because there already exists a greater major version (#{latest_major})")
+          end
+        end
 
         UI.important("Type of bump after version #{old_version} is #{type_of_bump}")
 
@@ -246,9 +254,8 @@ module Fastlane
 
         true
       end
-      # rubocop:enable Metrics/PerceivedComplexity
 
-      private_class_method def self.latest_version_number(include_prereleases: false)
+      private_class_method def self.latest_version_number(include_prereleases: false, current_version: nil)
         tags = Actions
                .sh("git tag", log: false)
                .strip
@@ -262,13 +269,17 @@ module Fastlane
           tags = tags.select { |tag| tag.match("^[0-9]+.[0-9]+.[0-9]+(\\+(#{PATTERN_BUILD_METADATA}))?$") }
         end
 
+        # If current_version is provided, consider only the tags for the same major
+        if current_version
+          tags = tags.select { |tag| tag.split('.')[0] == current_version.split('.')[0] }
+        end
+
         tags.max_by do |tag|
           version, = tag.split(DELIMITER_BUILD_METADATA)
           Gem::Version.new(version)
         end
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
       private_class_method def self.latest_version_number_smaller_than(target_tag, include_prereleases: false)
         return latest_version_number(include_prereleases: include_prereleases) if target_tag.nil? || target_tag.strip.empty?
 
