@@ -783,7 +783,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.11.1")
       expect(type_of_bump).to eq(:patch)
@@ -802,7 +803,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.11.1")
       expect(type_of_bump).to eq(:patch)
@@ -836,7 +838,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.11.0")
       expect(type_of_bump).to eq(:skip)
@@ -850,7 +853,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.12.0")
       expect(type_of_bump).to eq(:minor)
@@ -876,7 +880,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.12.0")
       expect(type_of_bump).to eq(:minor)
@@ -922,7 +927,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("2.0.0")
       expect(type_of_bump).to eq(:major)
@@ -982,7 +988,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         3,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.12.0")
       expect(type_of_bump).to eq(:minor)
@@ -1003,7 +1010,8 @@ describe Fastlane::Helper::VersioningHelper do
           'mock-repo-name',
           'mock-github-token',
           0,
-          false
+          false,
+          nil
         )
       end.to raise_exception(StandardError)
     end
@@ -1016,7 +1024,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("1.11.0")
       expect(type_of_bump).to eq(:skip)
@@ -1038,7 +1047,8 @@ describe Fastlane::Helper::VersioningHelper do
         'mock-repo-name',
         'mock-github-token',
         0,
-        false
+        false,
+        nil
       )
       expect(next_version).to eq("2.0.0")
       expect(type_of_bump).to eq(:major)

@@ -31,7 +31,7 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version = nil)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
