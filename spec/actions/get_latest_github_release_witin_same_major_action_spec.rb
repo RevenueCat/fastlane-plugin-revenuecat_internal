@@ -10,6 +10,7 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
         server_url: "https://api.github.com",
         http_method: 'GET',
         path: "repos/RevenueCat/purchases-ios/releases",
+        api_token: 'mock-github-token',
         error_handlers: anything
       ).and_return(get_releases_purchases_ios_response).once
     end
@@ -17,7 +18,8 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
     it 'returns highest version within same major, but not highest version' do
       latest_version = Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction.run(
         repo_name: repo_name,
-        current_version: '4.7.0'
+        current_version: '4.7.0',
+        github_token: 'mock-github-token'
       )
       expect(latest_version).to eq('4.9.1')
     end
@@ -25,7 +27,8 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
     it 'returns highest version within same major, if highest version available' do
       latest_version = Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction.run(
         repo_name: repo_name,
-        current_version: '5.9.0'
+        current_version: '5.9.0',
+        github_token: 'mock-github-token'
       )
       expect(latest_version).to eq('5.10.0')
     end
@@ -34,7 +37,8 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
       expect do
         Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction.run(
           repo_name: repo_name,
-          current_version: '6.0.0'
+          current_version: '6.0.0',
+          github_token: 'mock-github-token'
         )
       end.to raise_exception(StandardError)
     end
@@ -42,7 +46,7 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction.available_options.size).to eq(2)
+      expect(Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction.available_options.size).to eq(3)
     end
   end
 end
