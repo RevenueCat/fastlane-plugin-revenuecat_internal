@@ -247,11 +247,12 @@ module Fastlane
         end
       end
 
-      def self.get_github_release_tag_names(repo_name)
+      def self.get_github_release_tag_names(repo_name, github_token = nil)
         response = Actions::GithubApiAction.run(
           server_url: "https://api.github.com",
           http_method: 'GET',
           path: "repos/RevenueCat/#{repo_name}/releases",
+          api_token: github_token,
           error_handlers: {
             404 => proc do |result|
               UI.user_error!("Repository #{repo_name} cannot be found, please double check its name and that you provided a valid API token (if it's a private repository).")

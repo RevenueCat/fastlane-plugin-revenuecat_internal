@@ -9,9 +9,10 @@ describe Fastlane::Helper::UpdateHybridsVersionsFileHelper do
         server_url: "https://api.github.com",
         http_method: 'GET',
         path: "/repos/revenuecat/purchases-hybrid-common/contents/android/gradle/libs.versions.toml?ref=8.10.0-beta.8",
-        body: {}
+        body: {},
+        api_token: 'mock-github-token'
       ).and_return(get_contents_android_build_gradle_response).once
-      version = Fastlane::Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version('8.10.0-beta.8')
+      version = Fastlane::Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version('8.10.0-beta.8', 'mock-github-token')
       expect(version).to eq('7.3.1')
     end
   end
@@ -26,9 +27,10 @@ describe Fastlane::Helper::UpdateHybridsVersionsFileHelper do
         server_url: "https://api.github.com",
         http_method: 'GET',
         path: "/repos/revenuecat/purchases-hybrid-common/contents/PurchasesHybridCommon.podspec?ref=3.3.0",
-        body: {}
+        body: {},
+        api_token: 'mock-github-token'
       ).and_return(get_contents_ios_phc_podspec_3_3_0_response).once
-      version = Fastlane::Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version('3.3.0')
+      version = Fastlane::Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version('3.3.0', 'mock-github-token')
       expect(version).to eq('4.9.0')
     end
   end

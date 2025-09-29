@@ -1057,9 +1057,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         server_url: "https://api.github.com",
         http_method: 'GET',
         path: "repos/RevenueCat/purchases-ios/releases",
+        api_token: 'mock-github-token',
         error_handlers: anything
       ).and_return(get_releases_purchases_ios_response).once
-      tag_names = Fastlane::Helper::RevenuecatInternalHelper.get_github_release_tag_names(repo_name)
+      tag_names = Fastlane::Helper::RevenuecatInternalHelper.get_github_release_tag_names(repo_name, 'mock-github-token')
       expect(tag_names.count).to eq(3)
       expect(tag_names).to include('4.9.1')
       expect(tag_names).to include('4.9.0')

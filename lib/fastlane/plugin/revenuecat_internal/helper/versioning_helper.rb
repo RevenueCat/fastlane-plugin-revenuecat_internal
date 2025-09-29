@@ -464,9 +464,9 @@ module Fastlane
           return ""
         end
 
-        new_android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(phc_version)
+        new_android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(phc_version, github_token)
         UI.message("Obtained android version #{new_android_version} for PHC version #{phc_version}")
-        new_ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(phc_version)
+        new_ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(phc_version, github_token)
         UI.message("Obtained ios version #{new_ios_version} for PHC version #{phc_version}")
 
         android_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_android_version, new_android_version, REPO_NAME_ANDROID)
