@@ -301,6 +301,10 @@ module Fastlane
         end
       end
 
+      def self.discard_changes_in_current_branch
+        Actions.sh("git restore .")
+      end
+
       def self.get_github_release_tag_names(repo_name, github_token = nil)
         response = Actions::GithubApiAction.run(
           server_url: "https://api.github.com",
