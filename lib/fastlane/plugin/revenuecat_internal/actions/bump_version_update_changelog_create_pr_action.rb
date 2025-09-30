@@ -110,6 +110,27 @@ module Fastlane
 
           Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
         end
+
+        # For older releases than the latest published version, we need to create a new PR against main to update the changelog with the changes from this release
+        is_older_than_latest_published_version = !Helper::RevenuecatInternalHelper.newer_than_latest_published_version?(new_version_number)
+        if is_older_than_latest_published_version    
+          main_branch = "main"
+          Helper::RevenuecatInternalHelper.create_or_checkout_branch(main_branch)
+          changelog_update_branch_name = "changelog/#{new_version_number}"
+
+          
+          # Create a new branch starting from main and checkout
+          Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(changelog_update_branch_name)
+
+          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_master(new_version_number, generated_contents, changelog_path)
+
+          if dry_run
+
+          else 
+            Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Changelog update for #{new_version_number}")
+            Helper::RevenuecatInternalHelper.create_pr("Changelog update for #{new_version_number}", generated_contents, repo_name, main_branch, changelog_update_branch_name, github_pr_token, [])
+          end
+        end
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
