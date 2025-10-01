@@ -181,9 +181,9 @@ describe Fastlane::Helper::VersioningHelper do
       mock_native_releases
       setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('5.6.6').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('4.15.4').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -206,9 +206,9 @@ describe Fastlane::Helper::VersioningHelper do
       setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
 
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('5.6.6').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('4.15.4').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
       expect_any_instance_of(Object).not_to receive(:sleep)
       changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
         'mock-repo-name',
@@ -272,9 +272,9 @@ describe Fastlane::Helper::VersioningHelper do
       setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
 
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('5.6.6').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('4.15.4').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
       # Making the latest android version match the current one
       expect(File).to receive(:readlines).with(versions_path)
                                          .and_return(["| Version | iOS version | Android version | Common files version |\n",
@@ -302,9 +302,9 @@ describe Fastlane::Helper::VersioningHelper do
       setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
 
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('5.6.6').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
-        .with(hybrid_common_version).and_return('4.15.4').once
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
       # Making the latest android version match the current one
       expect(File).to receive(:readlines).with(versions_path)
                                          .and_return(["| Version | iOS version | Android version | Common files version |\n",

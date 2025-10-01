@@ -9,8 +9,9 @@ module Fastlane
       def self.run(params)
         repo_name = params[:repo_name]
         current_version = Gem::Version.new(params[:current_version])
+        github_token = params[:github_token]
         UI.message("Getting latest release for #{repo_name} on GitHub within same major as #{current_version}")
-        tag_names = Helper::RevenuecatInternalHelper.get_github_release_tag_names(repo_name)
+        tag_names = Helper::RevenuecatInternalHelper.get_github_release_tag_names(repo_name, github_token)
         if tag_names.count == 0
           UI.user_error!("Couldn't find any GitHub release for #{params[:repo_name]}")
         end
@@ -53,7 +54,13 @@ module Fastlane
                                        env_name: "RC_INTERNAL_CURRENT_VERSION",
                                        type: String,
                                        optional: false,
-                                       description: "The current release version to check for next minor or patch")
+                                       description: "The current release version to check for next minor or patch"),
+          FastlaneCore::ConfigItem.new(key: :github_token,
+                                       env_name: "GITHUB_TOKEN",
+                                       description: "GitHub token for API authentication",
+                                       optional: true,
+                                       type: String,
+                                       sensitive: true)
         ]
       end
 

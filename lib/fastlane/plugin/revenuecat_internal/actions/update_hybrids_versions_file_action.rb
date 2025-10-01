@@ -10,16 +10,17 @@ module Fastlane
         versions_file_path = params[:versions_file_path]
         new_sdk_version = params[:new_sdk_version]
         hybrid_common_version = params[:hybrid_common_version]
+        github_token = params[:github_token]
 
         UI.user_error!("VERSIONS.md file not found") unless File.exist?(versions_file_path)
 
-        android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(hybrid_common_version)
+        android_version = Helper::UpdateHybridsVersionsFileHelper.get_android_version_for_hybrid_common_version(hybrid_common_version, github_token)
         UI.message("Obtained android version #{android_version} for PHC version #{hybrid_common_version}")
 
-        ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(hybrid_common_version)
+        ios_version = Helper::UpdateHybridsVersionsFileHelper.get_ios_version_for_hybrid_common_version(hybrid_common_version, github_token)
         UI.message("Obtained ios version #{ios_version} for PHC version #{hybrid_common_version}")
 
-        billing_client_version = Helper::UpdateHybridsVersionsFileHelper.get_android_billing_client_version(android_version)
+        billing_client_version = Helper::UpdateHybridsVersionsFileHelper.get_android_billing_client_version(android_version, github_token)
         UI.message("Obtained android billing client version #{billing_client_version} for PHC version #{hybrid_common_version}")
 
         File.open(versions_file_path, 'r+') do |file|
@@ -72,7 +73,13 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :hybrid_common_version,
                                        description: "Version of the hybrid common sdk to add to the VERSIONS.md file",
                                        optional: false,
-                                       type: String)
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :github_token,
+                                       env_name: "GITHUB_TOKEN",
+                                       description: "GitHub token for API authentication",
+                                       optional: true,
+                                       type: String,
+                                       sensitive: true)
         ]
       end
 
