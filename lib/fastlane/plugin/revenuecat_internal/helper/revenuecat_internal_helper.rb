@@ -77,27 +77,27 @@ module Fastlane
         File.write(changelog_latest_path, "#{prepopulated_changelog}\n")
       end
 
-      def self.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      def self.attach_changelog_to_main(version_number, changelog_latest_path, changelog_path)
         current_changelog = File.open(changelog_latest_path, 'r')
-        master_changelog = File.open(changelog_path, 'r')
+        main_changelog = File.open(changelog_path, 'r')
 
         current_changelog_data = current_changelog.read
-        master_changelog_data = master_changelog.read
+        main_changelog_data = main_changelog.read
 
         current_changelog.close
-        master_changelog.close
+        main_changelog.close
 
-        File.open(changelog_path, 'w') do |master_changelog_write_mode|
+        File.open(changelog_path, 'w') do |main_changelog_write_mode|
           version_header = "## #{version_number}"
-          whole_file_data = "#{version_header}\n#{current_changelog_data}\n#{master_changelog_data}"
+          whole_file_data = "#{version_header}\n#{current_changelog_data}\n#{main_changelog_data}"
 
-          master_changelog_write_mode.write(whole_file_data)
+          main_changelog_write_mode.write(whole_file_data)
         end
       end
 
-      def self.insert_old_version_changelog_in_master(version_number, old_version_changelog_contents, changelog_path)
+      def self.insert_old_version_changelog_in_main(version_number, old_version_changelog_contents, changelog_path)
         # Read the whole file
-        master_changelog_data = File.read(changelog_path)
+        main_changelog_data = File.read(changelog_path)
       
         # Prepare the block to insert
         version_header = "## #{version_number}"
@@ -117,7 +117,7 @@ module Fastlane
         output = +""
         inserted = false
       
-        master_changelog_data.each_line do |line|
+        main_changelog_data.each_line do |line|
           if !inserted
             if (m = line.match(header_regex))
               current_full = m[1]

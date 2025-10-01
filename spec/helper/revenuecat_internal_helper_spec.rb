@@ -525,7 +525,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.attach_changelog_to_master' do
+  describe '.attach_changelog_to_main' do
     require 'fileutils'
 
     let(:version_number) { '1.12.0' }
@@ -544,7 +544,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'prepends changelog latest file contents to changelog file' do
-      Fastlane::Helper::RevenuecatInternalHelper.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      Fastlane::Helper::RevenuecatInternalHelper.attach_changelog_to_main(version_number, changelog_latest_path, changelog_path)
       changelog_contents = File.read(changelog_path)
       expect(changelog_contents).to eq("## 1.12.0\nchangelog latest contents\n## 1.11.0\nchangelog contents")
     end
