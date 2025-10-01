@@ -12,26 +12,24 @@ module Fastlane
 
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
         retries = 0
-        
+
         loop do
-          begin
-            return Actions::GithubApiAction.run(**api_params)
-          rescue StandardError => e
-            # Check if it's a rate limit error
-            if e.message.include?('403') && e.message.include?('rate limit')
-              retries += 1
-              if retries <= max_retries
-                wait_time = 2 ** (retries - 1) * 60  # Exponential backoff: 60s, 120s, 240s
-                UI.important("GitHub rate limit hit (403). Retry #{retries}/#{max_retries} after #{wait_time} seconds...")
-                sleep(wait_time)
-                next
-              else
-                UI.user_error!("GitHub rate limit exceeded and max retries (#{max_retries}) reached. Please wait and try again later.")
-              end
+          return Actions::GithubApiAction.run(**api_params)
+        rescue StandardError => e
+          # Check if it's a rate limit error
+          if e.message.include?('403') && e.message.include?('rate limit')
+            retries += 1
+            if retries <= max_retries
+              wait_time = (2**(retries - 1)) * 60 # Exponential backoff: 60s, 120s, 240s
+              UI.important("GitHub rate limit hit (403). Retry #{retries}/#{max_retries} after #{wait_time} seconds...")
+              sleep(wait_time)
+              next
             else
-              # Re-raise non-rate-limit errors immediately
-              raise e
+              UI.user_error!("GitHub rate limit exceeded and max retries (#{max_retries}) reached. Please wait and try again later.")
             end
+          else
+            # Re-raise non-rate-limit errors immediately
+            raise e
           end
         end
       end
@@ -49,10 +47,10 @@ module Fastlane
 
         # Get pull request associate with commit message
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
-                                           path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
-                                           http_method: 'GET',
-                                           body: {},
-                                           api_token: github_token)
+                                             path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
+                                             http_method: 'GET',
+                                             body: {},
+                                             api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
         return items
@@ -92,10 +90,10 @@ module Fastlane
 
         # Get all commits from previous version (tag) to HEAD
         resp = github_api_call_with_retry(server_url: 'https://api.github.com',
-                                        path: path,
-                                        http_method: 'GET',
-                                        body: {},
-                                        api_token: github_token)
+                                          path: path,
+                                          http_method: 'GET',
+                                          body: {},
+                                          api_token: github_token)
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 

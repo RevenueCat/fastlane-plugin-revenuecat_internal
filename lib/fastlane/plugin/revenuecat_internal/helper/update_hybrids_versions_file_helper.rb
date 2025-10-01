@@ -38,10 +38,10 @@ module Fastlane
       private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token = nil)
         path = "/repos/revenuecat/#{repo_name}/contents/#{file_path}?ref=#{ref}"
         response = Helper::GitHubHelper.github_api_call_with_retry(server_url: 'https://api.github.com',
-                                                                path: path,
-                                                                http_method: 'GET',
-                                                                body: {},
-                                                                api_token: github_token)
+                                                                   path: path,
+                                                                   http_method: 'GET',
+                                                                   body: {},
+                                                                   api_token: github_token)
         base64_contents = response[:json]['content']
         Base64.decode64(base64_contents)
       end

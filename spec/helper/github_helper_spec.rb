@@ -175,17 +175,17 @@ describe Fastlane::Helper::GitHubHelper do
     context 'when API call hits rate limit but succeeds on retry' do
       it 'retries and succeeds on second attempt' do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .once
           .and_raise(rate_limit_error)
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .once
           .and_return(successful_response)
-        
+
         allow_any_instance_of(Object).to receive(:sleep)
 
         result = Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
@@ -196,12 +196,12 @@ describe Fastlane::Helper::GitHubHelper do
     context 'when API call exhausts all retries' do
       it 'raises user error after max retries' do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .exactly(4).times # Initial call + 3 retries
           .and_raise(rate_limit_error)
-        
+
         # Allow sleep to be called (we just care that retries happen and final error is raised)
         allow_any_instance_of(Object).to receive(:sleep)
 
@@ -214,7 +214,7 @@ describe Fastlane::Helper::GitHubHelper do
     context 'when API call fails with non-rate-limit error' do
       it 'raises the error immediately without retries' do
         non_rate_limit_error = StandardError.new('Some other error')
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .once
@@ -231,7 +231,7 @@ describe Fastlane::Helper::GitHubHelper do
     context 'when API call fails with 403 but not rate limit related' do
       it 'raises the error immediately without retries' do
         auth_error = StandardError.new('GitHub responded with 403 forbidden access')
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .once
@@ -248,12 +248,12 @@ describe Fastlane::Helper::GitHubHelper do
     context 'with custom max_retries' do
       it 'respects the custom retry limit' do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
-        
+
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
           .with(api_params)
           .exactly(2).times # Initial call + 1 retry
           .and_raise(rate_limit_error)
-        
+
         allow_any_instance_of(Object).to receive(:sleep)
 
         expect do
