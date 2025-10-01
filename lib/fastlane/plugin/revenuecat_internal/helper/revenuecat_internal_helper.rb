@@ -101,8 +101,7 @@ module Fastlane
       
         # Prepare the block to insert
         version_header = "## #{version_number}"
-        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}"
-        data_to_insert += "\n" unless data_to_insert.end_with?("\n")
+        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n\n"
       
         # Compare versions using only the "core" part (major.minor.patch), ignoring
         # prerelease and build metadata per requirements.  
