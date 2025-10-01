@@ -10,18 +10,49 @@ module Fastlane
     class GitHubHelper
       SUPPORTED_PR_LABELS = (%w[breaking build ci docs feat fix perf revenuecatui refactor style test next_release dependencies phc_dependencies force_minor force_patch revenuecatui].map { |label| "pr:#{label}" }).to_set
 
+      def self.github_api_call_with_retry(max_retries: 3, **api_params)
+        retries = 0
+        
+        loop do
+          begin
+            return Actions::GithubApiAction.run(**api_params)
+          rescue StandardError => e
+            # Check if it's a rate limit error
+            if e.message.include?('403') && e.message.include?('rate limit')
+              retries += 1
+              if retries <= max_retries
+                wait_time = 2 ** (retries - 1) * 60  # Exponential backoff: 60s, 120s, 240s
+                UI.important("GitHub rate limit hit (403). Retry #{retries}/#{max_retries} after #{wait_time} seconds...")
+                sleep(wait_time)
+                next
+              else
+                UI.user_error!("GitHub rate limit exceeded and max retries (#{max_retries}) reached. Please wait and try again later.")
+              end
+            else
+              # Re-raise non-rate-limit errors immediately
+              raise e
+            end
+          end
+        end
+      end
+
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+        if github_token.nil? || github_token.empty?
+          UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
+          return []
+        end
+
         if rate_limit_sleep > 0
           UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
           sleep(rate_limit_sleep)
         end
 
         # Get pull request associate with commit message
-        pr_resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                               path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
-                                               http_method: 'GET',
-                                               body: {},
-                                               api_token: github_token)
+        pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                           path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
+                                           http_method: 'GET',
+                                           body: {},
+                                           api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
         return items
@@ -35,7 +66,7 @@ module Fastlane
 
         begin
           # Get rate limit status (doesn't count against rate limit)
-          response = Actions::GithubApiAction.run(
+          response = github_api_call_with_retry(
             server_url: 'https://api.github.com',
             path: '/rate_limit',
             http_method: 'GET',
@@ -60,11 +91,11 @@ module Fastlane
         path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...#{commit_head[:commit_hash]}"
 
         # Get all commits from previous version (tag) to HEAD
-        resp = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                            path: path,
-                                            http_method: 'GET',
-                                            body: {},
-                                            api_token: github_token)
+        resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                        path: path,
+                                        http_method: 'GET',
+                                        body: {},
+                                        api_token: github_token)
         body = JSON.parse(resp[:body])
         commits = body["commits"].reverse
 
@@ -75,7 +106,7 @@ module Fastlane
         start_tag = Gem::Version.new(start_tag_version)
         end_tag = Gem::Version.new(end_tag_version)
 
-        response = Actions::GithubApiAction.run(
+        response = github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: 'GET',
           path: "repos/RevenueCat/#{repo_name}/releases?per_page=50",
@@ -124,7 +155,7 @@ module Fastlane
         payload['body'] = params[:description] if params[:description]
         payload['target_commitish'] = params[:commitish] if params[:commitish]
 
-        response = Actions::GithubApiAction.run(
+        response = github_api_call_with_retry(
           server_url: server_url,
           api_token: api_token,
           http_method: 'POST',
@@ -194,7 +225,7 @@ module Fastlane
 
         UI.important("Uploading #{file_name}")
 
-        Actions::GithubApiAction.run(
+        github_api_call_with_retry(
           api_token: api_token,
           http_method: 'POST',
           headers: headers,
