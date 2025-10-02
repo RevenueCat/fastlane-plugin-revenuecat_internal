@@ -552,6 +552,220 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
+  describe '.insert_old_version_changelog_in_main' do
+    require 'fileutils'
+
+    let(:tmp_test_files_path) { './tmp_test_files' }
+    let(:changelog_path) { './tmp_test_files/CHANGELOG.md' }
+
+    before(:each) do
+      Dir.mkdir(tmp_test_files_path)
+    end
+
+    after(:each) do
+      FileUtils.rm_rf(tmp_test_files_path)
+    end
+
+    it 'inserts older version changelog in correct position between newer and older versions' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* Bug fixes\n* Performance improvements"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0\n* Bug fixes\n* Performance improvements\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'inserts version at the beginning when it is newer than all existing versions' do
+      existing_changelog = "## 1.10.0\nOlder changes\n\n## 1.9.0\nEven older changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* New features"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.11.0\n* New features\n\n## 1.10.0\nOlder changes\n\n## 1.9.0\nEven older changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'appends version at the end when it is older than all existing versions' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.11.0\nRecent changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.10.0'
+      changelog_content = "* Old bug fixes"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0\nRecent changes\n## 1.10.0\n* Old bug fixes\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles empty changelog file' do
+      File.write(changelog_path, "")
+
+      version_to_insert = '1.10.0'
+      changelog_content = "* Initial release"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "\n## 1.10.0\n* Initial release\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles changelog with only a header' do
+      existing_changelog = "# CHANGELOG\n\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.0.0'
+      changelog_content = "* First version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "# CHANGELOG\n\n## 1.0.0\n* First version\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'fails when version already exists in changelog' do
+      existing_changelog = "## 1.11.0\nExisting content\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* Duplicate version"
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with("Changelog already contains an entry for version #{version_to_insert}")
+        .and_call_original
+
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+          version_to_insert,
+          changelog_content,
+          changelog_path
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
+    end
+
+    it 'handles versions with build metadata correctly' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0+4.5.3'
+      changelog_content = "* Version with build metadata"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0+4.5.3\n* Version with build metadata\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles versions with prerelease identifiers correctly' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0-beta.1'
+      changelog_content = "* Beta version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0-beta.1\n* Beta version\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'compares versions by core version ignoring build metadata' do
+      existing_changelog = "## 1.12.0+3.2.1\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0+4.5.3'
+      changelog_content = "* Middle version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0+3.2.1\nLatest changes\n\n## 1.11.0+4.5.3\n* Middle version\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles major version differences correctly' do
+      existing_changelog = "## 2.0.0\nMajor release\n\n## 1.12.0\nOld major version\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.13.0'
+      changelog_content = "* Last version of v1"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 2.0.0\nMajor release\n\n## 1.13.0\n* Last version of v1\n\n## 1.12.0\nOld major version\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles complex changelog with multiple versions correctly' do
+      existing_changelog = "# CHANGELOG\n\n## 1.15.0\nNewest\n\n## 1.13.0\nMiddle newer\n\n## 1.11.0\nMiddle\n\n## 1.9.0\nOldest\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.12.0'
+      changelog_content = "* Fits between 1.13.0 and 1.11.0"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "# CHANGELOG\n\n## 1.15.0\nNewest\n\n## 1.13.0\nMiddle newer\n\n## 1.12.0\n* Fits between 1.13.0 and 1.11.0\n\n## 1.11.0\nMiddle\n\n## 1.9.0\nOldest\n"
+      expect(result).to eq(expected)
+    end
+  end
+
   describe '.create_new_branch_and_checkout' do
     it 'creates new release branch with version number' do
       expect(Fastlane::Actions).to receive(:sh).with("git checkout -b 'fake-branch'")
