@@ -39,10 +39,17 @@ module Fastlane
       end
 
       def self.newer_than_latest_published_version?(version_number)
-        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
+        latest_published_version = get_latest_publishled_version_number
         return true if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
+      end
+
+      def self.older_than_latest_published_version?(version_number)
+        latest_published_version = get_latest_publishled_version_number
+        return false if latest_published_version.empty?
+
+        Gem::Version.new(drop_build_metadata(latest_published_version)) > Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -376,6 +383,10 @@ module Fastlane
       # This is the core version of the given version, without prerelease or build metadata
       private_class_method def self.get_core_version(version)
         drop_build_metadata(drop_prerelease_modifiers(version))
+      end
+
+      private_class_method def self.get_latest_publishled_version_number
+        Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
       end
     end
   end
