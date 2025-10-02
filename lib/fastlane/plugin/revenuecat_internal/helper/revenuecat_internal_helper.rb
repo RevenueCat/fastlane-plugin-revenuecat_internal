@@ -247,7 +247,7 @@ module Fastlane
         end
       end
 
-      def self.get_github_release_tag_names(repo_name, github_token = nil)
+      def self.get_github_release_tag_names(repo_name, github_token)
         response = Helper::GitHubHelper.github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: 'GET',

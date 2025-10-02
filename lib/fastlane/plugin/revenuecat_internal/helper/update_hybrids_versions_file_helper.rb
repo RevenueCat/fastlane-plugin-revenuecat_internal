@@ -8,7 +8,7 @@ module Fastlane
 
   module Helper
     class UpdateHybridsVersionsFileHelper
-      def self.get_android_version_for_hybrid_common_version(hybrid_common_version, github_token = nil)
+      def self.get_android_version_for_hybrid_common_version(hybrid_common_version, github_token)
         path = 'android/gradle/libs.versions.toml'
         repo_name = 'purchases-hybrid-common'
         contents = get_contents_file_github(path, repo_name, hybrid_common_version, github_token)
@@ -17,7 +17,7 @@ module Fastlane
         matches[0]
       end
 
-      def self.get_ios_version_for_hybrid_common_version(hybrid_common_version, github_token = nil)
+      def self.get_ios_version_for_hybrid_common_version(hybrid_common_version, github_token)
         path = 'PurchasesHybridCommon.podspec'
         repo_name = 'purchases-hybrid-common'
         contents = get_contents_file_github(path, repo_name, hybrid_common_version, github_token)
@@ -26,7 +26,7 @@ module Fastlane
         matches[0]
       end
 
-      def self.get_android_billing_client_version(android_version, github_token = nil)
+      def self.get_android_billing_client_version(android_version, github_token)
         path = 'gradle/libs.versions.toml'
         repo_name = 'purchases-android'
         contents = get_contents_file_github(path, repo_name, android_version, github_token)
@@ -35,7 +35,7 @@ module Fastlane
         matches[0]
       end
 
-      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token = nil)
+      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token)
         path = "/repos/revenuecat/#{repo_name}/contents/#{file_path}?ref=#{ref}"
         response = Helper::GitHubHelper.github_api_call_with_retry(server_url: 'https://api.github.com',
                                                                    path: path,
