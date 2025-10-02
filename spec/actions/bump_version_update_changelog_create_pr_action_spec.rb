@@ -18,8 +18,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     let(:base_branch) { 'main' }
     let(:new_version) { '1.13.0' }
     let(:current_version_previous_major) { '0.20.2' }
-    let(:next_version_previous_major) { '0.21.2' }
+    let(:new_version_previous_major) { '0.21.0' }
     let(:new_branch_name) { 'release/1.13.0' }
+    let(:new_branch_name_previous_major) { 'release/0.21.0' }
     let(:labels) { ['pr:next_release'] }
     let(:hybrid_common_version) { '4.5.3' }
     let(:versions_file_path) { '../VERSIONS.md' }
@@ -154,55 +155,131 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    # it 'calls all the appropriate methods with appropriate parameters in dry run mode for a previous major version' do
-    #   allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
-    #   allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
-    #   allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(next_version_previous_major)
-    #   allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
-    #   allow(Fastlane::Helper::GitHubHelper).to receive(:check_authentication_and_rate_limits)
-    #     .with(mock_github_token)
-    #     .and_return({ authenticated: true, rate_limit_remaining: 5000 })
-    #   expect(FastlaneCore::UI).not_to receive(:confirm)
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
-    #     .with('release/1.13.0', mock_github_pr_token)
-    #     .once
-    #   expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-    #     .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version)
-    #     .and_return(auto_generated_changelog)
-    #     .once
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
-    #     .with(auto_generated_changelog, mock_changelog_latest_path, editor)
-    #     .once
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_new_branch_and_checkout))
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
-    #     .with(current_version,
-    #           new_version,
-    #           { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-    #           { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-    #           { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
-    #     .once
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
-    #     .with(new_version, mock_changelog_latest_path, mock_changelog_path)
-    #     .once
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:commit_changes_and_push_current_branch))
-    #   expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_pr))
+    it 'calls all the appropriate methods with appropriate parameters for a previous major version' do
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return(current_version)
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_previous_major)
+      allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(true)
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
 
-    #   Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-    #     current_version: current_version_previous_major,
-    #     changelog_latest_path: mock_changelog_latest_path,
-    #     changelog_path: mock_changelog_path,
-    #     files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-    #     files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-    #     files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
-    #     repo_name: mock_repo_name,
-    #     github_pr_token: mock_github_pr_token,
-    #     github_token: mock_github_token,
-    #     github_rate_limit: 3,
-    #     editor: editor,
-    #     is_prerelease: false,
-    #     dry_run: true
-    #   )
-    # end
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
+        .with(new_branch_name_previous_major, mock_github_pr_token)
+        .once
+      allow(Fastlane::Helper::GitHubHelper).to receive(:check_authentication_and_rate_limits)
+        .with(mock_github_token)
+        .and_return({ authenticated: true, rate_limit_remaining: 5000 })
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version_previous_major)
+        .and_return(auto_generated_changelog)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
+        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
+        .with(new_branch_name_previous_major)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
+        .with(current_version_previous_major,
+              new_version_previous_major,
+              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
+        .with(new_version_previous_major, mock_changelog_latest_path, mock_changelog_path)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
+        .with("Version bump for #{new_version_previous_major}")
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/#{new_version_previous_major}", edited_changelog, mock_repo_name, base_branch, new_branch_name_previous_major, mock_github_pr_token, labels)
+        .once
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:discard_changes_in_current_branch))
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_or_checkout_branch).with(base_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_main).with(new_version_previous_major, auto_generated_changelog, mock_changelog_path)
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout).with("changelog/#{new_version_previous_major}")
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch).with("Changelog update for #{new_version_previous_major}")
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Changelog update for #{new_version_previous_major}", auto_generated_changelog, mock_repo_name, base_branch, "changelog/#{new_version_previous_major}", mock_github_pr_token, [])
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_or_checkout_branch).with(new_branch_name_previous_major)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version_previous_major,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        is_prerelease: false
+      )
+    end
+
+    it 'calls all the appropriate methods with appropriate parameters in dry run mode for a previous major version' do
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(base_branch)
+      allow(Fastlane::Actions).to receive(:sh).and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return(current_version)
+      allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
+      allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version_previous_major)
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return(edited_changelog)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:check_authentication_and_rate_limits)
+        .with(mock_github_token)
+        .and_return({ authenticated: true, rate_limit_remaining: 5000 })
+      expect(FastlaneCore::UI).not_to receive(:confirm)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:validate_local_config_status_for_bump)
+        .with(new_branch_name_previous_major, mock_github_pr_token)
+        .once
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version_previous_major)
+        .and_return(auto_generated_changelog)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:edit_changelog)
+        .with(auto_generated_changelog, mock_changelog_latest_path, editor)
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_new_branch_and_checkout))
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number)
+        .with(current_version_previous_major,
+              new_version_previous_major,
+              { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+              { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+              { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
+        .once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
+        .with(new_version_previous_major, mock_changelog_latest_path, mock_changelog_path)
+        .once
+
+      expect(Fastlane::Actions).to receive(:sh).with("git restore .")
+
+      expect(File).to receive(:read).with(mock_changelog_path).at_least(:once).and_return(edited_changelog)
+      expect(File).to receive(:write).with(mock_changelog_path, anything)
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:commit_changes_and_push_current_branch))
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:create_pr))
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version_previous_major,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        is_prerelease: false,
+        dry_run: true
+      )
+    end
 
     it 'generates changelog with appropriate parameters when bumping a hybrid SDK' do
       setup_stubs
