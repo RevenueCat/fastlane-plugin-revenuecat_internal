@@ -302,7 +302,7 @@ module Fastlane
         Actions.sh("git restore .")
       end
 
-      def self.get_github_release_tag_names(repo_name, github_token)
+      def self.get_github_release_tag_names(repo_name, github_token = nil)
         response = Helper::GitHubHelper.github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: 'GET',
