@@ -36,7 +36,7 @@ module Fastlane
         matches[0]
       end
 
-      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token)
+      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token = nil)
         path = "/repos/revenuecat/#{repo_name}/contents/#{file_path}?ref=#{ref}"
         response = Helper::GitHubHelper.github_api_call_with_retry(server_url: 'https://api.github.com',
                                                                    path: path,
