@@ -1,7 +1,9 @@
 describe Fastlane::Helper::RevenuecatInternalHelper do
+  # rubocop:disable Naming/AccessorMethodName
   def get_latest_tag_command
     "git tag | grep '^[0-9]*.[0-9]*.[0-9]*$' | sort -r --version-sort | head -n1"
   end
+  # rubocop:enable Naming/AccessorMethodName
 
   describe '.replace_version_number' do
     require 'fileutils'
