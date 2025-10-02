@@ -10,7 +10,7 @@ describe Fastlane::Helper::GitHubHelper do
     end
 
     it 'returns items from response' do
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(server_url: server_url,
               path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:#{base_branch}+SHA:#{hash}",
               http_method: http_method,
@@ -36,7 +36,7 @@ describe Fastlane::Helper::GitHubHelper do
     end
 
     it 'sleeps if passing rate limit sleep' do
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(server_url: server_url,
               path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:#{base_branch}+SHA:#{hash}",
               http_method: http_method,
@@ -69,7 +69,7 @@ describe Fastlane::Helper::GitHubHelper do
     it 'returns commits from response' do
       allow(Fastlane::Actions::LastGitCommitAction).to receive(:run)
         .and_return(commit_hash: last_commit_sha)
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(server_url: server_url,
               path: "/repos/RevenueCat/mock-repo-name/compare/1.11.0...#{last_commit_sha}",
               http_method: http_method,
@@ -123,7 +123,7 @@ describe Fastlane::Helper::GitHubHelper do
         api_token: github_token
       }
 
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(hash_including(expected_params))
         .and_return(create_release_response)
 
@@ -145,6 +145,121 @@ describe Fastlane::Helper::GitHubHelper do
       body = JSON.parse(github_response[:body])
 
       expect(body).not_to be_nil
+    end
+  end
+
+  describe '.github_api_call_with_retry' do
+    let(:api_params) do
+      {
+        server_url: 'https://api.github.com',
+        path: '/test/path',
+        http_method: 'GET',
+        body: {},
+        api_token: 'test-token'
+      }
+    end
+    let(:successful_response) { { body: '{"success": true}' } }
+
+    context 'when API call succeeds on first try' do
+      it 'returns the response without retries' do
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .once
+          .and_return(successful_response)
+
+        result = Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        expect(result).to eq(successful_response)
+      end
+    end
+
+    context 'when API call hits rate limit but succeeds on retry' do
+      it 'retries and succeeds on second attempt' do
+        rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .once
+          .and_raise(rate_limit_error)
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .once
+          .and_return(successful_response)
+
+        allow_any_instance_of(Object).to receive(:sleep)
+
+        result = Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        expect(result).to eq(successful_response)
+      end
+    end
+
+    context 'when API call exhausts all retries' do
+      it 'raises user error after max retries' do
+        rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .exactly(4).times # Initial call + 3 retries
+          .and_raise(rate_limit_error)
+
+        # Allow sleep to be called (we just care that retries happen and final error is raised)
+        allow_any_instance_of(Object).to receive(:sleep)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /GitHub rate limit exceeded and max retries \(3\) reached/)
+      end
+    end
+
+    context 'when API call fails with non-rate-limit error' do
+      it 'raises the error immediately without retries' do
+        non_rate_limit_error = StandardError.new('Some other error')
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .once
+          .and_raise(non_rate_limit_error)
+
+        expect_any_instance_of(Object).not_to receive(:sleep)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        end.to raise_error(non_rate_limit_error)
+      end
+    end
+
+    context 'when API call fails with 403 but not rate limit related' do
+      it 'raises the error immediately without retries' do
+        auth_error = StandardError.new('GitHub responded with 403 forbidden access')
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .once
+          .and_raise(auth_error)
+
+        expect_any_instance_of(Object).not_to receive(:sleep)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        end.to raise_error(auth_error)
+      end
+    end
+
+    context 'with custom max_retries' do
+      it 'respects the custom retry limit' do
+        rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
+
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(api_params)
+          .exactly(2).times # Initial call + 1 retry
+          .and_raise(rate_limit_error)
+
+        allow_any_instance_of(Object).to receive(:sleep)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(max_retries: 1, **api_params)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /GitHub rate limit exceeded and max retries \(1\) reached/)
+      end
     end
   end
 end
