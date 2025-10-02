@@ -103,15 +103,12 @@ module Fastlane
       end
 
       def self.insert_old_version_changelog_in_main(version_number, old_version_changelog_contents, changelog_path)
-        # Read the whole file
         main_changelog_data = File.read(changelog_path)
 
-        # Prepare the block to insert
         version_header = "## #{version_number}"
         data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n\n"
 
-        # Compare versions using only the "core" part (major.minor.patch), ignoring
-        # prerelease and build metadata per requirements.
+        # Compare versions ignoring prerelease and build metadata.
         new_core_version = Gem::Version.new(get_core_version(version_number))
 
         # Match a version header line. Allow optional extra text for prerelease/build metadata,
