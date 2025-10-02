@@ -16,23 +16,19 @@ module Fastlane
         append_phc_version = params[:append_phc_version]
         dry_run = params[:dry_run]
 
-        # Check if sdk_version is smaller than the latest version in the repo
         if Helper::RevenuecatInternalHelper.older_than_latest_published_version?(sdk_version)
           UI.important("Version #{sdk_version} is older than the latest published version. Proceeding with changelog insertion into #{base_branch}.")
 
           current_branch = Actions.git_branch
 
-          # Read the changelog content from changelog_latest_path
           changelog_content = File.read(changelog_latest_path)
 
           if dry_run
             UI.important("Dry run mode enabled. No changes will be made.")
           end
 
-          # Checkout or create the base branch
           Helper::RevenuecatInternalHelper.create_or_checkout_branch(base_branch)
 
-          # Create a new branch for the changelog update
           changelog_update_branch_name = "changelog/#{sdk_version}"
 
           unless dry_run
@@ -46,7 +42,6 @@ module Fastlane
             sdk_version
           )
 
-          # Insert the changelog content at the correct position in CHANGELOG.md
           Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(final_version_number, changelog_content, changelog_path)
 
           if dry_run
@@ -54,13 +49,10 @@ module Fastlane
             UI.important("The updated changelog would look like this:\n#{updated_changelog}")
             Helper::RevenuecatInternalHelper.discard_changes_in_current_branch
 
-            # Checkout the original branch
             Helper::RevenuecatInternalHelper.create_or_checkout_branch(current_branch)
           else
-            # Commit and push the changes
             Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Changelog update for #{sdk_version}")
 
-            # Create a PR from the changelog branch back to the base branch
             pr_title = "Changelog update for #{sdk_version}"
             pr_body = changelog_content
             Helper::RevenuecatInternalHelper.create_pr(pr_title, pr_body, repo_name, base_branch, changelog_update_branch_name, github_pr_token, ["pr:other"])
