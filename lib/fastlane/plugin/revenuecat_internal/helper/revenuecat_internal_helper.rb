@@ -187,7 +187,7 @@ module Fastlane
 
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])
         repo_with_owner = "RevenueCat/#{repo_name}"
-        existing_pr = Actions::GithubApiAction.run(
+        existing_pr = Helper::GitHubHelper.github_api_call_with_retry(
           api_token: github_pr_token,
           path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
         )
@@ -302,8 +302,8 @@ module Fastlane
         Actions.sh("git restore .")
       end
 
-      def self.get_github_release_tag_names(repo_name, github_token = nil)
-        response = Actions::GithubApiAction.run(
+      def self.get_github_release_tag_names(repo_name, github_token)
+        response = Helper::GitHubHelper.github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: 'GET',
           path: "repos/RevenueCat/#{repo_name}/releases",

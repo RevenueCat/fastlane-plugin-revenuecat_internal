@@ -2,6 +2,7 @@ require 'base64'
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
+require_relative 'github_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -35,13 +36,13 @@ module Fastlane
         matches[0]
       end
 
-      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token = nil)
+      private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token)
         path = "/repos/revenuecat/#{repo_name}/contents/#{file_path}?ref=#{ref}"
-        response = Actions::GithubApiAction.run(server_url: 'https://api.github.com',
-                                                path: path,
-                                                http_method: 'GET',
-                                                body: {},
-                                                api_token: github_token)
+        response = Helper::GitHubHelper.github_api_call_with_retry(server_url: 'https://api.github.com',
+                                                                   path: path,
+                                                                   http_method: 'GET',
+                                                                   body: {},
+                                                                   api_token: github_token)
         base64_contents = response[:json]['content']
         Base64.decode64(base64_contents)
       end
