@@ -1,4 +1,3 @@
-require 'base64'
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
@@ -43,6 +42,7 @@ module Fastlane
                                                                    http_method: 'GET',
                                                                    body: {},
                                                                    api_token: github_token)
+        require 'base64'
         base64_contents = response[:json]['content']
         Base64.decode64(base64_contents)
       end
