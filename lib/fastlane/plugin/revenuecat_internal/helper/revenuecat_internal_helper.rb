@@ -39,14 +39,14 @@ module Fastlane
       end
 
       def self.newer_than_latest_published_version?(version_number)
-        latest_published_version = get_latest_publishled_version_number
+        latest_published_version = get_latest_published_version_number
         return true if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.older_than_latest_published_version?(version_number)
-        latest_published_version = get_latest_publishled_version_number
+        latest_published_version = get_latest_published_version_number
         return false if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) > Gem::Version.new(drop_build_metadata(version_number))
@@ -100,6 +100,57 @@ module Fastlane
 
           main_changelog_write_mode.write(whole_file_data)
         end
+      end
+
+      def self.insert_old_version_changelog_in_main(version_number, old_version_changelog_contents, changelog_path)
+        # Read the whole file
+        main_changelog_data = File.read(changelog_path)
+
+        # Prepare the block to insert
+        version_header = "## #{version_number}"
+        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n\n"
+
+        # Compare versions using only the "core" part (major.minor.patch), ignoring
+        # prerelease and build metadata per requirements.
+        new_core_version = Gem::Version.new(get_core_version(version_number))
+
+        # Match a version header line. Allow optional extra text for prerelease/build metadata,
+        # but require it to be a standalone header line ("## <semver...>").
+        #
+        # Captures the FULL version string (which might include -prerelease and/or +build)
+        # in group 1, so we can strip it down to core for comparison.
+        header_regex = /^##\s+(\d+\.\d+\.\d+(?:[#{Regexp.escape(DELIMITER_PRERELEASE + DELIMITER_BUILD_METADATA)}][^\s]*)?)\s*$/
+
+        output = +""
+        inserted = false
+
+        main_changelog_data.each_line do |line|
+          if !inserted && (m = line.match(header_regex))
+            current_full = m[1]
+            current_core = Gem::Version.new(get_core_version(current_full))
+
+            if current_full == version_number
+              UI.user_error!("Changelog already contains an entry for version #{version_number}")
+            end
+
+            # Insert right before the first header whose version is smaller
+            if current_core < new_core_version
+              output << data_to_insert
+              inserted = true
+            end
+          end
+
+          output << line
+        end
+
+        # If nothing smaller was found, append at the end
+        unless inserted
+          output << "\n" unless output.end_with?("\n")
+          output << data_to_insert
+        end
+
+        File.write(changelog_path, output)
+        true
       end
 
       def self.create_new_branch_and_checkout(branch_name)
@@ -325,9 +376,20 @@ module Fastlane
         version.split(DELIMITER_BUILD_METADATA)[0]
       end
 
-      private_class_method def self.get_latest_publishled_version_number
+      private_class_method def self.drop_prerelease_modifiers(version)
+        version.split(DELIMITER_PRERELEASE)[0]
+      end
+
+      # This is the core version of the given version, without prerelease or build metadata
+      private_class_method def self.get_core_version(version)
+        drop_build_metadata(drop_prerelease_modifiers(version))
+      end
+
+      # rubocop:disable Naming/AccessorMethodName
+      private_class_method def self.get_latest_published_version_number
         Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
       end
+      # rubocop:enable Naming/AccessorMethodName
     end
   end
 end

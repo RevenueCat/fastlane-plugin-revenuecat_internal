@@ -39,8 +39,15 @@ module Fastlane
             Helper::RevenuecatInternalHelper.create_new_branch_and_checkout(changelog_update_branch_name)
           end
 
+          final_version_number = Helper::VersioningHelper.append_phc_version_if_necessary(
+            append_phc_version,
+            false,
+            hybrid_common_version,
+            sdk_version
+          )
+
           # Insert the changelog content at the correct position in CHANGELOG.md
-          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(sdk_version, changelog_content, changelog_path)
+          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(final_version_number, changelog_content, changelog_path)
 
           if dry_run
             updated_changelog = File.read(changelog_path)
