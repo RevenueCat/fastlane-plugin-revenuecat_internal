@@ -86,7 +86,9 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(false)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
-      allow(File).to receive(:read).with(changelog_path).and_return("# CHANGELOG\n\n## 1.12.0\n* Latest changes\n\n")
+
+      git_diff_output = "+## 1.10.0\n+* Bug fixes\n+* Performance improvements"
+      allow(Fastlane::Actions).to receive(:sh).with("git diff #{changelog_path}", log: false).and_return(git_diff_output)
 
       expect(FastlaneCore::UI).to receive(:important)
         .with("Version #{sdk_version} is older than the latest published version. Proceeding with changelog insertion into #{base_branch}.")
@@ -107,7 +109,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
         .once
 
       expect(FastlaneCore::UI).to receive(:important)
-        .with(/The updated changelog would look like this:/)
+        .with(/The changelog diff would be:/)
         .once
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:discard_changes_in_current_branch)

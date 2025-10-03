@@ -49,8 +49,8 @@ module Fastlane
           Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(final_version_number, changelog_content, changelog_path)
 
           if dry_run
-            updated_changelog = File.read(changelog_path)
-            UI.important("The updated changelog would look like this:\n#{updated_changelog}")
+            changelog_diff = Actions.sh("git diff #{changelog_path}", log: false)
+            UI.important("The changelog diff would be:\n#{changelog_diff}")
             Helper::RevenuecatInternalHelper.discard_changes_in_current_branch
 
             Helper::RevenuecatInternalHelper.create_or_checkout_branch(current_branch)
