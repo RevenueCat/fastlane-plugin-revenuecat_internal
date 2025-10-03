@@ -106,7 +106,7 @@ module Fastlane
         main_changelog_data = File.read(changelog_path)
 
         version_header = "## #{version_number}"
-        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n\n"
+        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n" # changelog.latest usually ends with a newline already
 
         # Compare versions ignoring prerelease and build metadata.
         new_core_version = Gem::Version.new(get_core_version(version_number))
