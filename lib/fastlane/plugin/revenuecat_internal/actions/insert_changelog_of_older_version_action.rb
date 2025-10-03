@@ -27,6 +27,10 @@ module Fastlane
             UI.important("Dry run mode enabled. No changes will be made.")
           end
 
+          if Helper::RevenuecatInternalHelper.is_git_repo_dirty
+            UI.user_error!("Your working directory has uncommitted changes. Please commit or stash them before running this action.")
+          end
+
           Helper::RevenuecatInternalHelper.create_or_checkout_branch(base_branch)
 
           changelog_update_branch_name = "changelog/#{sdk_version}"

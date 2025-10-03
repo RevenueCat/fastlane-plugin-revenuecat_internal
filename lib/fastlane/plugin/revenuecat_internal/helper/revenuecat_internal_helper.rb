@@ -229,14 +229,16 @@ module Fastlane
             show_diff: true
           )
         else
-          command = "git status --porcelain"
-          git_status = Actions.sh(command, log: true, error_callback: ->(_) {})
-          dirty_repo = git_status.lines.length > 0
-          if dirty_repo
+          if self.is_git_repo_dirty
             UI.message("Git status is not clean. Resetting all files.")
             Actions::ResetGitRepoAction.run(force: true)
           end
         end
+      end
+
+      def self.is_git_repo_dirty
+        git_status = Actions.sh("git status --porcelain", log: true, error_callback: ->(_) {})
+        return git_status.lines.length > 0
       end
 
       def self.calculate_next_snapshot_version(current_version)

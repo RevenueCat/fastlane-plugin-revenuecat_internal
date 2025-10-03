@@ -37,6 +37,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:older_than_latest_published_version?)
         .with(sdk_version)
         .and_return(true)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(false)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
 
@@ -82,6 +83,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:older_than_latest_published_version?)
         .with(sdk_version)
         .and_return(true)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(false)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
       allow(File).to receive(:read).with(changelog_path).and_return("# CHANGELOG\n\n## 1.12.0\n* Latest changes\n\n")
@@ -136,6 +138,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:older_than_latest_published_version?)
         .with(sdk_version)
         .and_return(true)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(false)
       allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_or_checkout_branch)
@@ -154,6 +157,61 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
         hybrid_common_version: hybrid_common_version,
         append_phc_version: append_phc_version
       )
+    end
+
+    it 'aborts when git repo is dirty in non-dry_run mode' do
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:older_than_latest_published_version?)
+        .with(sdk_version)
+        .and_return(true)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(true)
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
+      allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with("Your working directory has uncommitted changes. Please commit or stash them before running this action.")
+        .and_raise(FastlaneCore::Interface::FastlaneError)
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_or_checkout_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_new_branch_and_checkout)
+
+      expect do
+        Fastlane::Actions::InsertChangelogOfOlderVersionAction.run(
+          sdk_version: sdk_version,
+          changelog_path: changelog_path,
+          changelog_latest_path: changelog_latest_path,
+          repo_name: repo_name,
+          base_branch: base_branch,
+          github_pr_token: github_pr_token
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
+    end
+
+    it 'aborts when git repo is dirty in dry_run mode' do
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:older_than_latest_published_version?)
+        .with(sdk_version)
+        .and_return(true)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:is_git_repo_dirty).and_return(true)
+      allow(Fastlane::Actions).to receive(:git_branch).and_return(current_branch)
+      allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with("Your working directory has uncommitted changes. Please commit or stash them before running this action.")
+        .and_raise(FastlaneCore::Interface::FastlaneError)
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_or_checkout_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:insert_old_version_changelog_in_main)
+
+      expect do
+        Fastlane::Actions::InsertChangelogOfOlderVersionAction.run(
+          sdk_version: sdk_version,
+          changelog_path: changelog_path,
+          changelog_latest_path: changelog_latest_path,
+          repo_name: repo_name,
+          base_branch: base_branch,
+          github_pr_token: github_pr_token,
+          dry_run: true
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
     end
   end
 
