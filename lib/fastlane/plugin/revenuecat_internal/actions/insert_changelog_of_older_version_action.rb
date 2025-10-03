@@ -46,7 +46,7 @@ module Fastlane
             sdk_version
           )
 
-          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(final_version_number, changelog_content, changelog_path)
+          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(final_version_number, changelog_content, changelog_path)
 
           if dry_run
             changelog_diff = Actions.sh("git diff #{changelog_path}", log: false)
