@@ -571,7 +571,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.11.0'
-      changelog_content = "* Bug fixes\n* Performance improvements"
+      changelog_content = "* Bug fixes\n* Performance improvements\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -589,7 +589,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.11.0'
-      changelog_content = "* New features"
+      changelog_content = "* New features\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -607,7 +607,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.10.0'
-      changelog_content = "* Old bug fixes"
+      changelog_content = "* Old bug fixes\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -624,7 +624,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, "")
 
       version_to_insert = '1.10.0'
-      changelog_content = "* Initial release"
+      changelog_content = "* Initial release\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -642,7 +642,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.0.0'
-      changelog_content = "* First version"
+      changelog_content = "* First version\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -680,7 +680,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.11.0+4.5.3'
-      changelog_content = "* Version with build metadata"
+      changelog_content = "* Version with build metadata\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -698,7 +698,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.11.0-beta.1'
-      changelog_content = "* Beta version"
+      changelog_content = "* Beta version\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -716,7 +716,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.11.0+4.5.3'
-      changelog_content = "* Middle version"
+      changelog_content = "* Middle version\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -734,7 +734,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.13.0'
-      changelog_content = "* Last version of v1"
+      changelog_content = "* Last version of v1\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
@@ -752,7 +752,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(changelog_path, existing_changelog)
 
       version_to_insert = '1.12.0'
-      changelog_content = "* Fits between 1.13.0 and 1.11.0"
+      changelog_content = "* Fits between 1.13.0 and 1.11.0\n"
 
       Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
