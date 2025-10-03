@@ -21,7 +21,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_or_checkout_branch)
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_new_branch_and_checkout)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:insert_old_version_changelog_in_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:insert_old_version_changelog_in_current_branch)
 
       Fastlane::Actions::InsertChangelogOfOlderVersionAction.run(
         sdk_version: sdk_version,
@@ -53,7 +53,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
         .with(changelog_update_branch_name)
         .once
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_current_branch)
         .with(sdk_version, changelog_content, changelog_path)
         .once
 
@@ -104,7 +104,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_new_branch_and_checkout)
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_current_branch)
         .with(sdk_version, changelog_content, changelog_path)
         .once
 
@@ -145,7 +145,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog_content)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_or_checkout_branch)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_new_branch_and_checkout)
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_main)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_current_branch)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
 
@@ -201,7 +201,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
         .and_raise(FastlaneCore::Interface::FastlaneError)
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_or_checkout_branch)
-      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:insert_old_version_changelog_in_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:insert_old_version_changelog_in_current_branch)
 
       expect do
         Fastlane::Actions::InsertChangelogOfOlderVersionAction.run(

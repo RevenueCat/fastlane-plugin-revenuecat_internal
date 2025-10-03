@@ -552,7 +552,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.insert_old_version_changelog_in_main' do
+  describe '.insert_old_version_changelog_in_current_branch' do
     require 'fileutils'
 
     let(:tmp_test_files_path) { './tmp_test_files' }
@@ -573,7 +573,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.11.0'
       changelog_content = "* Bug fixes\n* Performance improvements"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -591,7 +591,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.11.0'
       changelog_content = "* New features"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -609,7 +609,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.10.0'
       changelog_content = "* Old bug fixes"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -626,7 +626,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.10.0'
       changelog_content = "* Initial release"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -644,7 +644,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.0.0'
       changelog_content = "* First version"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -667,7 +667,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         .and_call_original
 
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+        Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
           version_to_insert,
           changelog_content,
           changelog_path
@@ -682,7 +682,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.11.0+4.5.3'
       changelog_content = "* Version with build metadata"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -700,7 +700,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.11.0-beta.1'
       changelog_content = "* Beta version"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -718,7 +718,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.11.0+4.5.3'
       changelog_content = "* Middle version"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -736,7 +736,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.13.0'
       changelog_content = "* Last version of v1"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path
@@ -754,7 +754,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_to_insert = '1.12.0'
       changelog_content = "* Fits between 1.13.0 and 1.11.0"
 
-      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_main(
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
         version_to_insert,
         changelog_content,
         changelog_path

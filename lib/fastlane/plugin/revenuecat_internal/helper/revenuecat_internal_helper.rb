@@ -102,7 +102,7 @@ module Fastlane
         end
       end
 
-      def self.insert_old_version_changelog_in_main(version_number, old_version_changelog_contents, changelog_path)
+      def self.insert_old_version_changelog_in_current_branch(version_number, old_version_changelog_contents, changelog_path)
         main_changelog_data = File.read(changelog_path)
 
         version_header = "## #{version_number}"
