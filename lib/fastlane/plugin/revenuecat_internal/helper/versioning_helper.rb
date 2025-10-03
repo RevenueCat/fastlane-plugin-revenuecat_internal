@@ -92,7 +92,7 @@ module Fastlane
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
             types_of_change = get_type_of_change_from_pr_info(item)
-            next if types_of_change.include?("pr:next_release")
+            next if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
 
             section = get_section_depending_on_types_of_change(types_of_change)
             line = "* #{message} via #{name} (@#{username})"
@@ -421,7 +421,9 @@ module Fastlane
 
           item = items.first
           commit_supported_labels = get_type_of_change_from_pr_info(item)
-          type_of_bump_for_commit = get_type_of_bump_from_types_of_change(commit_supported_labels)
+          # Filter out pr:changelog_ignore as it shouldn't affect version determination
+          labels_for_version = commit_supported_labels.reject { |label| label == "pr:changelog_ignore" }.to_set
+          type_of_bump_for_commit = get_type_of_bump_from_types_of_change(labels_for_version)
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
         end
         type_of_bump

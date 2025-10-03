@@ -697,6 +697,15 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_patch_label_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/patch_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_changelog_ignore_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/changelog_ignore_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
+    let(:get_changelog_ignore_and_fix_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/changelog_ignore_and_fix_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
+    let(:get_changelog_ignore_and_other_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/changelog_ignore_and_other_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
     let(:get_ci_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_819dc620db5608fb952c852038a3560554161707.json") }
     end
@@ -828,6 +837,66 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(next_version).to eq("1.11.1")
       expect(type_of_bump).to eq(:patch)
+    end
+
+    it 'skips version bump if only labeled as changelog_ignore' do
+      # Every PR is labeled with pr:changelog_ignore. This should skip the version bump
+      # and also be skipped in the changelog
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_changelog_ignore_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil
+      )
+      expect(next_version).to eq("1.11.0")
+      expect(type_of_bump).to eq(:skip)
+    end
+
+    it 'determines next version as patch if labeled as both changelog_ignore and fix' do
+      # Every PR is labeled with both pr:changelog_ignore and pr:fix.
+      # This should result in a patch bump (pr:fix takes precedence) but be skipped in the changelog
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_changelog_ignore_and_fix_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil
+      )
+      expect(next_version).to eq("1.11.1")
+      expect(type_of_bump).to eq(:patch)
+    end
+
+    it 'skips version bump if labeled as both changelog_ignore and other' do
+      # Every PR is labeled with both pr:changelog_ignore and pr:other.
+      # Since pr:changelog_ignore is filtered out, only pr:other remains which results in a skip
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_changelog_ignore_and_other_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil
+      )
+      expect(next_version).to eq("1.11.0")
+      expect(type_of_bump).to eq(:skip)
     end
 
     it 'skips next version if no release is needed' do

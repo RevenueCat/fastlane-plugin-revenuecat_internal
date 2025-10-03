@@ -8,7 +8,7 @@ module Fastlane
 
   module Helper
     class GitHubHelper
-      SUPPORTED_PR_LABELS = (%w[breaking build ci docs feat fix perf revenuecatui refactor style test next_release dependencies phc_dependencies force_minor force_patch revenuecatui].map { |label| "pr:#{label}" }).to_set
+      SUPPORTED_PR_LABELS = (%w[breaking build ci docs feat fix perf revenuecatui refactor style test next_release dependencies phc_dependencies force_minor force_patch revenuecatui changelog_ignore].map { |label| "pr:#{label}" }).to_set
 
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
         retries = 0
