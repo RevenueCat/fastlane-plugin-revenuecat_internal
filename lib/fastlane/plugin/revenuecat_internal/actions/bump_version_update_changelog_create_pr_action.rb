@@ -94,7 +94,7 @@ module Fastlane
                                                                 files_to_update,
                                                                 files_to_update_without_prerelease_modifiers,
                                                                 files_to_update_on_latest_stable_releases)
-        Helper::RevenuecatInternalHelper.attach_changelog_to_master(new_version_number, changelog_latest_path, changelog_path)
+        Helper::RevenuecatInternalHelper.attach_changelog_to_main(new_version_number, changelog_latest_path, changelog_path)
 
         unless dry_run
           Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")

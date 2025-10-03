@@ -39,10 +39,17 @@ module Fastlane
       end
 
       def self.newer_than_latest_published_version?(version_number)
-        latest_published_version = Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | grep -v '^#{version_number}$' | sort -r --version-sort | head -n1")
+        latest_published_version = get_latest_published_version_number
         return true if latest_published_version.empty?
 
         Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
+      end
+
+      def self.older_than_latest_published_version?(version_number)
+        latest_published_version = get_latest_published_version_number
+        return false if latest_published_version.empty?
+
+        Gem::Version.new(drop_build_metadata(latest_published_version)) > Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -77,22 +84,70 @@ module Fastlane
         File.write(changelog_latest_path, "#{prepopulated_changelog}\n")
       end
 
-      def self.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      def self.attach_changelog_to_main(version_number, changelog_latest_path, changelog_path)
         current_changelog = File.open(changelog_latest_path, 'r')
-        master_changelog = File.open(changelog_path, 'r')
+        main_changelog = File.open(changelog_path, 'r')
 
         current_changelog_data = current_changelog.read
-        master_changelog_data = master_changelog.read
+        main_changelog_data = main_changelog.read
 
         current_changelog.close
-        master_changelog.close
+        main_changelog.close
 
-        File.open(changelog_path, 'w') do |master_changelog_write_mode|
+        File.open(changelog_path, 'w') do |main_changelog_write_mode|
           version_header = "## #{version_number}"
-          whole_file_data = "#{version_header}\n#{current_changelog_data}\n#{master_changelog_data}"
+          whole_file_data = "#{version_header}\n#{current_changelog_data}\n#{main_changelog_data}"
 
-          master_changelog_write_mode.write(whole_file_data)
+          main_changelog_write_mode.write(whole_file_data)
         end
+      end
+
+      def self.insert_old_version_changelog_in_current_branch(version_number, old_version_changelog_contents, changelog_path)
+        main_changelog_data = File.read(changelog_path)
+
+        version_header = "## #{version_number}"
+        data_to_insert = "#{version_header}\n#{old_version_changelog_contents}\n\n"
+
+        # Compare versions ignoring prerelease and build metadata.
+        new_core_version = Gem::Version.new(get_core_version(version_number))
+
+        # Match a version header line. Allow optional extra text for prerelease/build metadata,
+        # but require it to be a standalone header line ("## <semver...>").
+        #
+        # Captures the FULL version string (which might include -prerelease and/or +build)
+        # in group 1, so we can strip it down to core for comparison.
+        header_regex = /^##\s+(\d+\.\d+\.\d+(?:[#{Regexp.escape(DELIMITER_PRERELEASE + DELIMITER_BUILD_METADATA)}][^\s]*)?)\s*$/
+
+        output = +""
+        inserted = false
+
+        main_changelog_data.each_line do |line|
+          if !inserted && (m = line.match(header_regex))
+            current_full = m[1]
+            current_core = Gem::Version.new(get_core_version(current_full))
+
+            if current_full == version_number
+              UI.user_error!("Changelog already contains an entry for version #{version_number}")
+            end
+
+            # Insert right before the first header whose version is smaller
+            if current_core < new_core_version
+              output << data_to_insert
+              inserted = true
+            end
+          end
+
+          output << line
+        end
+
+        # If nothing smaller was found, append at the end
+        unless inserted
+          output << "\n" unless output.end_with?("\n")
+          output << data_to_insert
+        end
+
+        File.write(changelog_path, output)
+        true
       end
 
       def self.create_new_branch_and_checkout(branch_name)
@@ -174,14 +229,16 @@ module Fastlane
             show_diff: true
           )
         else
-          command = "git status --porcelain"
-          git_status = Actions.sh(command, log: true, error_callback: ->(_) {})
-          dirty_repo = git_status.lines.length > 0
-          if dirty_repo
+          if self.is_git_repo_dirty
             UI.message("Git status is not clean. Resetting all files.")
             Actions::ResetGitRepoAction.run(force: true)
           end
         end
+      end
+
+      def self.is_git_repo_dirty
+        git_status = Actions.sh("git status --porcelain", log: true, error_callback: ->(_) {})
+        return git_status.lines.length > 0
       end
 
       def self.calculate_next_snapshot_version(current_version)
@@ -245,6 +302,10 @@ module Fastlane
             commit_changes.call
           end
         end
+      end
+
+      def self.discard_changes_in_current_branch
+        Actions.sh("git restore .")
       end
 
       def self.get_github_release_tag_names(repo_name, github_token = nil)
@@ -313,6 +374,21 @@ module Fastlane
       private_class_method def self.drop_build_metadata(version)
         version.split(DELIMITER_BUILD_METADATA)[0]
       end
+
+      private_class_method def self.drop_prerelease_modifiers(version)
+        version.split(DELIMITER_PRERELEASE)[0]
+      end
+
+      # This is the core version of the given version, without prerelease or build metadata
+      private_class_method def self.get_core_version(version)
+        drop_build_metadata(drop_prerelease_modifiers(version))
+      end
+
+      # rubocop:disable Naming/AccessorMethodName
+      private_class_method def self.get_latest_published_version_number
+        Actions.sh("git tag | grep '^[0-9]*\.[0-9]*\.[0-9]*$' | sort -r --version-sort | head -n1")
+      end
+      # rubocop:enable Naming/AccessorMethodName
     end
   end
 end

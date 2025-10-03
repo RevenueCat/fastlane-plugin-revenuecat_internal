@@ -68,7 +68,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
@@ -121,7 +121,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to_not(receive(:commit_changes_and_push_current_branch))
@@ -537,7 +537,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
@@ -598,7 +598,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
         .once
-      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
         .with(expected_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
@@ -683,7 +683,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
               { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
               { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
               { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] })
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_master)
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")

@@ -1,7 +1,9 @@
 describe Fastlane::Helper::RevenuecatInternalHelper do
-  def get_latest_tag_command(version_to_exclude)
-    "git tag | grep '^[0-9]*.[0-9]*.[0-9]*$' | grep -v '^#{version_to_exclude}$' | sort -r --version-sort | head -n1"
+  # rubocop:disable Naming/AccessorMethodName
+  def get_latest_tag_command
+    "git tag | grep '^[0-9]*.[0-9]*.[0-9]*$' | sort -r --version-sort | head -n1"
   end
+  # rubocop:enable Naming/AccessorMethodName
 
   describe '.replace_version_number' do
     require 'fileutils'
@@ -14,7 +16,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.3')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Dir.mkdir('./tmp_test_files')
     end
 
@@ -29,7 +31,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0')).and_return('1.11.0')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.11.0')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0',
@@ -52,7 +54,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
         '1.12.0',
@@ -75,7 +77,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0-SNAPSHOT')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0-SNAPSHOT',
@@ -98,7 +100,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0+1.2.3')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0+1.2.3')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0+1.2.3',
         '1.12.0',
@@ -121,7 +123,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0+1.2.3')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0+1.2.3',
@@ -144,7 +146,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0+1.2.3')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0+1.2.3')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0+1.2.4')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0+1.2.3',
         '1.12.0+1.2.4',
@@ -167,7 +169,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_without_prerelease_modifiers_4, 'Contains version: 1.11.0')
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0',
@@ -191,7 +193,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0 and other version: 1.11.0')
 
       pattern = "Contains version: {x} and"
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0-SNAPSHOT',
         '1.12.0',
@@ -223,7 +225,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0 and other version: 1.11.0')
 
       pattern = "Contains version: {x} and"
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0-SNAPSHOT')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0-SNAPSHOT',
@@ -246,7 +248,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'does not update files on latest stable release if new version is prerelease' do
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.11.0')
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.12.0-SNAPSHOT')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.11.0',
         '1.12.0-SNAPSHOT',
@@ -262,7 +264,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'does not update files on latest stable release if new version is older than latest version' do
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.1.0')
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.1.8')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.1.0',
         '1.1.8',
@@ -278,7 +280,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'does update files on latest stable release if new version is newer than latest version' do
       File.write(file_to_update_on_latest_stable_release_5, 'Contains version: 1.2.3')
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.2.3',
         '1.2.4',
@@ -297,7 +299,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expected_text = '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/1.2.4/index.html" />'
 
       File.write(file_to_update_on_latest_stable_release_5, original_text)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.2.3',
         '1.2.4',
@@ -315,7 +317,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       original_text = '<meta http-equiv="refresh" content="0; url=https://sdk.revenuecat.com/android/7.10.7-SNAPSHOT/index.html" />'
 
       File.write(file_to_update_on_latest_stable_release_5, original_text)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         '1.2.3',
         '1.2.4',
@@ -337,7 +339,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_with_newline = "7.1.1\n"
       new_version = '7.2.0'
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('7.2.0')).and_return('7.0.0')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('7.0.0')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         version_with_newline,
         new_version,
@@ -357,7 +359,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       version_with_whitespace = "  5.1.0\n\t  "
       new_version = '  5.2.0  ' # Also test new version with whitespace
 
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('5.2.0')).and_return('5.0.0')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('5.0.0')
       Fastlane::Helper::RevenuecatInternalHelper.replace_version_number(
         version_with_whitespace,
         new_version,
@@ -373,74 +375,74 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
   describe '.newer_than_latest_published_version?' do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.0.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
     end
 
     it 'if no tag is returned its considered latest' do
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.0.0')).and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to be_truthy
     end
 
     it 'returns false if tag older than latest' do
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.0.0+3.2.1')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0+3.2.1')).to eq(false)
     end
 
     it 'returns false if tag same as latest' do
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.3')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3')).to eq(false)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.3+3.2.1')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3+3.2.1')).to eq(false)
     end
 
     it 'returns true if tag newer than latest' do
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.3.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('2.0.0')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4+3.2.1')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4+3.2.1')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.3.0+3.2.1')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0+3.2.1')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('2.0.0+3.2.1')).and_return('1.2.3')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0+3.2.1')).to eq(true)
     end
 
     it 'returns false if tag older than latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.0.0')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.0.0+1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0+1.2.3')).to eq(false)
     end
 
     it 'returns false if tag same as latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3')).to eq(false)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.3+1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3+1.2.3')).to eq(false)
     end
 
     it 'returns true if tag newer than latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.3.0')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('2.0.0')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.2.4+1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4+1.2.3')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('1.3.0+1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0+1.2.3')).to eq(true)
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command('2.0.0+1.2.3')).and_return('1.2.3+3.2.1')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0+1.2.3')).to eq(true)
     end
   end
@@ -525,7 +527,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.attach_changelog_to_master' do
+  describe '.attach_changelog_to_main' do
     require 'fileutils'
 
     let(:version_number) { '1.12.0' }
@@ -544,9 +546,223 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'prepends changelog latest file contents to changelog file' do
-      Fastlane::Helper::RevenuecatInternalHelper.attach_changelog_to_master(version_number, changelog_latest_path, changelog_path)
+      Fastlane::Helper::RevenuecatInternalHelper.attach_changelog_to_main(version_number, changelog_latest_path, changelog_path)
       changelog_contents = File.read(changelog_path)
       expect(changelog_contents).to eq("## 1.12.0\nchangelog latest contents\n## 1.11.0\nchangelog contents")
+    end
+  end
+
+  describe '.insert_old_version_changelog_in_current_branch' do
+    require 'fileutils'
+
+    let(:tmp_test_files_path) { './tmp_test_files' }
+    let(:changelog_path) { './tmp_test_files/CHANGELOG.md' }
+
+    before(:each) do
+      Dir.mkdir(tmp_test_files_path)
+    end
+
+    after(:each) do
+      FileUtils.rm_rf(tmp_test_files_path)
+    end
+
+    it 'inserts older version changelog in correct position between newer and older versions' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* Bug fixes\n* Performance improvements"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0\n* Bug fixes\n* Performance improvements\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'inserts version at the beginning when it is newer than all existing versions' do
+      existing_changelog = "## 1.10.0\nOlder changes\n\n## 1.9.0\nEven older changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* New features"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.11.0\n* New features\n\n## 1.10.0\nOlder changes\n\n## 1.9.0\nEven older changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'appends version at the end when it is older than all existing versions' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.11.0\nRecent changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.10.0'
+      changelog_content = "* Old bug fixes"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0\nRecent changes\n## 1.10.0\n* Old bug fixes\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles empty changelog file' do
+      File.write(changelog_path, "")
+
+      version_to_insert = '1.10.0'
+      changelog_content = "* Initial release"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "\n## 1.10.0\n* Initial release\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles changelog with only a header' do
+      existing_changelog = "# CHANGELOG\n\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.0.0'
+      changelog_content = "* First version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "# CHANGELOG\n\n## 1.0.0\n* First version\n\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'fails when version already exists in changelog' do
+      existing_changelog = "## 1.11.0\nExisting content\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0'
+      changelog_content = "* Duplicate version"
+
+      expect(FastlaneCore::UI).to receive(:user_error!)
+        .with("Changelog already contains an entry for version #{version_to_insert}")
+        .and_call_original
+
+      expect do
+        Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+          version_to_insert,
+          changelog_content,
+          changelog_path
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
+    end
+
+    it 'handles versions with build metadata correctly' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0+4.5.3'
+      changelog_content = "* Version with build metadata"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0+4.5.3\n* Version with build metadata\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles versions with prerelease identifiers correctly' do
+      existing_changelog = "## 1.12.0\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0-beta.1'
+      changelog_content = "* Beta version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0\nLatest changes\n\n## 1.11.0-beta.1\n* Beta version\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'compares versions by core version ignoring build metadata' do
+      existing_changelog = "## 1.12.0+3.2.1\nLatest changes\n\n## 1.10.0\nOlder changes\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.11.0+4.5.3'
+      changelog_content = "* Middle version"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 1.12.0+3.2.1\nLatest changes\n\n## 1.11.0+4.5.3\n* Middle version\n\n## 1.10.0\nOlder changes\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles major version differences correctly' do
+      existing_changelog = "## 2.0.0\nMajor release\n\n## 1.12.0\nOld major version\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.13.0'
+      changelog_content = "* Last version of v1"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "## 2.0.0\nMajor release\n\n## 1.13.0\n* Last version of v1\n\n## 1.12.0\nOld major version\n"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles complex changelog with multiple versions correctly' do
+      existing_changelog = "# CHANGELOG\n\n## 1.15.0\nNewest\n\n## 1.13.0\nMiddle newer\n\n## 1.11.0\nMiddle\n\n## 1.9.0\nOldest\n"
+      File.write(changelog_path, existing_changelog)
+
+      version_to_insert = '1.12.0'
+      changelog_content = "* Fits between 1.13.0 and 1.11.0"
+
+      Fastlane::Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(
+        version_to_insert,
+        changelog_content,
+        changelog_path
+      )
+
+      result = File.read(changelog_path)
+      expected = "# CHANGELOG\n\n## 1.15.0\nNewest\n\n## 1.13.0\nMiddle newer\n\n## 1.12.0\n* Fits between 1.13.0 and 1.11.0\n\n## 1.11.0\nMiddle\n\n## 1.9.0\nOldest\n"
+      expect(result).to eq(expected)
     end
   end
 
@@ -851,7 +1067,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'calls GitHubHelper with appropriate parameters for non-prerelease that is newer than existing version' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command(no_prerelease_version)).and_return('1.10.0')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.10.0')
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
@@ -877,7 +1093,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'calls GitHubHelper with appropriate parameters for non-prerelease that is older than existing version' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command(no_prerelease_version)).and_return('1.12.0')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.12.0')
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
@@ -903,7 +1119,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'calls GitHubHelper with appropriate parameters for prerelease version' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
-      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command(prerelease_version)).and_return('')
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",
