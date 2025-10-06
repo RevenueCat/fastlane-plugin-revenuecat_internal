@@ -62,7 +62,7 @@ describe Fastlane::Actions::InsertChangelogOfOlderVersionAction do
         .once
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Changelog update for #{sdk_version}", changelog_content, repo_name, base_branch, changelog_update_branch_name, github_pr_token, ["pr:other"])
+        .with("Changelog update for #{sdk_version}", changelog_content, repo_name, base_branch, changelog_update_branch_name, github_pr_token, ["pr:changelog_ignore"])
         .once
 
       expect(FastlaneCore::UI).to receive(:success)
