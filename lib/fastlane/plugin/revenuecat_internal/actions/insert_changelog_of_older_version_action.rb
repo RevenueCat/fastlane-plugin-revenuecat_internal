@@ -28,6 +28,12 @@ module Fastlane
           end
 
           if Helper::RevenuecatInternalHelper.is_git_repo_dirty
+            # print the uncommitted changes
+            UI.important("Uncommitted changes:\n#{Actions.sh("git status --porcelain", log: false)}")
+
+            # print the diff of the uncommitted changes
+            UI.important("Diff of uncommitted changes:\n#{Actions.sh("git diff", log: false)}")
+
             UI.user_error!("Your working directory has uncommitted changes. Please commit or stash them before running this action.")
           end
 
