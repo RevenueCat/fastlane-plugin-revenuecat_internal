@@ -372,7 +372,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
   end
 
-  describe '.newer_than_latest_published_version?' do
+  describe '.newer_than_or_equal_to_latest_published_version?' do
     before(:each) do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
@@ -380,70 +380,70 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'if no tag is returned its considered latest' do
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to be_truthy
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0')).to be_truthy
     end
 
     it 'returns false if tag older than latest' do
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0')).to eq(false)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0+3.2.1')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0+3.2.1')).to eq(false)
     end
 
     it 'returns false if tag same as latest' do
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.3')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3+3.2.1')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.3+3.2.1')).to eq(true)
     end
 
     it 'returns true if tag newer than latest' do
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.4')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.3.0')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('2.0.0')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4+3.2.1')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.4+3.2.1')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0+3.2.1')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.3.0+3.2.1')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0+3.2.1')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('2.0.0+3.2.1')).to eq(true)
     end
 
     it 'returns false if tag older than latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0')).to eq(false)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.0.0+1.2.3')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0+1.2.3')).to eq(false)
     end
 
     it 'returns false if tag same as latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.3')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.3+1.2.3')).to eq(false)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.3+1.2.3')).to eq(true)
     end
 
     it 'returns true if tag newer than latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.4')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.3.0')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('2.0.0')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.2.4+1.2.3')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.4+1.2.3')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('1.3.0+1.2.3')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.3.0+1.2.3')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
-      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_latest_published_version?('2.0.0+1.2.3')).to eq(true)
+      expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('2.0.0+1.2.3')).to eq(true)
     end
   end
 
@@ -1068,6 +1068,36 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'calls GitHubHelper with appropriate parameters for non-prerelease that is newer than existing version' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.10.0')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: no_prerelease_version,
+        tag_name: no_prerelease_version,
+        description: release_description,
+        commitish: commit_hash,
+        upload_assets: upload_assets,
+        is_draft: false,
+        is_prerelease: false,
+        make_latest: true,
+        server_url: server_url
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        no_prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token
+      )
+    end
+
+    it 'calls GitHubHelper with appropriate parameters for non-prerelease that is exactly the latest existing version' do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.11.0')
+
+      # We expect make_latest to be true because the version is exactly the latest existing version
+      # and create_github_release is executed right after the tag is created
+      # (i.e. the latest tag matches the version we are releasing)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
         repository_name: "RevenueCat/fake-repo-name",

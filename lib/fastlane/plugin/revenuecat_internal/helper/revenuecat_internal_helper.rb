@@ -31,25 +31,22 @@ module Fastlane
         files_to_update_without_prerelease_modifiers.each do |file_to_update, patterns|
           replace_in(previous_version_number_without_prerelease_modifiers, new_version_number_without_prerelease_modifiers, file_to_update, patterns)
         end
-        if !files_to_update_on_latest_stable_releases.empty? && newer_than_latest_published_version?(new_version_number) && !Gem::Version.new(drop_build_metadata(new_version_number)).prerelease?
+        if !files_to_update_on_latest_stable_releases.empty? && newer_than_or_equal_to_latest_published_version?(new_version_number) && !Gem::Version.new(drop_build_metadata(new_version_number)).prerelease?
           files_to_update_on_latest_stable_releases.each do |file_to_update, patterns|
             replace_stable_version_number_using_regex(new_version_number_without_prerelease_modifiers, file_to_update, patterns)
           end
         end
       end
 
-      def self.newer_than_latest_published_version?(version_number)
+      def self.newer_than_or_equal_to_latest_published_version?(version_number)
         latest_published_version = get_latest_published_version_number
         return true if latest_published_version.empty?
 
-        Gem::Version.new(drop_build_metadata(latest_published_version)) < Gem::Version.new(drop_build_metadata(version_number))
+        Gem::Version.new(drop_build_metadata(latest_published_version)) <= Gem::Version.new(drop_build_metadata(version_number))
       end
 
       def self.older_than_latest_published_version?(version_number)
-        latest_published_version = get_latest_published_version_number
-        return false if latest_published_version.empty?
-
-        Gem::Version.new(drop_build_metadata(latest_published_version)) > Gem::Version.new(drop_build_metadata(version_number))
+        return !newer_than_or_equal_to_latest_published_version?(version_number)
       end
 
       def self.edit_changelog(prepopulated_changelog, changelog_latest_path, editor)
@@ -248,7 +245,7 @@ module Fastlane
       def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
         commit_hash = Actions.last_git_commit_dict[:commit_hash]
         is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
-        is_latest_stable_release = !is_prerelease && newer_than_latest_published_version?(release_version)
+        is_latest_stable_release = !is_prerelease && newer_than_or_equal_to_latest_published_version?(release_version)
 
         # This is a temporary workaround as the fastlane action does not support the `make_latest` parameter
         # Forked from: https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/set_github_release.rb
