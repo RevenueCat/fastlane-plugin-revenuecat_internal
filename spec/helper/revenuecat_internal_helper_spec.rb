@@ -389,7 +389,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0+3.2.1')).to eq(false)
     end
 
-    it 'returns false if tag same as latest' do
+    it 'returns true if tag same as latest' do
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.2.3')).to eq(true)
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3')
@@ -420,7 +420,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(Fastlane::Helper::RevenuecatInternalHelper.newer_than_or_equal_to_latest_published_version?('1.0.0+1.2.3')).to eq(false)
     end
 
-    it 'returns false if tag same as latest when latest contains build metadata' do
+    it 'returns true if tag same as latest when latest contains build metadata' do
       allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
       allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.2.3+3.2.1')
 
