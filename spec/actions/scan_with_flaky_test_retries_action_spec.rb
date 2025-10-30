@@ -22,7 +22,7 @@ describe Fastlane::Actions::ScanWithFlakyTestRetriesAction do
     end
 
     after do
-      FileUtils.remove_entry(temp_dir) if File.exist?(temp_dir)
+      FileUtils.remove_entry(temp_dir)
     end
 
     context 'when the initial run passes without failures' do
@@ -67,11 +67,13 @@ describe Fastlane::Actions::ScanWithFlakyTestRetriesAction do
       end
 
       it 'retries with only_testing and removes the testplan' do
+        # First scan invocation: initial run still uses the full test plan
         expect(other_action_double).to receive(:scan).ordered do |**scan_params|
           expect(scan_params).not_to have_key(:only_testing)
           expect(scan_params[:testplan]).to eq('UITests')
         end
 
+        # Second invocation: retry run scoped to failed tests and without the plan
         expect(other_action_double).to receive(:scan).ordered do |**scan_params|
           expect(scan_params[:only_testing]).to eq(['Suite/Class/test_method'])
           expect(scan_params).not_to have_key(:testplan)
@@ -89,4 +91,3 @@ describe Fastlane::Actions::ScanWithFlakyTestRetriesAction do
     end
   end
 end
-

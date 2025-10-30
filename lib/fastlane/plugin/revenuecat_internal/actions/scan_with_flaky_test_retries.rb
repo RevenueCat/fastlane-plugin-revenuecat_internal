@@ -75,17 +75,14 @@ module Fastlane
           # Run tests
           fail_build = attempt == number_of_flaky_retries
           begin
-            params_copy = params.clone
-            params_copy[:fail_build] = fail_build
-            if failed_tests && !failed_tests.empty?
-              params_copy[:only_testing] = failed_tests
+            scan_params = prepare_scan_params(
+              base_params: params,
+              report_dir: report_dir,
+              fail_build: fail_build,
+              failed_tests: failed_tests
+            )
 
-              # Can't specify a test plan when there are failed tests to retry
-              params_copy.delete(:testplan)
-            end
-            params_copy[:output_directory] = report_dir
-
-            other_action.scan(**params_copy)
+            other_action.scan(**scan_params)
           ensure
             if attempt == 0
               # Only copy original junit report and save list of failed tests
@@ -114,6 +111,23 @@ module Fastlane
         end
 
         return last_attempt
+      end
+
+      def self.prepare_scan_params(base_params:, report_dir:, fail_build:, failed_tests:)
+        params_copy = base_params.clone
+        params_copy[:fail_build] = fail_build
+        params_copy[:output_directory] = report_dir
+
+        if failed_tests && !failed_tests.empty?
+          params_copy[:only_testing] = failed_tests
+
+          # Can't specify a test plan when there are failed tests to retry
+          params_copy.delete(:testplan)
+        else
+          params_copy.delete(:only_testing)
+        end
+
+        params_copy
       end
 
       # Copies the junit file to a new location (and a new name).
