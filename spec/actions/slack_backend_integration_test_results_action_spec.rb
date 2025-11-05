@@ -23,7 +23,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
       allow(Fastlane::Actions).to receive(:sh)
         .with("git rev-parse --abbrev-ref HEAD")
-        .and_return(git_branch)      
+        .and_return(git_branch)
       allow(mock_other_action).to receive(:slack)
       allow(mock_other_action).to receive(:runner).and_return(mock_runner)
       allow(mock_runner).to receive(:trigger_action_by_name)
@@ -393,4 +393,3 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
     end
   end
 end
-
