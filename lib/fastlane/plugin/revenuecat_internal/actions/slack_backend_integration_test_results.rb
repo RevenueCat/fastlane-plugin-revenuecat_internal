@@ -1,35 +1,35 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
-require 'fastlane_core/ui/ui'
+require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
     class SlackBackendIntegrationTestResultsAction < Action
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         if ENV["CI"] != "true"
           UI.message("Not running in CI environment, skipping slack notification.")
+          return
         end
 
         environment = params[:environment]
         success = params[:success]
         version = params[:version] || begin
           File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
-        rescue
+        rescue StandardError
           nil
         end || UI.user_error!("Missing version parameter")
 
         major_version = version.split('.')[0]
-        repo_name = ENV["CIRCLE_PROJECT_REPONAME"]
+        repo_name = ENV.fetch("CIRCLE_PROJECT_REPONAME", nil)
         platform = params[:platform] || case repo_name
-          when "purchases-android" then "Android"
-          when "purchases-ios" then "iOS"
-          else UI.user_error!("Missing platform parameter")
-        end
+                                        when "purchases-android" then "Android"
+                                        when "purchases-ios" then "iOS"
+                                        else UI.user_error!("Missing platform parameter")
+                                        end
 
-        slack_url_feed = ENV["SLACK_URL_BACKEND_INTEGRATION_TESTS"] ||
-          UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.")
-        slack_url_binary_solo = ENV["SLACK_URL_BINARY_SOLO"] ||
-          UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.")
+        slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+        slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
 
         message_feed =
           if success
@@ -39,10 +39,8 @@ module Fastlane
           end
 
         message_binary_solo =
-          if !success
+          unless success
             "<!subteam^S0939BTV0SY|oncall-sdk> <!subteam^S061NM11SNN|oncall-infra> <!subteam^S0621D5SHG9|oncall-product> #{platform} backend integration tests failed."
-          else
-            nil
           end
 
         slack_options = {
@@ -53,7 +51,7 @@ module Fastlane
               {
                 type: "button",
                 text: "View CircleCI logs",
-                url: ENV["CIRCLE_BUILD_URL"]
+                url: ENV.fetch("CIRCLE_BUILD_URL", nil)
               }
             ],
             fields: [
@@ -79,9 +77,9 @@ module Fastlane
               },
               {
                 title: "Test suite",
-                value: ENV["CIRCLE_JOB"],
+                value: ENV.fetch("CIRCLE_JOB", nil),
                 short: false
-              },
+              }
             ]
           }
         }
@@ -102,6 +100,7 @@ module Fastlane
           )
         )
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def self.description
         "Sends backend integration test results to Slack channels with detailed CircleCI context"
@@ -139,4 +138,3 @@ module Fastlane
     end
   end
 end
-
