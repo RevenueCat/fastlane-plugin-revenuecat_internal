@@ -11,6 +11,10 @@ module Fastlane
           UI.message("Not running in CI environment, skipping slack notification.")
           return
         end
+        unless ENV["CIRCLE_PULL_REQUEST"].to_s.empty?
+          UI.message("Running in pull request context, skipping slack notification.")
+          return
+        end
 
         environment = params[:environment]
         success = params[:success]
