@@ -81,6 +81,15 @@ lane :sample_determine_next_version_using_labels_action do |options|
   )
 end
 
+lane :sample_validate_version_not_in_maven_central_action do |options|
+  validate_version_not_in_maven_central(
+    group_id: 'com.revenuecat.purchases',
+    artifact_ids: ['purchases', 'purchases-ui'],
+    version: '7.0.0',
+    auth_token: 'maven-central-auth-token' # This can also be obtained from ENV FETCH_PUBLICATIONS_USER_TOKEN_MAVEN_CENTRAL
+  )
+end
+
 lane :sample_flaky_test do
   test_artifact_path = File.absolute_path('./test_output/xctest/ios')
 
