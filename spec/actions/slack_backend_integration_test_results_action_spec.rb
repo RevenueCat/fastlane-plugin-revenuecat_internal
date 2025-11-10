@@ -20,6 +20,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV['CIRCLE_PROJECT_REPONAME'] = repo_name
       ENV['SLACK_URL_BACKEND_INTEGRATION_TESTS'] = slack_url_feed
       ENV['SLACK_URL_BINARY_SOLO'] = slack_url_binary_solo
+      # Backup and clear CIRCLE_PULL_REQUEST as it will be set on CI which prevents this action from running.
+      @backup_circle_pull_request = ENV.fetch('CIRCLE_PULL_REQUEST', nil)
+      ENV.delete('CIRCLE_PULL_REQUEST')
 
       allow(Fastlane::Actions).to receive(:sh)
         .with("git rev-parse --abbrev-ref HEAD")
@@ -38,6 +41,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV.delete('CIRCLE_PROJECT_REPONAME')
       ENV.delete('SLACK_URL_BACKEND_INTEGRATION_TESTS')
       ENV.delete('SLACK_URL_BINARY_SOLO')
+      ENV['CIRCLE_PULL_REQUEST'] = @backup_circle_pull_request if @backup_circle_pull_request
     end
 
     describe 'when tests succeed' do
@@ -319,6 +323,50 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
           .with('Not running in CI environment, skipping slack notification.')
 
         expect(mock_other_action).not_to receive(:slack)
+
+        action_instance.run(
+          environment: environment,
+          success: true,
+          version: version,
+          platform: platform
+        )
+      end
+    end
+
+    describe 'when running in pull request context' do
+      it 'skips slack notification when CIRCLE_PULL_REQUEST is set to a URL' do
+        ENV['CIRCLE_PULL_REQUEST'] = 'https://github.com/RevenueCat/repo/pull/123'
+
+        expect(Fastlane::UI).to receive(:message)
+          .with('Running in pull request context, skipping slack notification.')
+
+        expect(mock_other_action).not_to receive(:slack)
+
+        action_instance.run(
+          environment: environment,
+          success: true,
+          version: version,
+          platform: platform
+        )
+      end
+
+      it 'continues normally when CIRCLE_PULL_REQUEST is not set' do
+        ENV.delete('CIRCLE_PULL_REQUEST')
+
+        expect(mock_other_action).to receive(:slack).once
+
+        action_instance.run(
+          environment: environment,
+          success: true,
+          version: version,
+          platform: platform
+        )
+      end
+
+      it 'continues normally when CIRCLE_PULL_REQUEST is set to empty string' do
+        ENV['CIRCLE_PULL_REQUEST'] = ''
+
+        expect(mock_other_action).to receive(:slack).once
 
         action_instance.run(
           environment: environment,
