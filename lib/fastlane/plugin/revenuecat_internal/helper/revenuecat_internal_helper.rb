@@ -242,7 +242,7 @@ module Fastlane
         Helper::VersioningHelper.calculate_next_version(current_version, :minor, true)
       end
 
-      def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token)
+      def self.create_github_release(release_version, release_description, upload_assets, repo_name, github_api_token, draft = false)
         commit_hash = Actions.last_git_commit_dict[:commit_hash]
         is_prerelease = release_version.include?(DELIMITER_PRERELEASE)
         is_latest_stable_release = !is_prerelease && newer_than_or_equal_to_latest_published_version?(release_version)
@@ -257,7 +257,7 @@ module Fastlane
           description: release_description,
           commitish: commit_hash,
           upload_assets: upload_assets,
-          is_draft: false,
+          is_draft: draft,
           is_prerelease: is_prerelease,
           make_latest: is_latest_stable_release,
           server_url: 'https://api.github.com'
