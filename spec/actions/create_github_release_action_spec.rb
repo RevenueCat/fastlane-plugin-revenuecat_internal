@@ -15,7 +15,7 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_github_release)
-        .with(release_version, changelog, upload_assets, repo_name, github_api_token, draft: draft)
+        .with(release_version, changelog, upload_assets, repo_name, github_api_token, draft)
         .once
       Fastlane::Actions::CreateGithubReleaseAction.run(
         version: release_version,

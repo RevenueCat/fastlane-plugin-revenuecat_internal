@@ -1088,7 +1088,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets,
         repo_name,
         github_api_token,
-        draft: false
+        false
       )
     end
 
@@ -1119,7 +1119,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets,
         repo_name,
         github_api_token,
-        draft: false
+        false
       )
     end
 
@@ -1146,7 +1146,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets,
         repo_name,
         github_api_token,
-        draft: false
+        false
       )
     end
 
@@ -1173,7 +1173,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets,
         repo_name,
         github_api_token,
-        draft: false
+        false
       )
     end
 
@@ -1200,7 +1200,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         upload_assets,
         repo_name,
         github_api_token,
-        draft: true
+        true
       )
     end
   end
