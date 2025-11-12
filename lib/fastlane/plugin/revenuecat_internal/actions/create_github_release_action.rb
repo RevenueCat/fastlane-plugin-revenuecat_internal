@@ -26,7 +26,7 @@ module Fastlane
           upload_assets,
           repo_name,
           github_api_token,
-          draft
+          draft: draft
         )
       end
 
