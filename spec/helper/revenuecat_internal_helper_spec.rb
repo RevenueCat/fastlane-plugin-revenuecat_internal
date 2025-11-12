@@ -1087,7 +1087,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         release_description,
         upload_assets,
         repo_name,
-        github_api_token
+        github_api_token,
+        draft: false
       )
     end
 
@@ -1117,7 +1118,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         release_description,
         upload_assets,
         repo_name,
-        github_api_token
+        github_api_token,
+        draft: false
       )
     end
 
@@ -1143,7 +1145,8 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         release_description,
         upload_assets,
         repo_name,
-        github_api_token
+        github_api_token,
+        draft: false
       )
     end
 
@@ -1169,7 +1172,35 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         release_description,
         upload_assets,
         repo_name,
-        github_api_token
+        github_api_token,
+        draft: false
+      )
+    end
+
+    it 'calls GitHubHelper with appropriate parameters when draft is true' do
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.10.0')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: no_prerelease_version,
+        tag_name: no_prerelease_version,
+        description: release_description,
+        commitish: commit_hash,
+        upload_assets: upload_assets,
+        is_draft: true,
+        is_prerelease: false,
+        make_latest: true,
+        server_url: server_url
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        no_prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token,
+        draft: true
       )
     end
   end

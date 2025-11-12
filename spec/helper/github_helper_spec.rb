@@ -146,6 +146,48 @@ describe Fastlane::Helper::GitHubHelper do
 
       expect(body).not_to be_nil
     end
+
+    it 'creates a draft release when is_draft is true' do
+      expected_params = {
+        server_url: server_url,
+        path: "repos/RevenueCat/#{repo_name}/releases",
+        http_method: http_method,
+        body: {
+          'tag_name' => release_version,
+          'draft' => true,
+          'prerelease' => is_prerelease,
+          'generate_release_notes' => true,
+          'make_latest' => is_latest_stable_release,
+          'name' => release_version,
+          'body' => release_description,
+          'target_commitish' => commit_hash
+        },
+        api_token: github_token
+      }
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(expected_params))
+        .and_return(create_release_response)
+
+      Fastlane::Helper::GitHubHelper.create_github_release(
+        repository_name: "RevenueCat/#{repo_name}",
+        api_token: github_token,
+        name: release_version,
+        tag_name: release_version,
+        description: release_description,
+        commitish: commit_hash,
+        is_draft: true,
+        is_prerelease: is_prerelease,
+        make_latest: is_latest_stable_release,
+        is_generate_release_notes: true,
+        server_url: 'https://api.github.com'
+      )
+
+      github_response = create_release_response
+      body = JSON.parse(github_response[:body])
+
+      expect(body).not_to be_nil
+    end
   end
 
   describe '.github_api_call_with_retry' do
