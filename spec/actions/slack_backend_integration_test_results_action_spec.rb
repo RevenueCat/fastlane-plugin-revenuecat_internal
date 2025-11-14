@@ -128,6 +128,30 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         )
       end
 
+      it 'does not notify binary-solo when message_binary_solo_on_failure is explicitly false' do
+        expected_feed_message = "#{platform} backend integration tests failed. On-call is pinged in <#CL407G2QL|binary-solo>."
+
+        # Expect no binary-solo call
+        expect(mock_other_action).not_to receive(:slack).with(hash_including(slack_url: slack_url_binary_solo))
+
+        # Expect feed channel only
+        expect(mock_other_action).to receive(:slack).once.with(
+          hash_including(
+            message: expected_feed_message,
+            slack_url: slack_url_feed,
+            success: false
+          )
+        )
+
+        action_instance.run(
+          environment: environment,
+          success: false,
+          version: version,
+          platform: platform,
+          message_binary_solo_on_failure: false
+        )
+      end
+
       it 'defaults to false when success parameter is not provided' do
         expect(mock_other_action).to receive(:slack).twice
 
@@ -437,7 +461,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options.size).to eq(4)
+      expect(Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options.size).to eq(5)
     end
   end
 end

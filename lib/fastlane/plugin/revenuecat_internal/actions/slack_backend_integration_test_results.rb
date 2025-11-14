@@ -17,7 +17,8 @@ module Fastlane
         end
 
         environment = params[:environment]
-        success = params[:success]
+        success = params.fetch(:success, false)
+        message_binary_solo_on_failure = params.fetch(:message_binary_solo_on_failure, true)
         version = params[:version] || begin
           File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
         rescue StandardError
@@ -88,7 +89,7 @@ module Fastlane
           }
         }
 
-        if message_binary_solo
+        if message_binary_solo && message_binary_solo_on_failure
           other_action.slack(
             slack_options.merge(
               message: message_binary_solo,
@@ -132,7 +133,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :platform,
                                        description: "Platform being tested (Android or iOS). If not provided, will be inferred from CIRCLE_PROJECT_REPONAME",
                                        optional: true,
-                                       type: String)
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :message_binary_solo_on_failure,
+                                       description: "Whether to ping the binary-solo / on-call group when tests fail",
+                                       optional: true,
+                                       default_value: true,
+                                       is_string: false)
         ]
       end
 
