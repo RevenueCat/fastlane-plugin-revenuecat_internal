@@ -105,3 +105,13 @@ lane :sample_flaky_test do
     number_of_flaky_retries: 5
   )
 end
+
+lane :sample_slack_backend_integration_test_results do |options|
+  slack_backend_integration_test_results(
+    environment: 'staging',
+    success: true,
+    version: '1.2.3',
+    platform: 'iOS',
+    message_binary_solo_on_failure: true
+  )
+end
