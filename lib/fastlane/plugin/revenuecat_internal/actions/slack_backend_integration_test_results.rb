@@ -17,7 +17,7 @@ module Fastlane
         end
 
         environment = params[:environment]
-        success = params.fetch(:success, false)
+        success = params[:success]
         message_binary_solo_on_failure = params.fetch(:message_binary_solo_on_failure, true)
         version = params[:version] || begin
           File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
@@ -89,7 +89,7 @@ module Fastlane
           }
         }
 
-        if message_binary_solo && message_binary_solo_on_failure
+  if message_binary_solo && message_binary_solo_on_failure
           other_action.slack(
             slack_options.merge(
               message: message_binary_solo,
