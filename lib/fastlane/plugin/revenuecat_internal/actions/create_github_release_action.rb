@@ -12,6 +12,7 @@ module Fastlane
         github_api_token = params[:github_api_token]
         changelog_latest_path = params[:changelog_latest_path]
         upload_assets = params[:upload_assets]
+        draft = params[:draft]
 
         begin
           changelog = File.read(changelog_latest_path)
@@ -24,7 +25,8 @@ module Fastlane
           changelog,
           upload_assets,
           repo_name,
-          github_api_token
+          github_api_token,
+          draft
         )
       end
 
@@ -60,7 +62,12 @@ module Fastlane
                                        description: "Array of paths to assets to upload in the release",
                                        optional: true,
                                        default_value: [],
-                                       type: Array)
+                                       type: Array),
+          FastlaneCore::ConfigItem.new(key: :draft,
+                                       description: "Indicates whether the pull request is a draft",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false)
         ]
       end
 

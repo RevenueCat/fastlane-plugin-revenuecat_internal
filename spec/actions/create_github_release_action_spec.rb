@@ -7,6 +7,7 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
     let(:changelog) { 'fake-changelog' }
     let(:changelog_latest_path) { './fake-changelog-latest-path/CHANGELOG.latest.md' }
     let(:upload_assets) { ['./path-to/upload-asset-1.txt', './path-to/upload-asset-2.rb'] }
+    let(:draft) { true }
 
     before(:each) do
       allow(File).to receive(:read).with(changelog_latest_path).and_return(changelog)
@@ -14,14 +15,15 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_github_release)
-        .with(release_version, changelog, upload_assets, repo_name, github_api_token)
+        .with(release_version, changelog, upload_assets, repo_name, github_api_token, draft)
         .once
       Fastlane::Actions::CreateGithubReleaseAction.run(
         version: release_version,
         repo_name: repo_name,
         github_api_token: github_api_token,
         changelog_latest_path: changelog_latest_path,
-        upload_assets: upload_assets
+        upload_assets: upload_assets,
+        draft: draft
       )
     end
 
@@ -41,7 +43,7 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::CreateGithubReleaseAction.available_options.size).to eq(5)
+      expect(Fastlane::Actions::CreateGithubReleaseAction.available_options.size).to eq(6)
     end
   end
 end
