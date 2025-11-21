@@ -189,12 +189,15 @@ module Fastlane
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])
         repo_with_owner = "RevenueCat/#{repo_name}"
         existing_pr = Helper::GitHubHelper.github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'GET',
           api_token: github_pr_token,
           path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
         )
 
         if existing_pr[:json].length == 0
           pr_url = Actions::CreatePullRequestAction.run(
+            api_url: 'https://api.github.com',
             repo: repo_with_owner,
             title: title,
             body: body,
