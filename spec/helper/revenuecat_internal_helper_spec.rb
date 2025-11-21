@@ -879,11 +879,14 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       # Mock the API call to check for existing PRs
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         api_token: github_pr_token,
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+        http_method: 'GET',
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+        server_url: 'https://api.github.com'
       ).and_return({ json: [] })
 
       # Mock the create PR action
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
+        api_url: 'https://api.github.com',
         repo: repo_with_owner,
         title: title,
         body: body,
@@ -903,7 +906,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       # Mock the API call to check for existing PRs - return a PR
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         api_token: github_pr_token,
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+        http_method: 'GET',
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+        server_url: 'https://api.github.com'
       ).and_return({ json: [{ number: 123, html_url: 'https://github.com/RevenueCat/test-repo/pull/123' }] })
 
       # The create PR action should not be called
@@ -921,11 +926,14 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       # Mock the API call to check for existing PRs
       expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
         api_token: github_pr_token,
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open"
+        http_method: 'GET',
+        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+        server_url: 'https://api.github.com'
       ).and_return({ json: [] })
 
       # Mock the create PR action to return nil (failure)
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
+        api_url: 'https://api.github.com',
         repo: repo_with_owner,
         title: title,
         body: body,
