@@ -30,7 +30,7 @@ module Fastlane
         path = 'gradle/libs.versions.toml'
         repo_name = 'purchases-android'
         contents = get_contents_file_github(path, repo_name, android_version, github_token)
-        matches = contents.match('billing = "(.*)"').captures
+        matches = contents.match('bc8 = "(.*)"').captures
         UI.user_error!("Could not find android billing client version in #{repo_name} in file '#{path}'") if matches.length != 1
         matches[0]
       end
