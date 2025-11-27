@@ -68,50 +68,96 @@ module Fastlane
           last_attempt = attempt
           UI.message("Scan retry attempt #{attempt} out of #{number_of_flaky_retries}") if attempt > 0
 
-          # Separate report dir for each retry
           report_dir = attempt == 0 ? artifacts_dir : File.join(output_dir, "retry_#{attempt}")
           report_path = File.join(report_dir, "report.junit")
-
-          # Run tests
           fail_build = attempt == number_of_flaky_retries
+
           begin
-            params_copy = params.clone
-            params_copy[:fail_build] = fail_build
-            params_copy[:only_testing] = failed_tests
-            params_copy[:output_directory] = report_dir
-
-            # Can't specify a test plan there are failed tests
-            params_copy.delete(:testplan) if failed_tests
-
-            other_action.scan(**params_copy)
+            run_scan_attempt(params: params, failed_tests: failed_tests, report_dir: report_dir, fail_build: fail_build)
           ensure
-            if attempt == 0
-              # Only copy original junit report and save list of failed tests
-              move_junit_and_save_failed_tests(
-                source_path: report_path,
-                destination_path: File.join(artifacts_dir, 'report.junit.original'),
-                failed_tests_path: failed_tests_path
-              )
-            else
-              # Copy retry junit report and merge with main and save list of failed tests
-              move_junit_and_save_failed_tests(
-                source_path: report_path,
-                destination_path: File.join(artifacts_dir, "report.junit.retry.#{attempt}"),
-                merge_path: File.join(artifacts_dir, "report.junit"),
-                failed_tests_path: failed_tests_path
-              )
-            end
+            handle_scan_report(attempt: attempt, report_path: report_path, artifacts_dir: artifacts_dir, failed_tests_path: failed_tests_path)
           end
 
-          # Break out of retry loop if no tests failed
-          failed_tests = File.read(failed_tests_path).split("\n")
-          if failed_tests.empty?
-            UI.verbose('No failed tests to retry')
-            break
-          end
+          failed_tests = read_failed_tests(failed_tests_path)
+          break if failed_tests.empty?
         end
 
-        return last_attempt
+        last_attempt
+      end
+
+      # Runs a single scan attempt
+      def self.run_scan_attempt(params:, failed_tests:, report_dir:, fail_build:)
+        params_copy = params.clone
+        params_copy[:fail_build] = fail_build
+        params_copy[:output_directory] = report_dir
+
+        if failed_tests
+          converted_tests = convert_test_identifiers(failed_tests, params_copy[:testplan])
+          params_copy[:only_testing] = converted_tests
+        else
+          params_copy[:only_testing] = nil
+        end
+
+        other_action.scan(**params_copy)
+      end
+
+      # Handles the report after a scan attempt
+      def self.handle_scan_report(attempt:, report_path:, artifacts_dir:, failed_tests_path:)
+        if attempt == 0
+          move_junit_and_save_failed_tests(
+            source_path: report_path,
+            destination_path: File.join(artifacts_dir, 'report.junit.original'),
+            failed_tests_path: failed_tests_path
+          )
+        else
+          move_junit_and_save_failed_tests(
+            source_path: report_path,
+            destination_path: File.join(artifacts_dir, "report.junit.retry.#{attempt}"),
+            merge_path: File.join(artifacts_dir, "report.junit"),
+            failed_tests_path: failed_tests_path
+          )
+        end
+      end
+
+      # Reads failed tests from file
+      def self.read_failed_tests(failed_tests_path)
+        failed_tests = File.read(failed_tests_path).split("\n")
+        UI.verbose('No failed tests to retry') if failed_tests.empty?
+        failed_tests
+      end
+
+      # Converts test identifiers from JUnit format to Xcode format
+      # Format from JUnit: "suitename/classname/name"
+      # Xcode format: "TargetName/ClassName/testMethod" or "ClassName/testMethod" (with test plan)
+      #
+      # @param test_ids [Array<String>] Test identifiers in JUnit format
+      # @param has_test_plan [Boolean, nil] Whether a test plan is being used
+      # @return [Array<String>] Converted test identifiers
+      def self.convert_test_identifiers(test_ids, has_test_plan)
+        test_ids.map do |test_id|
+          parts = test_id.split('/')
+          next test_id unless parts.length >= 3
+
+          suite_name = parts[0] # This might not be the actual target name
+          class_name = parts[1]
+          test_name = parts[2..].join('/')
+
+          # Try to extract target from class name if it has dots (module-qualified)
+          # e.g., "UnitTests.PaywallDataTests" -> target: "UnitTests", class: "PaywallDataTests"
+          if class_name.include?('.')
+            class_parts = class_name.split('.')
+            target_name = class_parts[0]
+            actual_class_name = class_parts[1..].join('.')
+            "#{target_name}/#{actual_class_name}/#{test_name}"
+          elsif has_test_plan
+            # No dots in class name - suite name might not match actual target
+            # With test plan: omit target, let test plan figure it out
+            "#{class_name}/#{test_name}"
+          else
+            # Without test plan: use suite name (may fail if they don't match)
+            "#{suite_name}/#{class_name}/#{test_name}"
+          end
+        end
       end
 
       # Copies the junit file to a new location (and a new name).
