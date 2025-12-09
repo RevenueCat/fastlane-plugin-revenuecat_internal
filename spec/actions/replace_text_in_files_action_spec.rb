@@ -56,7 +56,8 @@ describe Fastlane::Actions::ReplaceTextInFilesAction do
         previous_text: 'old_text',
         new_text: 'new_text',
         paths_of_files_to_update: ['./existing_file.sh'],
-        skip_missing_files: true
+        skip_missing_files: true,
+        allow_empty: false
       )
     end
 
@@ -71,7 +72,8 @@ describe Fastlane::Actions::ReplaceTextInFilesAction do
         previous_text: 'old_text',
         new_text: 'new_text',
         paths_of_files_to_update: ['./missing_file.sh', './existing_file.sh'],
-        skip_missing_files: true
+        skip_missing_files: true,
+        allow_empty: false
       )
     end
 
@@ -84,7 +86,8 @@ describe Fastlane::Actions::ReplaceTextInFilesAction do
         previous_text: 'old_text',
         new_text: 'new_text',
         paths_of_files_to_update: ['./test_file.sh'],
-        skip_missing_files: false
+        skip_missing_files: false,
+        allow_empty: false
       )
     end
   end
