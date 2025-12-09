@@ -11,8 +11,14 @@ module Fastlane
         new_text = params[:new_text]
         paths_of_files_to_update = params[:paths_of_files_to_update]
         allow_empty = params[:allow_empty]
+        skip_missing_files = params[:skip_missing_files]
 
         paths_of_files_to_update.each do |path|
+          if skip_missing_files && !File.exist?(path)
+            UI.message("Skipping #{path} - file does not exist")
+            next
+          end
+
           Helper::RevenuecatInternalHelper.replace_in(
             previous_text,
             new_text,
@@ -46,6 +52,11 @@ module Fastlane
                                        type: Array),
           FastlaneCore::ConfigItem.new(key: :allow_empty,
                                        description: "Allows for the new_text parameter to be empty",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false),
+          FastlaneCore::ConfigItem.new(key: :skip_missing_files,
+                                       description: "When true, allows passing files in paths_of_files_to_update that do not exist (skips them instead of failing)",
                                        optional: true,
                                        default_value: false,
                                        is_string: false)
