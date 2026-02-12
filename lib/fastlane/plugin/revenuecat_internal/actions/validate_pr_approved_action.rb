@@ -4,16 +4,22 @@ require_relative '../helper/github_helper'
 
 module Fastlane
   module Actions
-    class CheckPrApprovedAction < Action
+    class ValidatePrApprovedAction < Action
       def self.run(params)
         github_token = params[:github_token]
         pr_url = params[:pr_url]
 
-        Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+        approved = Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+
+        if approved
+          UI.success("PR has been approved by an organization member with write permissions")
+        else
+          UI.user_error!("PR has not been approved by an organization member with write permissions")
+        end
       end
 
       def self.description
-        "Checks if the current PR is approved by an organization member with write permissions"
+        "Validates that the current PR is approved by an organization member with write permissions"
       end
 
       def self.authors
@@ -21,7 +27,7 @@ module Fastlane
       end
 
       def self.return_value
-        "Boolean indicating whether the PR is approved by an org member with write permissions"
+        nil
       end
 
       def self.available_options
