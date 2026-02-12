@@ -9,10 +9,6 @@ module Fastlane
         github_token = params[:github_token]
         pr_url = params[:pr_url]
 
-        if pr_url.nil? || pr_url.to_s.empty?
-          UI.user_error!("PR URL is required. Set CIRCLE_PULL_REQUEST environment variable or pass pr_url parameter.")
-        end
-
         Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
       end
 

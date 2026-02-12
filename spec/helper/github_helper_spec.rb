@@ -277,6 +277,71 @@ describe Fastlane::Helper::GitHubHelper do
       expect(result).to be true
     end
 
+    it 'returns false when approval is dismissed' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' },
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'DISMISSED' }
+      ]
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'returns true when re-approved after changes requested' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' },
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' }
+      ]
+      permission_resp = { 'permission' => 'write' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'dev1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
+    it 'returns false gracefully when collaborator permission check fails (e.g. non-collaborator 404)' do
+      reviews = [
+        { 'user' => { 'login' => 'outsider1' }, 'state' => 'APPROVED' }
+      ]
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/purchases-ios/collaborators/outsider1/permission"))
+        .and_raise(StandardError.new("404 Not Found"))
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'returns true when an approved reviewer has maintain permission' do
+      reviews = [
+        { 'user' => { 'login' => 'maintainer1' }, 'state' => 'APPROVED' }
+      ]
+      permission_resp = { 'permission' => 'maintain' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'maintainer1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
     it 'raises an error for an invalid PR URL' do
       expect do
         Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?('not-a-url', github_token)

@@ -29,23 +29,6 @@ describe Fastlane::Actions::CheckPrApprovedAction do
       expect(result).to be false
     end
 
-    it 'raises an error when pr_url is nil' do
-      expect do
-        Fastlane::Actions::CheckPrApprovedAction.run(
-          github_token: github_token,
-          pr_url: nil
-        )
-      end.to raise_error(/PR URL is required/)
-    end
-
-    it 'raises an error when pr_url is empty' do
-      expect do
-        Fastlane::Actions::CheckPrApprovedAction.run(
-          github_token: github_token,
-          pr_url: ''
-        )
-      end.to raise_error(/PR URL is required/)
-    end
   end
 
   describe '#available_options' do

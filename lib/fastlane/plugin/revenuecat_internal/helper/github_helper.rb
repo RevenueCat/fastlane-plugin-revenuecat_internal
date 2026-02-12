@@ -84,26 +84,6 @@ module Fastlane
         end
       end
 
-      def self.get_pr_reviews(owner, repo, pr_number, github_token)
-        response = github_api_call_with_retry(
-          server_url: 'https://api.github.com',
-          path: "/repos/#{owner}/#{repo}/pulls/#{pr_number}/reviews",
-          http_method: 'GET',
-          api_token: github_token
-        )
-        JSON.parse(response[:body])
-      end
-
-      def self.get_collaborator_permission(owner, repo, username, github_token)
-        response = github_api_call_with_retry(
-          server_url: 'https://api.github.com',
-          path: "/repos/#{owner}/#{repo}/collaborators/#{username}/permission",
-          http_method: 'GET',
-          api_token: github_token
-        )
-        JSON.parse(response[:body])
-      end
-
       def self.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
         match = pr_url.match(%r{github\.com/([^/]+)/([^/]+)/pull/(\d+)})
         UI.user_error!("Could not parse PR URL: #{pr_url}") unless match
@@ -133,7 +113,7 @@ module Fastlane
           permission_resp = get_collaborator_permission(owner, repo, username, github_token)
           permission = permission_resp['permission']
 
-          if %w[admin write].include?(permission)
+          if %w[admin maintain write].include?(permission)
             UI.success("PR approved by #{username} who has '#{permission}' permission")
             return true
           end
@@ -141,6 +121,29 @@ module Fastlane
 
         UI.important("No approval found from an organization member with write permissions")
         false
+      end
+
+      private_class_method def self.get_pr_reviews(owner, repo, pr_number, github_token)
+        response = github_api_call_with_retry(
+          server_url: 'https://api.github.com',
+          path: "/repos/#{owner}/#{repo}/pulls/#{pr_number}/reviews?per_page=100",
+          http_method: 'GET',
+          api_token: github_token
+        )
+        JSON.parse(response[:body])
+      end
+
+      private_class_method def self.get_collaborator_permission(owner, repo, username, github_token)
+        response = github_api_call_with_retry(
+          server_url: 'https://api.github.com',
+          path: "/repos/#{owner}/#{repo}/collaborators/#{username}/permission",
+          http_method: 'GET',
+          api_token: github_token
+        )
+        JSON.parse(response[:body])
+      rescue StandardError => e
+        UI.message("Could not determine permissions for #{username}: #{e.message}")
+        { 'permission' => 'none' }
       end
 
       def self.get_commits_since_old_version(github_token, old_version, repo_name)
