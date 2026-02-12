@@ -97,12 +97,15 @@ module Fastlane
         # Build the latest decisive review state per user.
         # COMMENTED reviews don't change the approval/rejection state,
         # so only APPROVED, CHANGES_REQUESTED, and DISMISSED are considered.
+        decisive_states = %w[APPROVED CHANGES_REQUESTED DISMISSED].to_set
+        write_permissions = %w[admin maintain write].to_set
+
         latest_reviews = {}
         reviews.each do |review|
           username = review.dig('user', 'login')
           state = review['state']
           next if username.nil?
-          next unless %w[APPROVED CHANGES_REQUESTED DISMISSED].include?(state)
+          next unless decisive_states.include?(state)
 
           latest_reviews[username] = review
         end
@@ -113,7 +116,7 @@ module Fastlane
           permission_resp = get_collaborator_permission(owner, repo, username, github_token)
           permission = permission_resp['permission']
 
-          if %w[admin maintain write].include?(permission)
+          if write_permissions.include?(permission)
             UI.success("PR approved by #{username} who has '#{permission}' permission")
             return true
           end

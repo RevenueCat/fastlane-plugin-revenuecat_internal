@@ -28,7 +28,6 @@ describe Fastlane::Actions::CheckPrApprovedAction do
 
       expect(result).to be false
     end
-
   end
 
   describe '#available_options' do
