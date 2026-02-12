@@ -84,6 +84,65 @@ module Fastlane
         end
       end
 
+      def self.get_pr_reviews(owner, repo, pr_number, github_token)
+        response = github_api_call_with_retry(
+          server_url: 'https://api.github.com',
+          path: "/repos/#{owner}/#{repo}/pulls/#{pr_number}/reviews",
+          http_method: 'GET',
+          api_token: github_token
+        )
+        JSON.parse(response[:body])
+      end
+
+      def self.get_collaborator_permission(owner, repo, username, github_token)
+        response = github_api_call_with_retry(
+          server_url: 'https://api.github.com',
+          path: "/repos/#{owner}/#{repo}/collaborators/#{username}/permission",
+          http_method: 'GET',
+          api_token: github_token
+        )
+        JSON.parse(response[:body])
+      end
+
+      def self.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+        match = pr_url.match(%r{github\.com/([^/]+)/([^/]+)/pull/(\d+)})
+        UI.user_error!("Could not parse PR URL: #{pr_url}") unless match
+
+        owner = match[1]
+        repo = match[2]
+        pr_number = match[3]
+
+        reviews = get_pr_reviews(owner, repo, pr_number, github_token)
+
+        # Build the latest decisive review state per user.
+        # COMMENTED reviews don't change the approval/rejection state,
+        # so only APPROVED, CHANGES_REQUESTED, and DISMISSED are considered.
+        latest_reviews = {}
+        reviews.each do |review|
+          username = review.dig('user', 'login')
+          state = review['state']
+          next if username.nil?
+          next unless %w[APPROVED CHANGES_REQUESTED DISMISSED].include?(state)
+
+          latest_reviews[username] = review
+        end
+
+        latest_reviews.each do |username, review|
+          next unless review['state'] == 'APPROVED'
+
+          permission_resp = get_collaborator_permission(owner, repo, username, github_token)
+          permission = permission_resp['permission']
+
+          if %w[admin write].include?(permission)
+            UI.success("PR approved by #{username} who has '#{permission}' permission")
+            return true
+          end
+        end
+
+        UI.important("No approval found from an organization member with write permissions")
+        false
+      end
+
       def self.get_commits_since_old_version(github_token, old_version, repo_name)
         commit_head = Actions::LastGitCommitAction.run({})
         path = "/repos/RevenueCat/#{repo_name}/compare/#{old_version}...#{commit_head[:commit_hash]}"

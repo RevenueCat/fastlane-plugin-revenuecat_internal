@@ -148,6 +148,142 @@ describe Fastlane::Helper::GitHubHelper do
     end
   end
 
+  describe '.pr_approved_by_org_member_with_write_permissions?' do
+    let(:github_token) { 'mock-github-token' }
+    let(:pr_url) { 'https://github.com/RevenueCat/purchases-ios/pull/42' }
+
+    it 'returns true when an approved reviewer has write permission' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' }
+      ]
+      permission_resp = { 'permission' => 'write' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'dev1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
+    it 'returns true when an approved reviewer has admin permission' do
+      reviews = [
+        { 'user' => { 'login' => 'admin1' }, 'state' => 'APPROVED' }
+      ]
+      permission_resp = { 'permission' => 'admin' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'admin1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
+    it 'returns false when the only approved reviewer has read permission' do
+      reviews = [
+        { 'user' => { 'login' => 'reader1' }, 'state' => 'APPROVED' }
+      ]
+      permission_resp = { 'permission' => 'read' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'reader1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'returns false when there are no reviews' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return([])
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'returns false when all reviews are CHANGES_REQUESTED' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' }
+      ]
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'uses latest decisive review state per user (approval overridden by changes requested)' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' },
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' }
+      ]
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be false
+    end
+
+    it 'ignores COMMENTED reviews when determining latest state' do
+      reviews = [
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' },
+        { 'user' => { 'login' => 'dev1' }, 'state' => 'COMMENTED' }
+      ]
+      permission_resp = { 'permission' => 'write' }
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'dev1', github_token)
+        .and_return(permission_resp)
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
+    it 'returns true when at least one of multiple reviewers is an approved writer' do
+      reviews = [
+        { 'user' => { 'login' => 'reader1' }, 'state' => 'APPROVED' },
+        { 'user' => { 'login' => 'writer1' }, 'state' => 'APPROVED' }
+      ]
+
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'reader1', github_token)
+        .and_return({ 'permission' => 'read' })
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', 'writer1', github_token)
+        .and_return({ 'permission' => 'write' })
+
+      result = Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+      expect(result).to be true
+    end
+
+    it 'raises an error for an invalid PR URL' do
+      expect do
+        Fastlane::Helper::GitHubHelper.pr_approved_by_org_member_with_write_permissions?('not-a-url', github_token)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Could not parse PR URL/)
+    end
+  end
+
   describe '.github_api_call_with_retry' do
     let(:api_params) do
       {
