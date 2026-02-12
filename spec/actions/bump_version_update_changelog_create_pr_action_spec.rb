@@ -255,6 +255,82 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
+    it 'enables auto-merge when auto_merge is true' do
+      setup_stubs
+      pr_url = "https://github.com/RevenueCat/#{mock_repo_name}/pull/42"
+
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .and_return(pr_url)
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
+        .with(
+          repo_name: "RevenueCat/#{mock_repo_name}",
+          pr_number: 42,
+          api_token: mock_github_pr_token
+        )
+        .once
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        enable_auto_merge: true,
+        is_prerelease: false
+      )
+    end
+
+    it 'does not enable auto-merge by default' do
+      setup_stubs
+
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        is_prerelease: false
+      )
+    end
+
+    it 'does not enable auto-merge in dry run mode even if auto_merge is true' do
+      setup_stubs
+
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        editor: editor,
+        enable_auto_merge: true,
+        dry_run: true,
+        is_prerelease: false
+      )
+    end
+
     it 'fails trying to append a nil PHC version' do
       hybrid_common_version_provided = nil
       expected_error = "Cannot append a nil PHC version."
@@ -694,7 +770,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(18)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(19)
     end
   end
 end

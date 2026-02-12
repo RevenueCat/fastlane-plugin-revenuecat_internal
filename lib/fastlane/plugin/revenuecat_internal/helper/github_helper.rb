@@ -214,6 +214,39 @@ module Fastlane
         end
       end
 
+      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')
+        UI.message("Enabling auto-merge for PR ##{pr_number}...")
+
+        # Get the PR's node_id via REST API
+        pr_response = github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'GET',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}",
+          api_token: api_token
+        )
+        node_id = pr_response[:json]['node_id']
+
+        if node_id.nil? || node_id.to_s.empty?
+          UI.error("Could not retrieve node_id for PR ##{pr_number}. Auto-merge was not enabled.")
+          return
+        end
+
+        # Enable auto-merge via GitHub GraphQL API
+        mutation = {
+          query: "mutation { enablePullRequestAutoMerge(input: {pullRequestId: \"#{node_id}\", mergeMethod: #{merge_method}}) { pullRequest { autoMergeRequest { enabledAt } } } }"
+        }
+
+        github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'POST',
+          path: '/graphql',
+          body: mutation,
+          api_token: api_token
+        )
+
+        UI.success("Auto-merge enabled for PR ##{pr_number}")
+      end
+
       def self.upload_single_asset(file, url_template, api_token)
         require 'addressable/template'
 
