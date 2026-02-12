@@ -269,7 +269,7 @@ describe Fastlane::Helper::GitHubHelper do
     let(:api_token) { 'mock-github-token' }
     let(:node_id) { 'PR_kwDOFake123' }
 
-    it 'enables auto-merge with SQUASH by default' do
+    it 'enables auto-merge with SQUASH merge method' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(
           server_url: 'https://api.github.com',
@@ -340,6 +340,37 @@ describe Fastlane::Helper::GitHubHelper do
       # Should not attempt the GraphQL call
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
         .with(hash_including(path: '/graphql'))
+
+      Fastlane::Helper::GitHubHelper.enable_auto_merge(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token
+      )
+    end
+
+    it 'logs error and returns if GraphQL response contains errors' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(
+          server_url: 'https://api.github.com',
+          http_method: 'GET',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}",
+          api_token: api_token
+        )
+        .and_return({ json: { 'node_id' => node_id } })
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(
+          server_url: 'https://api.github.com',
+          http_method: 'POST',
+          path: '/graphql',
+          body: { query: "mutation { enablePullRequestAutoMerge(input: {pullRequestId: \"#{node_id}\", mergeMethod: SQUASH}) { pullRequest { autoMergeRequest { enabledAt } } } }" },
+          api_token: api_token
+        )
+        .and_return({ json: { 'errors' => [{ 'message' => 'Pull request Auto merge is not allowed for this repository' }] } })
+
+      expect(FastlaneCore::UI).to receive(:error)
+        .with("Failed to enable auto-merge for PR ##{pr_number}: Pull request Auto merge is not allowed for this repository")
+      expect(FastlaneCore::UI).not_to receive(:success)
 
       Fastlane::Helper::GitHubHelper.enable_auto_merge(
         repo_name: repo_name,

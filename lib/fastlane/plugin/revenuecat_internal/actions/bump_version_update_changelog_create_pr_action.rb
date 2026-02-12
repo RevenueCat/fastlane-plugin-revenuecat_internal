@@ -112,12 +112,16 @@ module Fastlane
           pr_url = Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
 
           if enable_auto_merge && pr_url
-            pr_number = pr_url.split('/').last.to_i
-            Helper::GitHubHelper.enable_auto_merge(
-              repo_name: "RevenueCat/#{repo_name}",
-              pr_number: pr_number,
-              api_token: github_pr_token
-            )
+            begin
+              pr_number = pr_url.split('/').last.to_i
+              Helper::GitHubHelper.enable_auto_merge(
+                repo_name: "RevenueCat/#{repo_name}",
+                pr_number: pr_number,
+                api_token: github_pr_token
+              )
+            rescue StandardError => e
+              UI.important("PR was created successfully but auto-merge could not be enabled: #{e.message}")
+            end
           end
         end
       end
@@ -229,7 +233,7 @@ module Fastlane
                                        is_string: false,
                                        default_value: nil),
           FastlaneCore::ConfigItem.new(key: :enable_auto_merge,
-                                       description: "Whether to enable auto-merge on the created PR",
+                                       description: "Whether to enable auto-merge (squash) on the created PR",
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
