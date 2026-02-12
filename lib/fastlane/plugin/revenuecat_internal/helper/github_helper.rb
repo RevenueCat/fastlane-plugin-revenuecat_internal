@@ -123,6 +123,9 @@ module Fastlane
         false
       end
 
+      # Fetches up to 100 reviews (the GitHub API maximum per page).
+      # PRs with more than 100 review entries are extremely rare in practice,
+      # so we don't paginate beyond the first page.
       private_class_method def self.get_pr_reviews(owner, repo, pr_number, github_token)
         response = github_api_call_with_retry(
           server_url: 'https://api.github.com',
