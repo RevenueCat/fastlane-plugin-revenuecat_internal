@@ -25,6 +25,7 @@ module Fastlane
         versions_file_path = params[:versions_file_path]
         include_prereleases = params[:is_prerelease]
         append_phc_version_if_next_version_is_not_prerelease = params[:append_phc_version_if_next_version_is_not_prerelease]
+        enable_auto_merge = params[:enable_auto_merge]
         dry_run = params[:dry_run]
 
         # See if we got any conflicting arguments.
@@ -108,7 +109,20 @@ module Fastlane
             pr_title = "[AUTOMATIC] #{pr_title}"
           end
 
-          Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
+          pr_url = Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
+
+          if enable_auto_merge && pr_url
+            begin
+              pr_number = pr_url.split('/').last.to_i
+              Helper::GitHubHelper.enable_auto_merge(
+                repo_name: "RevenueCat/#{repo_name}",
+                pr_number: pr_number,
+                api_token: github_pr_token
+              )
+            rescue StandardError => e
+              UI.important("PR was created successfully but auto-merge could not be enabled: #{e.message}")
+            end
+          end
         end
       end
       # rubocop:enable Metrics/PerceivedComplexity
@@ -218,6 +232,11 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :enable_auto_merge,
+                                       description: "Whether to enable auto-merge (squash) on the created PR",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Whether to run the action in dry run mode",
                                        optional: true,
