@@ -50,7 +50,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .once
       message = "Updates purchases-hybrid-common to 1.13.0"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
         .once
 
       Fastlane::Actions::BumpPhcVersionAction.run(
@@ -98,7 +98,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
 
       message = "Updates purchases-hybrid-common to 1.13.0"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("[AUTOMATIC BUMP] #{message}", "**This is an automatic bump.**\n\n#{message}", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("[AUTOMATIC BUMP] #{message}", "**This is an automatic bump.**\n\n#{message}", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
 
       Fastlane::Actions::BumpPhcVersionAction.run(
         current_version: current_version,
@@ -109,6 +109,26 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         open_pr: true,
         next_version: new_version,
         automatic_release: true
+      )
+    end
+
+    it 'enables auto-merge when enable_auto_merge is true' do
+      setup_stubs
+
+      message = "Updates purchases-hybrid-common to 1.13.0"
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("[AUTOMATIC BUMP] #{message}", "**This is an automatic bump.**\n\n#{message}", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: true)
+
+      Fastlane::Actions::BumpPhcVersionAction.run(
+        current_version: current_version,
+        repo_name: mock_repo_name,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        open_pr: true,
+        next_version: new_version,
+        automatic_release: true,
+        enable_auto_merge: true
       )
     end
 
@@ -158,7 +178,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .once
       message = "Updates purchases-hybrid-common to #{new_version}"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
         .once
 
       Fastlane::Actions::BumpPhcVersionAction.run(
@@ -193,7 +213,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .once
       message = "Updates purchases-hybrid-common to 1.12.1"
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, ['pr:phc_dependencies'])
+        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, ['pr:phc_dependencies'], enable_auto_merge: false)
         .once
 
       Fastlane::Actions::BumpPhcVersionAction.run(
@@ -221,13 +241,12 @@ describe Fastlane::Actions::BumpPhcVersionAction do
         .with("Version bump for #{new_version}")
       message = "Updates purchases-hybrid-common to 1.13.0"
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with(message, message, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
     end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpPhcVersionAction.available_options.size).to eq(7)
+      expect(Fastlane::Actions::BumpPhcVersionAction.available_options.size).to eq(8)
     end
   end
 end
