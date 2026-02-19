@@ -172,7 +172,7 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [])
+      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], enable_auto_merge: false)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
@@ -184,6 +184,26 @@ module Fastlane
           labels: labels,
           team_reviewers: ['coresdk']
         )
+
+        return unless enable_auto_merge
+
+        pr_number = ENV['GITHUB_PULL_REQUEST_NUMBER']
+        if pr_number.nil? || pr_number.to_s.empty?
+          UI.error("Could not retrieve PR number. Auto-merge was not enabled.")
+          return
+        end
+
+        begin
+          Helper::GitHubHelper.enable_auto_merge(
+            repo_name: "RevenueCat/#{repo_name}",
+            pr_number: pr_number,
+            api_token: github_pr_token,
+            merge_method: 'SQUASH'
+          )
+        rescue StandardError => e
+          UI.error("Failed to enable auto-merge: #{e.message}")
+          UI.message("The PR was created successfully, but auto-merge could not be enabled.")
+        end
       end
 
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])

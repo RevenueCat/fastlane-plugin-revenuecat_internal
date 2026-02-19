@@ -14,6 +14,7 @@ module Fastlane
         new_version_number = params[:next_version]
         automatic_release = params[:automatic_release]
         open_pr = params[:open_pr]
+        enable_auto_merge = params[:enable_auto_merge]
 
         UI.important("Current version is #{version_number}")
 
@@ -44,7 +45,7 @@ module Fastlane
 
         return unless open_pr
 
-        open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number)
+        open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge)
       end
 
       def self.description
@@ -91,6 +92,11 @@ module Fastlane
                                        description: "If a branch should be created and a new PR should be opened with the dependency update",
                                        optional: true,
                                        is_string: false,
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :enable_auto_merge,
+                                       description: "If true, enables auto-merge (squash) on the created PR",
+                                       optional: true,
+                                       is_string: false,
                                        default_value: false)
         ]
       end
@@ -99,7 +105,7 @@ module Fastlane
         true
       end
 
-      private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number)
+      private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge)
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
@@ -112,7 +118,7 @@ module Fastlane
           pr_title = "[AUTOMATIC BUMP] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels)
+        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels, enable_auto_merge: enable_auto_merge)
       end
     end
   end
