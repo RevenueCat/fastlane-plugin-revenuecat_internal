@@ -860,13 +860,13 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           labels: ['label_1', 'label_2'],
           team_reviewers: ['coresdk']
         ).once
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'])
     end
 
     it 'does not enable auto-merge by default' do
       allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'])
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'])
     end
 
     it 'enables auto-merge when enable_auto_merge is true' do
@@ -881,7 +881,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
           merge_method: 'SQUASH'
         ).once
 
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'], enable_auto_merge: true)
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], enable_auto_merge: true)
     end
 
     it 'does not enable auto-merge when PR number is not available' do
@@ -892,7 +892,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       expect(FastlaneCore::UI).to receive(:error).with('Could not retrieve PR number. Auto-merge was not enabled.')
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
 
-      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'], enable_auto_merge: true)
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], enable_auto_merge: true)
     end
 
     it 'handles auto-merge failures gracefully' do
@@ -907,7 +907,7 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
       # Should not raise, just log and continue
       expect do
-        Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', ['label_1', 'label_2'], enable_auto_merge: true)
+        Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], enable_auto_merge: true)
       end.not_to raise_error
     end
   end
