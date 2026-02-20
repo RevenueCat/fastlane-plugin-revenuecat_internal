@@ -203,8 +203,8 @@ module Fastlane
             merge_method: 'SQUASH'
           )
         rescue StandardError => e
-          UI.message("Failed to enable auto-merge: #{e.message}")
-          UI.message("The PR was created successfully, but auto-merge could not be enabled.")
+          UI.important("Failed to enable auto-merge: #{e.message}")
+          UI.important("The PR was created successfully, but auto-merge could not be enabled.")
           Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, e.message, slack_url) if slack_url
         end
       end

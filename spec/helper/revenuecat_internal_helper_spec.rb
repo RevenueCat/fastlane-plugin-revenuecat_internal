@@ -899,10 +899,10 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
       allow(ENV).to receive(:fetch).with('GITHUB_PULL_REQUEST_NUMBER', nil).and_return('123')
       allow(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge).and_raise(StandardError.new('API error'))
-      allow(FastlaneCore::UI).to receive(:message)
+      allow(FastlaneCore::UI).to receive(:important)
 
-      expect(FastlaneCore::UI).to receive(:message).with('Failed to enable auto-merge: API error')
-      expect(FastlaneCore::UI).to receive(:message).with('The PR was created successfully, but auto-merge could not be enabled.')
+      expect(FastlaneCore::UI).to receive(:important).with('Failed to enable auto-merge: API error')
+      expect(FastlaneCore::UI).to receive(:important).with('The PR was created successfully, but auto-merge could not be enabled.')
 
       # Should not raise, just log and continue
       expect do
