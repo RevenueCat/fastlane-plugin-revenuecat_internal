@@ -75,7 +75,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with("Version bump for #{new_version}")
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -236,7 +236,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       setup_stubs
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
@@ -257,17 +257,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
     it 'enables auto-merge when auto_merge is true' do
       setup_stubs
-      pr_url = "https://github.com/RevenueCat/#{mock_repo_name}/pull/42"
 
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .and_return(pr_url)
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-        .with(
-          repo_name: "RevenueCat/#{mock_repo_name}",
-          pr_number: 42,
-          api_token: mock_github_pr_token
-        )
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: true)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -290,7 +282,9 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'does not enable auto-merge by default' do
       setup_stubs
 
-      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
+        .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
         current_version: current_version,
@@ -331,79 +325,11 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
-    it 'does not enable auto-merge when create_pr returns nil' do
-      setup_stubs
-
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .and_return(nil)
-
-      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
-
-      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-        current_version: current_version,
-        changelog_latest_path: mock_changelog_latest_path,
-        changelog_path: mock_changelog_path,
-        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
-        repo_name: mock_repo_name,
-        github_pr_token: mock_github_pr_token,
-        github_token: mock_github_token,
-        github_rate_limit: 3,
-        editor: editor,
-        enable_auto_merge: true,
-        is_prerelease: false
-      )
-    end
-
-    it 'does not fail if enable_auto_merge raises an error' do
-      setup_stubs
-      pr_url = "https://github.com/RevenueCat/#{mock_repo_name}/pull/42"
-
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .and_return(pr_url)
-      allow(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-        .and_raise(StandardError.new("GraphQL request failed"))
-      allow(FastlaneCore::UI).to receive(:important).with(anything)
-
-      expect do
-        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
-          current_version: current_version,
-          changelog_latest_path: mock_changelog_latest_path,
-          changelog_path: mock_changelog_path,
-          files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
-          files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
-          files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
-          repo_name: mock_repo_name,
-          github_pr_token: mock_github_pr_token,
-          github_token: mock_github_token,
-          github_rate_limit: 3,
-          editor: editor,
-          enable_auto_merge: true,
-          is_prerelease: false
-        )
-      end.not_to raise_error
-
-      expect(FastlaneCore::UI).to have_received(:important)
-        .with("PR was created successfully but auto-merge could not be enabled: GraphQL request failed")
-    end
-
     it 'enables auto-merge on automatic releases when both flags are set' do
       setup_stubs
-      pr_url = "https://github.com/RevenueCat/#{mock_repo_name}/pull/42"
-
-      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .and_return(pr_url)
 
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-        .with(
-          repo_name: "RevenueCat/#{mock_repo_name}",
-          pr_number: 42,
-          api_token: mock_github_pr_token
-        )
+        .with("[AUTOMATIC] Release/1.13.0", "**This is an automatic release.**\n\nmock-edited-changelog", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: true)
         .once
 
       Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
@@ -710,7 +636,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(new_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/#{new_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("Release/#{new_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
         .once
 
       expect(FastlaneCore::UI).not_to receive(:confirm)
@@ -771,7 +697,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         .with(expected_version, mock_changelog_latest_path, mock_changelog_path)
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/#{expected_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
+        .with("Release/#{expected_version}", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels, enable_auto_merge: false)
         .once
 
       if additional_assertions
@@ -857,7 +783,6 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch)
         .with("Version bump for #{new_version}")
       allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with("Release/1.13.0", edited_changelog, mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels)
     end
   end
 

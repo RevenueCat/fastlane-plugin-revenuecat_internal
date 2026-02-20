@@ -109,20 +109,7 @@ module Fastlane
             pr_title = "[AUTOMATIC] #{pr_title}"
           end
 
-          pr_url = Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label])
-
-          if enable_auto_merge && pr_url
-            begin
-              pr_number = pr_url.split('/').last.to_i
-              Helper::GitHubHelper.enable_auto_merge(
-                repo_name: "RevenueCat/#{repo_name}",
-                pr_number: pr_number,
-                api_token: github_pr_token
-              )
-            rescue StandardError => e
-              UI.important("PR was created successfully but auto-merge could not be enabled: #{e.message}")
-            end
-          end
+          Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label], enable_auto_merge: enable_auto_merge || false)
         end
       end
       # rubocop:enable Metrics/PerceivedComplexity
