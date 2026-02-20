@@ -31,7 +31,7 @@ describe Fastlane::Actions::CreateNextSnapshotVersionAction do
         .with('Preparing for next version')
         .once
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
-        .with('Prepare next version: 1.13.0-SNAPSHOT', nil, repo_name, base_branch, new_branch_name, github_pr_token, labels)
+        .with('Prepare next version: 1.13.0-SNAPSHOT', nil, repo_name, base_branch, new_branch_name, github_pr_token, labels: labels)
         .once
       Fastlane::Actions::CreateNextSnapshotVersionAction.run(
         current_version: current_version,

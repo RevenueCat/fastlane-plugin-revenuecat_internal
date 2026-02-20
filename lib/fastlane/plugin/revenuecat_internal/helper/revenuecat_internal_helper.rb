@@ -6,6 +6,7 @@ require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
 require 'fastlane/actions/reset_git_repo'
+require 'fastlane/actions/slack'
 require_relative 'versioning_helper'
 require_relative 'github_helper'
 
@@ -172,7 +173,7 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [])
+      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels: [], enable_auto_merge: false, slack_url: nil)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
@@ -184,6 +185,28 @@ module Fastlane
           labels: labels,
           team_reviewers: ['coresdk']
         )
+
+        return unless enable_auto_merge
+
+        pr_number = ENV.fetch('GITHUB_PULL_REQUEST_NUMBER', nil)
+        if pr_number.nil? || pr_number.to_s.empty?
+          UI.message("Could not retrieve PR number. Auto-merge was not enabled.")
+          Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, "Could not retrieve PR number", slack_url) if slack_url
+          return
+        end
+
+        begin
+          Helper::GitHubHelper.enable_auto_merge(
+            repo_name: "RevenueCat/#{repo_name}",
+            pr_number: pr_number,
+            api_token: github_pr_token,
+            merge_method: 'SQUASH'
+          )
+        rescue StandardError => e
+          UI.important("Failed to enable auto-merge: #{e.message}")
+          UI.important("The PR was created successfully, but auto-merge could not be enabled.")
+          Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, e.message, slack_url) if slack_url
+        end
       end
 
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])

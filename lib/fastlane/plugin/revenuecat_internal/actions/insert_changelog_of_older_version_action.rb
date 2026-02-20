@@ -59,7 +59,7 @@ module Fastlane
 
             pr_title = "Changelog update for #{sdk_version}"
             pr_body = changelog_content
-            Helper::RevenuecatInternalHelper.create_pr(pr_title, pr_body, repo_name, base_branch, changelog_update_branch_name, github_pr_token, ["pr:other", "pr:changelog_ignore"])
+            Helper::RevenuecatInternalHelper.create_pr(pr_title, pr_body, repo_name, base_branch, changelog_update_branch_name, github_pr_token, labels: ["pr:other", "pr:changelog_ignore"])
 
             UI.success("Successfully created PR for changelog update of version #{sdk_version}")
           end
