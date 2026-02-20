@@ -887,9 +887,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     it 'does not enable auto-merge when PR number is not available' do
       allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
       allow(ENV).to receive(:fetch).with('GITHUB_PULL_REQUEST_NUMBER', nil).and_return(nil)
-      allow(FastlaneCore::UI).to receive(:error)
+      allow(FastlaneCore::UI).to receive(:message)
 
-      expect(FastlaneCore::UI).to receive(:error).with('Could not retrieve PR number. Auto-merge was not enabled.')
+      expect(FastlaneCore::UI).to receive(:message).with('Could not retrieve PR number. Auto-merge was not enabled.')
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
 
       Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], enable_auto_merge: true)
@@ -899,10 +899,9 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
       allow(ENV).to receive(:fetch).with('GITHUB_PULL_REQUEST_NUMBER', nil).and_return('123')
       allow(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge).and_raise(StandardError.new('API error'))
-      allow(FastlaneCore::UI).to receive(:error)
       allow(FastlaneCore::UI).to receive(:message)
 
-      expect(FastlaneCore::UI).to receive(:error).with('Failed to enable auto-merge: API error')
+      expect(FastlaneCore::UI).to receive(:message).with('Failed to enable auto-merge: API error')
       expect(FastlaneCore::UI).to receive(:message).with('The PR was created successfully, but auto-merge could not be enabled.')
 
       # Should not raise, just log and continue

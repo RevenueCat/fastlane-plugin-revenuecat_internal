@@ -190,7 +190,7 @@ module Fastlane
 
         pr_number = ENV.fetch('GITHUB_PULL_REQUEST_NUMBER', nil)
         if pr_number.nil? || pr_number.to_s.empty?
-          UI.error("Could not retrieve PR number. Auto-merge was not enabled.")
+          UI.message("Could not retrieve PR number. Auto-merge was not enabled.")
           Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, "Could not retrieve PR number", slack_url) if slack_url
           return
         end
@@ -203,7 +203,7 @@ module Fastlane
             merge_method: 'SQUASH'
           )
         rescue StandardError => e
-          UI.error("Failed to enable auto-merge: #{e.message}")
+          UI.message("Failed to enable auto-merge: #{e.message}")
           UI.message("The PR was created successfully, but auto-merge could not be enabled.")
           Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, e.message, slack_url) if slack_url
         end
