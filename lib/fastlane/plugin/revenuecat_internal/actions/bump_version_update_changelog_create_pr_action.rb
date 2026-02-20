@@ -26,6 +26,7 @@ module Fastlane
         include_prereleases = params[:is_prerelease]
         append_phc_version_if_next_version_is_not_prerelease = params[:append_phc_version_if_next_version_is_not_prerelease]
         enable_auto_merge = params[:enable_auto_merge]
+        slack_url = params[:slack_url]
         dry_run = params[:dry_run]
 
         # See if we got any conflicting arguments.
@@ -109,7 +110,7 @@ module Fastlane
             pr_title = "[AUTOMATIC] #{pr_title}"
           end
 
-          Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, [label], enable_auto_merge: enable_auto_merge || false)
+          Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, current_branch, new_branch_name, github_pr_token, labels: [label], enable_auto_merge: enable_auto_merge || false, slack_url: slack_url)
         end
       end
       # rubocop:enable Metrics/PerceivedComplexity
@@ -224,6 +225,11 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
+          FastlaneCore::ConfigItem.new(key: :slack_url,
+                                       env_name: "SLACK_URL_SDK_RELEASES",
+                                       description: "Slack webhook URL to notify on auto-merge failures",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Whether to run the action in dry run mode",
                                        optional: true,

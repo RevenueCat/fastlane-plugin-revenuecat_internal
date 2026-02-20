@@ -6,6 +6,7 @@ require 'fastlane/actions/create_pull_request'
 require 'fastlane/actions/ensure_git_branch'
 require 'fastlane/actions/ensure_git_status_clean'
 require 'fastlane/actions/reset_git_repo'
+require 'fastlane/actions/slack'
 require_relative 'versioning_helper'
 require_relative 'github_helper'
 
@@ -172,7 +173,7 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], enable_auto_merge: false)
+      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels: [], enable_auto_merge: false, slack_url: nil)
         Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
@@ -190,6 +191,7 @@ module Fastlane
         pr_number = ENV['GITHUB_PULL_REQUEST_NUMBER']
         if pr_number.nil? || pr_number.to_s.empty?
           UI.error("Could not retrieve PR number. Auto-merge was not enabled.")
+          notify_auto_merge_failure(repo_name, title, "Could not retrieve PR number", slack_url) if slack_url
           return
         end
 
@@ -203,7 +205,42 @@ module Fastlane
         rescue StandardError => e
           UI.error("Failed to enable auto-merge: #{e.message}")
           UI.message("The PR was created successfully, but auto-merge could not be enabled.")
+          notify_auto_merge_failure(repo_name, title, e.message, slack_url) if slack_url
         end
+      end
+
+      private_class_method def self.notify_auto_merge_failure(repo_name, pr_title, error_message, slack_url)
+        return if slack_url.nil? || slack_url.empty?
+
+        message = "Failed to enable auto-merge for PR in #{repo_name}: #{pr_title}"
+
+        Actions::SlackAction.run(
+          message: message,
+          slack_url: slack_url,
+          success: false,
+          default_payloads: [],
+          attachment_properties: {
+            fields: [
+              {
+                title: "Repository",
+                value: repo_name,
+                short: true
+              },
+              {
+                title: "PR Title",
+                value: pr_title,
+                short: true
+              },
+              {
+                title: "Error",
+                value: error_message,
+                short: false
+              }
+            ]
+          }
+        )
+      rescue StandardError => e
+        UI.error("Failed to send Slack notification: #{e.message}")
       end
 
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])

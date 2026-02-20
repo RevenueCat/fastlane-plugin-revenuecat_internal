@@ -15,6 +15,7 @@ module Fastlane
         automatic_release = params[:automatic_release]
         open_pr = params[:open_pr]
         enable_auto_merge = params[:enable_auto_merge]
+        slack_url = params[:slack_url]
 
         UI.important("Current version is #{version_number}")
 
@@ -45,7 +46,7 @@ module Fastlane
 
         return unless open_pr
 
-        open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge)
+        open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge, slack_url)
       end
 
       def self.description
@@ -97,7 +98,12 @@ module Fastlane
                                        description: "If true, enables auto-merge (squash) on the created PR",
                                        optional: true,
                                        is_string: false,
-                                       default_value: false)
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :slack_url,
+                                       env_name: "SLACK_URL_SDK_RELEASES",
+                                       description: "Slack webhook URL to notify on auto-merge failures",
+                                       optional: true,
+                                       type: String)
         ]
       end
 
@@ -105,7 +111,7 @@ module Fastlane
         true
       end
 
-      private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge)
+      private_class_method def self.open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge, slack_url)
         Helper::RevenuecatInternalHelper.commit_changes_and_push_current_branch("Version bump for #{new_version_number}")
 
         pr_title = "Updates purchases-hybrid-common to #{new_version_number}"
@@ -118,7 +124,7 @@ module Fastlane
           pr_title = "[AUTOMATIC BUMP] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels, enable_auto_merge: enable_auto_merge || false)
+        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels: labels, enable_auto_merge: enable_auto_merge || false, slack_url: slack_url)
       end
     end
   end
