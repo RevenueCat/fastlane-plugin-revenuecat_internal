@@ -2,6 +2,7 @@ require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require 'fastlane/actions/last_git_commit'
+require 'fastlane/actions/slack'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -330,6 +331,33 @@ module Fastlane
         end
 
         UI.success("Auto-merge enabled for PR ##{pr_number}")
+      end
+
+      # Sends a Slack notification when auto-merge fails
+      # @param repo_name [String] Repository name (without owner)
+      # @param pr_title [String] Pull request title
+      # @param error_message [String] Error message describing the failure
+      # @param slack_url [String] Slack webhook URL
+      def self.notify_auto_merge_failure(repo_name, pr_title, error_message, slack_url)
+        return if slack_url.nil? || slack_url.empty?
+
+        message = "Failed to enable auto-merge for PR in #{repo_name}: #{pr_title}"
+
+        Actions::SlackAction.run(
+          message: message,
+          slack_url: slack_url,
+          success: false,
+          default_payloads: [],
+          attachment_properties: {
+            fields: [
+              { title: "Repository", value: repo_name, short: true },
+              { title: "PR Title", value: pr_title, short: true },
+              { title: "Error", value: error_message, short: false }
+            ]
+          }
+        )
+      rescue StandardError => e
+        UI.error("Failed to send Slack notification: #{e.message}")
       end
 
       def self.upload_single_asset(file, url_template, api_token)
