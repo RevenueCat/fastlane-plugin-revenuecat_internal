@@ -124,7 +124,7 @@ module Fastlane
           pr_title = "[AUTOMATIC BUMP] #{pr_title}"
         end
 
-        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels: labels, enable_auto_merge: enable_auto_merge || false, slack_url: slack_url)
+        Helper::RevenuecatInternalHelper.create_pr(pr_title, body, repo_name, base_branch, new_branch_name, github_pr_token, labels: labels, enable_auto_merge: enable_auto_merge, slack_url: slack_url)
       end
     end
   end
