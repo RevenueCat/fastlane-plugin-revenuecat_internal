@@ -1,5 +1,6 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
+require 'uri'
 require_relative '../helper/github_helper'
 
 module Fastlane
@@ -12,25 +13,31 @@ module Fastlane
         base_branch = params[:base_branch] || 'main'
         merge_method = params[:merge_method] || 'SQUASH'
 
-        owner = repo_name.split('/').first
+        full_repo_name = "RevenueCat/#{repo_name}"
+        query = URI.encode_www_form(head: "RevenueCat:#{branch}", base: base_branch, state: "open")
 
         UI.message("Looking for open PR from #{branch} into #{base_branch}...")
 
         response = Helper::GitHubHelper.github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: "GET",
-          path: "/repos/#{repo_name}/pulls?head=#{owner}:#{branch}&base=#{base_branch}&state=open",
+          path: "/repos/#{full_repo_name}/pulls?#{query}",
           api_token: github_token
         )
 
         prs = JSON.parse(response[:body])
         UI.user_error!("No open PR found from #{branch} into #{base_branch}") if prs.empty?
 
-        pr_number = prs.first["number"]
-        UI.message("Found PR ##{pr_number}: #{prs.first["title"]}")
+        if prs.size > 1
+          UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
+        end
+
+        pr = prs.first
+        pr_number = pr["number"]
+        UI.message("Found PR ##{pr_number}: #{pr["title"]}")
 
         Helper::GitHubHelper.enable_auto_merge(
-          repo_name: repo_name,
+          repo_name: full_repo_name,
           pr_number: pr_number,
           api_token: github_token,
           merge_method: merge_method
@@ -63,7 +70,7 @@ module Fastlane
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :repo_name,
-                                       description: "Full repository name with owner (e.g. 'RevenueCat/purchases-ios')",
+                                       description: "Name of the repository (without owner, e.g. 'purchases-ios')",
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :branch,
@@ -79,7 +86,11 @@ module Fastlane
                                        description: "Merge method: 'SQUASH', 'MERGE', or 'REBASE'",
                                        optional: true,
                                        default_value: "SQUASH",
-                                       type: String)
+                                       type: String,
+                                       verify_block: proc do |value|
+                                         valid = %w[SQUASH MERGE REBASE]
+                                         UI.user_error!("Invalid merge_method '#{value}'. Must be one of: #{valid.join(', ')}") unless valid.include?(value)
+                                       end)
         ]
       end
 

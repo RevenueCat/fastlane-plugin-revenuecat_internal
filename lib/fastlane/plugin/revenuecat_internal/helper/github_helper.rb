@@ -304,10 +304,7 @@ module Fastlane
         )
         node_id = pr_response[:json]['node_id']
 
-        if node_id.nil? || node_id.to_s.empty?
-          UI.error("Could not retrieve node_id for PR ##{pr_number}. Auto-merge was not enabled.")
-          return
-        end
+        UI.user_error!("Could not retrieve node_id for PR ##{pr_number}. Auto-merge was not enabled.") if node_id.nil? || node_id.to_s.empty?
 
         # Enable auto-merge via GitHub GraphQL API
         mutation = {
@@ -326,8 +323,7 @@ module Fastlane
         graphql_errors = response[:json]['errors'] if response[:json]
         if graphql_errors && !graphql_errors.empty?
           error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
-          UI.error("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
-          return
+          UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
         end
 
         UI.success("Auto-merge enabled for PR ##{pr_number}")

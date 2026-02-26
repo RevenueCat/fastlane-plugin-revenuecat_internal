@@ -525,7 +525,7 @@ describe Fastlane::Helper::GitHubHelper do
       )
     end
 
-    it 'logs error and returns if node_id is nil' do
+    it 'raises error if node_id is nil' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(
           server_url: 'https://api.github.com',
@@ -535,21 +535,19 @@ describe Fastlane::Helper::GitHubHelper do
         )
         .and_return({ json: { 'node_id' => nil } })
 
-      expect(FastlaneCore::UI).to receive(:error)
-        .with("Could not retrieve node_id for PR ##{pr_number}. Auto-merge was not enabled.")
-
-      # Should not attempt the GraphQL call
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
         .with(hash_including(path: '/graphql'))
 
-      Fastlane::Helper::GitHubHelper.enable_auto_merge(
-        repo_name: repo_name,
-        pr_number: pr_number,
-        api_token: api_token
-      )
+      expect do
+        Fastlane::Helper::GitHubHelper.enable_auto_merge(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Could not retrieve node_id for PR ##{pr_number}/)
     end
 
-    it 'logs error and returns if GraphQL response contains errors' do
+    it 'raises error if GraphQL response contains errors' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(
           server_url: 'https://api.github.com',
@@ -569,15 +567,13 @@ describe Fastlane::Helper::GitHubHelper do
         )
         .and_return({ json: { 'errors' => [{ 'message' => 'Pull request Auto merge is not allowed for this repository' }] } })
 
-      expect(FastlaneCore::UI).to receive(:error)
-        .with("Failed to enable auto-merge for PR ##{pr_number}: Pull request Auto merge is not allowed for this repository")
-      expect(FastlaneCore::UI).not_to receive(:success)
-
-      Fastlane::Helper::GitHubHelper.enable_auto_merge(
-        repo_name: repo_name,
-        pr_number: pr_number,
-        api_token: api_token
-      )
+      expect do
+        Fastlane::Helper::GitHubHelper.enable_auto_merge(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Failed to enable auto-merge for PR ##{pr_number}/)
     end
   end
 end
