@@ -3,6 +3,7 @@ require 'fastlane/action'
 require 'fastlane/actions/github_api'
 require 'fastlane/actions/last_git_commit'
 require 'fastlane/actions/slack'
+require 'uri'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -281,6 +282,39 @@ module Fastlane
             upload_single_asset(absolute_path, upload_url_template, api_token)
           end
         end
+      end
+
+      # Finds an open pull request from the given head branch into the given base branch.
+      # Returns the PR number of the most recent match.
+      #
+      # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
+      # @param branch [String] Head branch of the PR
+      # @param base_branch [String] Base branch the PR targets
+      # @param api_token [String] GitHub API token with repo permissions
+      # @return [Integer] The PR number
+      def self.find_open_pr_number(repo_name:, branch:, base_branch:, api_token:)
+        owner = repo_name.split('/').first
+        query = URI.encode_www_form(head: "#{owner}:#{branch}", base: base_branch, state: "open")
+
+        UI.message("Looking for open PR from #{branch} into #{base_branch}...")
+
+        response = github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: "GET",
+          path: "/repos/#{repo_name}/pulls?#{query}",
+          api_token: api_token
+        )
+
+        prs = JSON.parse(response[:body])
+        UI.user_error!("No open PR found from #{branch} into #{base_branch}") if prs.empty?
+
+        if prs.size > 1
+          UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
+        end
+
+        pr = prs.first
+        UI.message("Found PR ##{pr['number']}: #{pr['title']}")
+        pr["number"]
       end
 
       # Enables GitHub's "auto-merge" (merge when ready) on an existing pull request

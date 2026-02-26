@@ -1,6 +1,5 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
-require 'uri'
 require_relative '../helper/github_helper'
 
 module Fastlane
@@ -14,27 +13,13 @@ module Fastlane
         merge_method = params[:merge_method] || 'SQUASH'
 
         full_repo_name = "RevenueCat/#{repo_name}"
-        query = URI.encode_www_form(head: "RevenueCat:#{branch}", base: base_branch, state: "open")
 
-        UI.message("Looking for open PR from #{branch} into #{base_branch}...")
-
-        response = Helper::GitHubHelper.github_api_call_with_retry(
-          server_url: "https://api.github.com",
-          http_method: "GET",
-          path: "/repos/#{full_repo_name}/pulls?#{query}",
+        pr_number = Helper::GitHubHelper.find_open_pr_number(
+          repo_name: full_repo_name,
+          branch: branch,
+          base_branch: base_branch,
           api_token: github_token
         )
-
-        prs = JSON.parse(response[:body])
-        UI.user_error!("No open PR found from #{branch} into #{base_branch}") if prs.empty?
-
-        if prs.size > 1
-          UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
-        end
-
-        pr = prs.first
-        pr_number = pr["number"]
-        UI.message("Found PR ##{pr_number}: #{pr["title"]}")
 
         Helper::GitHubHelper.enable_auto_merge(
           repo_name: full_repo_name,

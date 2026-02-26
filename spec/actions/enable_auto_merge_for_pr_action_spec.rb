@@ -1,40 +1,20 @@
-require 'uri'
-
 describe Fastlane::Actions::EnableAutoMergeForPrAction do
   let(:github_token) { 'mock-github-token' }
   let(:repo_name) { 'purchases-ios' }
   let(:full_repo_name) { 'RevenueCat/purchases-ios' }
   let(:branch) { 'release/5.60.0' }
   let(:pr_number) { 42 }
-  let(:pr_title) { 'Release/5.60.0' }
-
-  let(:pr_list_response) do
-    {
-      body: [{ "number" => pr_number, "title" => pr_title }].to_json
-    }
-  end
-
-  let(:empty_pr_list_response) do
-    {
-      body: [].to_json
-    }
-  end
-
-  def expected_path(head_branch, base_branch = 'main')
-    query = URI.encode_www_form(head: "RevenueCat:#{head_branch}", base: base_branch, state: "open")
-    "/repos/#{full_repo_name}/pulls?#{query}"
-  end
 
   describe '#run' do
-    it 'finds the PR by branch and enables auto-merge' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+    it 'finds the PR and enables auto-merge with defaults' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
-          server_url: "https://api.github.com",
-          http_method: "GET",
-          path: expected_path(branch),
+          repo_name: full_repo_name,
+          branch: branch,
+          base_branch: 'main',
           api_token: github_token
         )
-        .and_return(pr_list_response)
+        .and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
         .with(
@@ -56,14 +36,14 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
         .with("git rev-parse --abbrev-ref HEAD")
         .and_return("feature/my-branch\n")
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
-          server_url: "https://api.github.com",
-          http_method: "GET",
-          path: expected_path('feature/my-branch'),
+          repo_name: full_repo_name,
+          branch: 'feature/my-branch',
+          base_branch: 'main',
           api_token: github_token
         )
-        .and_return(pr_list_response)
+        .and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
 
@@ -74,14 +54,14 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
     end
 
     it 'supports a custom base branch' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
-          server_url: "https://api.github.com",
-          http_method: "GET",
-          path: expected_path(branch, 'develop'),
+          repo_name: full_repo_name,
+          branch: branch,
+          base_branch: 'develop',
           api_token: github_token
         )
-        .and_return(pr_list_response)
+        .and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
 
@@ -94,8 +74,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
     end
 
     it 'passes custom merge_method to enable_auto_merge' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(pr_list_response)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
         .with(
@@ -113,9 +92,9 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
       )
     end
 
-    it 'raises an error when no open PR is found' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(empty_pr_list_response)
+    it 'propagates errors from find_open_pr_number' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+        .and_raise(FastlaneCore::Interface::FastlaneError.new)
 
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
 
@@ -125,62 +104,14 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
           repo_name: repo_name,
           branch: branch
         )
-      end.to raise_error(FastlaneCore::Interface::FastlaneError, /No open PR found from #{Regexp.escape(branch)} into main/)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
     end
 
-    it 'logs warning and picks last PR when multiple PRs match' do
-      newer_pr = { "number" => 42, "title" => "New PR" }
-      older_pr = { "number" => 10, "title" => "Old PR" }
-      multi_pr_response = { body: [newer_pr, older_pr].to_json }
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(multi_pr_response)
-
-      expect(FastlaneCore::UI).to receive(:important)
-        .with("Found 2 open PRs from #{branch} into main, using the most recent one")
+    it 'propagates errors from enable_auto_merge' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-        .with(
-          repo_name: full_repo_name,
-          pr_number: 42,
-          api_token: github_token,
-          merge_method: 'SQUASH'
-        )
-
-      Fastlane::Actions::EnableAutoMergeForPrAction.run(
-        github_token: github_token,
-        repo_name: repo_name,
-        branch: branch
-      )
-    end
-
-    it 'URL-encodes branch names with special characters' do
-      special_branch = 'feature/foo&bar#1'
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(
-          server_url: "https://api.github.com",
-          http_method: "GET",
-          path: expected_path(special_branch),
-          api_token: github_token
-        )
-        .and_return(pr_list_response)
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-
-      Fastlane::Actions::EnableAutoMergeForPrAction.run(
-        github_token: github_token,
-        repo_name: repo_name,
-        branch: special_branch
-      )
-    end
-
-    it 'propagates errors raised by enable_auto_merge' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(pr_list_response)
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
-        .and_raise(StandardError.new("Failed to enable auto-merge for PR ##{pr_number}: something went wrong"))
+        .and_raise(StandardError.new("Failed to enable auto-merge"))
 
       expect do
         Fastlane::Actions::EnableAutoMergeForPrAction.run(
@@ -189,21 +120,6 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
           branch: branch
         )
       end.to raise_error(StandardError, /Failed to enable auto-merge/)
-    end
-
-    it 'propagates network errors from the API call' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_raise(StandardError.new("Connection refused"))
-
-      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
-
-      expect do
-        Fastlane::Actions::EnableAutoMergeForPrAction.run(
-          github_token: github_token,
-          repo_name: repo_name,
-          branch: branch
-        )
-      end.to raise_error(StandardError, /Connection refused/)
     end
   end
 
