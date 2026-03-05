@@ -174,7 +174,7 @@ module Fastlane
       end
 
       def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels: [], enable_auto_merge: false, slack_url: nil)
-        Actions::CreatePullRequestAction.run(
+        pr_url = Actions::CreatePullRequestAction.run(
           api_token: github_pr_token,
           title: title,
           base: base_branch,
@@ -188,9 +188,13 @@ module Fastlane
 
         return unless enable_auto_merge
 
-        pr_number = ENV.fetch('GITHUB_PULL_REQUEST_NUMBER', nil)
-        if pr_number.nil? || pr_number.to_s.empty?
-          UI.message("Could not retrieve PR number. Auto-merge was not enabled.")
+        try_enable_auto_merge(pr_url, repo_name, title, github_pr_token, slack_url)
+      end
+
+      def self.try_enable_auto_merge(pr_url, repo_name, title, github_pr_token, slack_url)
+        pr_number = pr_url&.match(%r{/(\d+)\z})&.captures&.first
+        unless pr_number
+          UI.message("Could not retrieve PR number from URL '#{pr_url}'. Auto-merge was not enabled.")
           Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, "Could not retrieve PR number", slack_url) if slack_url
           return
         end
@@ -208,6 +212,7 @@ module Fastlane
           Helper::GitHubHelper.notify_auto_merge_failure(repo_name, title, e.message, slack_url) if slack_url
         end
       end
+      private_class_method :try_enable_auto_merge
 
       def self.create_pr_if_necessary(title, body, repo_name, base_branch, head_branch, github_pr_token, labels = [], team_reviewers = ['coresdk'])
         repo_with_owner = "RevenueCat/#{repo_name}"
