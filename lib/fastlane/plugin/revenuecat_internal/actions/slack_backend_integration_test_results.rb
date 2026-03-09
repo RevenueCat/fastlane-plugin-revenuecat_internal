@@ -46,7 +46,7 @@ module Fastlane
 
         message_binary_solo =
           unless success
-            "<!subteam^S0939BTV0SY|oncall-sdk> <!subteam^S061NM11SNN|oncall-infra> <!subteam^S0621D5SHG9|oncall-product> #{platform} backend integration tests failed."
+            "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
           end
 
         slack_options = {

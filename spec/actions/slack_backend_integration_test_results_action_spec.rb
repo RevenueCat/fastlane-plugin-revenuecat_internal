@@ -99,7 +99,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
     describe 'when tests fail' do
       it 'sends failure messages to both feed and binary-solo channels' do
-        expected_binary_solo_message = "<!subteam^S0939BTV0SY|oncall-sdk> <!subteam^S061NM11SNN|oncall-infra> <!subteam^S0621D5SHG9|oncall-product> #{platform} backend integration tests failed."
+        expected_binary_solo_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
         expected_feed_message = "#{platform} backend integration tests failed. On-call is pinged in <#CL407G2QL|binary-solo>."
 
         # Expect call to binary-solo (with on-call ping)
