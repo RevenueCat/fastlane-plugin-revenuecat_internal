@@ -326,9 +326,9 @@ module Fastlane
       # @param pr_number [Integer] Pull request number
       # @param api_token [String] GitHub API token with repo permissions
       # @param merge_method [String] GraphQL merge method: 'SQUASH', 'MERGE', or 'REBASE' (default: 'SQUASH')
-      # @param max_retries [Integer] Maximum number of retries for transient "unstable status" errors (default: 5)
-      # @param initial_wait [Integer] Seconds to wait before the first retry; doubles each attempt (default: 30)
-      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH', max_retries: 5, initial_wait: 30)
+      # @param max_retries [Integer] Maximum number of retries for transient "unstable status" errors (default: 3)
+      # @param initial_wait [Integer] Seconds to wait before the first retry; doubles each attempt (default: 10)
+      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH', max_retries: 3, initial_wait: 10)
         UI.message("Enabling auto-merge for PR ##{pr_number}...")
 
         pr_response = github_api_call_with_retry(
