@@ -345,36 +345,38 @@ module Fastlane
           query: "mutation { enablePullRequestAutoMerge(input: {pullRequestId: \"#{node_id}\", mergeMethod: #{merge_method}}) { pullRequest { autoMergeRequest { enabledAt } } } }"
         }
 
+        call_auto_merge_mutation_with_retry(
+          mutation: mutation,
+          pr_number: pr_number,
+          api_token: api_token,
+          max_retries: max_retries,
+          initial_wait: initial_wait
+        )
+
+        UI.success("Auto-merge enabled for PR ##{pr_number}")
+      end
+
+      private_class_method def self.call_auto_merge_mutation_with_retry(mutation:, pr_number:, api_token:, max_retries:, initial_wait:)
         retries = 0
         loop do
           response = github_api_call_with_retry(
-            server_url: "https://api.github.com",
-            http_method: 'POST',
-            path: '/graphql',
-            body: mutation,
-            api_token: api_token
+            server_url: "https://api.github.com", http_method: 'POST',
+            path: '/graphql', body: mutation, api_token: api_token
           )
-
           graphql_errors = response[:json]['errors'] if response[:json]
-          if graphql_errors && !graphql_errors.empty?
-            error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
+          break unless graphql_errors && !graphql_errors.empty?
 
-            if error_messages.downcase.include?('unstable status') && retries < max_retries
-              retries += 1
-              wait_time = initial_wait * (2**(retries - 1))
-              UI.important("PR ##{pr_number} is in unstable status (checks may still be initializing). " \
-                           "Retry #{retries}/#{max_retries} after #{wait_time}s...")
-              sleep(wait_time)
-              next
-            end
-
+          error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
+          unless error_messages.downcase.include?('unstable status') && retries < max_retries
             UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
           end
 
-          break
+          retries += 1
+          wait_time = initial_wait * (2**(retries - 1))
+          UI.important("PR ##{pr_number} is in unstable status (checks may still be initializing). " \
+                       "Retry #{retries}/#{max_retries} after #{wait_time}s...")
+          sleep(wait_time)
         end
-
-        UI.success("Auto-merge enabled for PR ##{pr_number}")
       end
 
       # Sends a Slack notification when auto-merge fails
