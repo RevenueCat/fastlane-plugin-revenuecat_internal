@@ -326,10 +326,11 @@ module Fastlane
       # @param pr_number [Integer] Pull request number
       # @param api_token [String] GitHub API token with repo permissions
       # @param merge_method [String] GraphQL merge method: 'SQUASH', 'MERGE', or 'REBASE' (default: 'SQUASH')
-      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')
+      # @param max_retries [Integer] Maximum number of retries for transient "unstable status" errors (default: 5)
+      # @param initial_wait [Integer] Seconds to wait before the first retry; doubles each attempt (default: 30)
+      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH', max_retries: 5, initial_wait: 30)
         UI.message("Enabling auto-merge for PR ##{pr_number}...")
 
-        # Get the PR's node_id via REST API
         pr_response = github_api_call_with_retry(
           server_url: "https://api.github.com",
           http_method: 'GET',
@@ -340,24 +341,37 @@ module Fastlane
 
         UI.user_error!("Could not retrieve node_id for PR ##{pr_number}. Auto-merge was not enabled.") if node_id.nil? || node_id.to_s.empty?
 
-        # Enable auto-merge via GitHub GraphQL API
         mutation = {
           query: "mutation { enablePullRequestAutoMerge(input: {pullRequestId: \"#{node_id}\", mergeMethod: #{merge_method}}) { pullRequest { autoMergeRequest { enabledAt } } } }"
         }
 
-        response = github_api_call_with_retry(
-          server_url: "https://api.github.com",
-          http_method: 'POST',
-          path: '/graphql',
-          body: mutation,
-          api_token: api_token
-        )
+        retries = 0
+        loop do
+          response = github_api_call_with_retry(
+            server_url: "https://api.github.com",
+            http_method: 'POST',
+            path: '/graphql',
+            body: mutation,
+            api_token: api_token
+          )
 
-        # GraphQL always returns HTTP 200, so we must check the response body for errors
-        graphql_errors = response[:json]['errors'] if response[:json]
-        if graphql_errors && !graphql_errors.empty?
-          error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
-          UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
+          graphql_errors = response[:json]['errors'] if response[:json]
+          if graphql_errors && !graphql_errors.empty?
+            error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
+
+            if error_messages.downcase.include?('unstable status') && retries < max_retries
+              retries += 1
+              wait_time = initial_wait * (2**(retries - 1))
+              UI.important("PR ##{pr_number} is in unstable status (checks may still be initializing). " \
+                           "Retry #{retries}/#{max_retries} after #{wait_time}s...")
+              sleep(wait_time)
+              next
+            end
+
+            UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
+          end
+
+          break
         end
 
         UI.success("Auto-merge enabled for PR ##{pr_number}")
