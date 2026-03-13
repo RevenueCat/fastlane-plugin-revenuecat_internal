@@ -683,22 +683,112 @@ describe Fastlane::Helper::GitHubHelper do
         )
       end.to raise_error(FastlaneCore::Interface::FastlaneError, /Failed to enable auto-merge for PR ##{pr_number}/)
     end
+
+    it 'retries on unstable status error and succeeds' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: "/repos/#{repo_name}/pulls/#{pr_number}"))
+        .and_return({ json: { 'node_id' => node_id } })
+
+      unstable_response = { json: { 'errors' => [{ 'message' => 'Pull request is in unstable status' }] } }
+      success_response = { json: {} }
+
+      call_count = 0
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', path: '/graphql')) do
+          call_count += 1
+          call_count <= 2 ? unstable_response : success_response
+        end
+
+      allow_any_instance_of(Object).to receive(:sleep)
+
+      Fastlane::Helper::GitHubHelper.enable_auto_merge(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token,
+        initial_wait: 1
+      )
+
+      expect(call_count).to eq(3)
+    end
+
+    it 'raises error after exhausting retries on unstable status' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: "/repos/#{repo_name}/pulls/#{pr_number}"))
+        .and_return({ json: { 'node_id' => node_id } })
+
+      unstable_response = { json: { 'errors' => [{ 'message' => 'Pull request is in unstable status' }] } }
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', path: '/graphql'))
+        .and_return(unstable_response)
+
+      allow_any_instance_of(Object).to receive(:sleep)
+
+      expect do
+        Fastlane::Helper::GitHubHelper.enable_auto_merge(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token,
+          max_retries: 2,
+          initial_wait: 1
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Failed to enable auto-merge for PR ##{pr_number}/)
+    end
+
+    it 'does not retry on non-unstable GraphQL errors' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: "/repos/#{repo_name}/pulls/#{pr_number}"))
+        .and_return({ json: { 'node_id' => node_id } })
+
+      error_response = { json: { 'errors' => [{ 'message' => 'Pull request Auto merge is not allowed for this repository' }] } }
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', path: '/graphql'))
+        .once
+        .and_return(error_response)
+
+      expect_any_instance_of(Object).not_to receive(:sleep)
+
+      expect do
+        Fastlane::Helper::GitHubHelper.enable_auto_merge(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token,
+          max_retries: 3,
+          initial_wait: 1
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Failed to enable auto-merge for PR ##{pr_number}/)
+    end
+
+    it 'uses exponential backoff for wait times' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: "/repos/#{repo_name}/pulls/#{pr_number}"))
+        .and_return({ json: { 'node_id' => node_id } })
+
+      unstable_response = { json: { 'errors' => [{ 'message' => 'Pull request is in unstable status' }] } }
+      call_count = 0
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', path: '/graphql')) do
+          call_count += 1
+          call_count <= 3 ? unstable_response : { json: {} }
+        end
+
+      sleep_times = []
+      allow(Fastlane::Helper::GitHubHelper).to receive(:sleep) { |seconds| sleep_times << seconds }
+
+      Fastlane::Helper::GitHubHelper.enable_auto_merge(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token,
+        initial_wait: 10
+      )
+
+      expect(sleep_times).to eq([10, 20, 40])
+    end
   end
 
   describe '.merge_pr' do
     let(:repo_name) { 'RevenueCat/mock-repo-name' }
     let(:pr_number) { 42 }
     let(:api_token) { 'mock-github-token' }
-
-    let(:merge_api_params) do
-      {
-        server_url: 'https://api.github.com',
-        http_method: 'PUT',
-        path: "/repos/#{repo_name}/pulls/#{pr_number}/merge",
-        body: { merge_method: 'squash' },
-        api_token: api_token
-      }
-    end
 
     it 'merges the PR with squash by default' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
