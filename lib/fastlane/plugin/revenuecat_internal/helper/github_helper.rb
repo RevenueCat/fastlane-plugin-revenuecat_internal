@@ -381,12 +381,13 @@ module Fastlane
 
       # Merges a pull request directly via the GitHub REST API.
       # All required status checks must have passed for the merge to succeed.
-      def self.merge_pr(repo_name:, pr_number:, api_token:, merge_method: 'squash')
-        UI.message("Merging PR ##{pr_number} via #{merge_method}...")
+      def self.merge_pr(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')
+        rest_merge_method = merge_method.downcase
+        UI.message("Merging PR ##{pr_number} via #{rest_merge_method}...")
         github_api_call_with_retry(
           server_url: "https://api.github.com", http_method: 'PUT',
           path: "/repos/#{repo_name}/pulls/#{pr_number}/merge",
-          body: { merge_method: merge_method }, api_token: api_token,
+          body: { merge_method: rest_merge_method }, api_token: api_token,
           error_handlers: {
             405 => proc { |r| UI.user_error!("PR ##{pr_number} is not mergeable (may have conflicts): #{r[:body]}") },
             409 => proc { |r| UI.user_error!("PR ##{pr_number} could not be merged (required checks may not have passed): #{r[:body]}") },

@@ -818,11 +818,11 @@ describe Fastlane::Helper::GitHubHelper do
       call_merge_pr
     end
 
-    it 'supports custom merge method' do
+    it 'downcases the merge method for the REST API' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(hash_including(body: { merge_method: 'rebase' }))
 
-      call_merge_pr(merge_method: 'rebase')
+      call_merge_pr(merge_method: 'REBASE')
     end
 
     it 'error handler for 405 raises with conflict message' do

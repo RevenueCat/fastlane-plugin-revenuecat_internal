@@ -21,7 +21,7 @@ describe Fastlane::Actions::MergePrAction do
           repo_name: full_repo_name,
           pr_number: pr_number,
           api_token: github_token,
-          merge_method: 'squash'
+          merge_method: 'SQUASH'
         )
 
       result = Fastlane::Actions::MergePrAction.run(
@@ -83,28 +83,14 @@ describe Fastlane::Actions::MergePrAction do
           repo_name: full_repo_name,
           pr_number: pr_number,
           api_token: github_token,
-          merge_method: 'rebase'
+          merge_method: 'REBASE'
         )
 
       Fastlane::Actions::MergePrAction.run(
         github_token: github_token,
         repo_name: repo_name,
         branch: branch,
-        merge_method: 'rebase'
-      )
-    end
-
-    it 'downcases uppercase merge_method for REST API compatibility' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
-        .with(hash_including(merge_method: 'squash'))
-
-      Fastlane::Actions::MergePrAction.run(
-        github_token: github_token,
-        repo_name: repo_name,
-        branch: branch,
-        merge_method: 'SQUASH'
+        merge_method: 'REBASE'
       )
     end
 
@@ -161,9 +147,9 @@ describe Fastlane::Actions::MergePrAction do
       expect(option.optional).to be true
     end
 
-    it 'has merge_method option defaulting to squash' do
+    it 'has merge_method option defaulting to SQUASH' do
       option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :merge_method }
-      expect(option.default_value).to eq("squash")
+      expect(option.default_value).to eq("SQUASH")
       expect(option.optional).to be true
     end
 
@@ -172,9 +158,9 @@ describe Fastlane::Actions::MergePrAction do
       expect { option.verify!('YOLO') }.to raise_error(FastlaneCore::Interface::FastlaneError, /Invalid merge_method 'YOLO'/)
     end
 
-    it 'accepts valid merge_method values in any case' do
+    it 'accepts valid merge_method values' do
       option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :merge_method }
-      %w[squash merge rebase SQUASH MERGE REBASE].each do |method|
+      %w[SQUASH MERGE REBASE].each do |method|
         expect { option.verify!(method) }.not_to raise_error
       end
     end
