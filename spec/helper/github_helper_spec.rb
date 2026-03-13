@@ -784,4 +784,73 @@ describe Fastlane::Helper::GitHubHelper do
       expect(sleep_times).to eq([10, 20, 40])
     end
   end
+
+  describe '.merge_pr' do
+    let(:repo_name) { 'RevenueCat/mock-repo-name' }
+    let(:pr_number) { 42 }
+    let(:api_token) { 'mock-github-token' }
+    let(:captured_handlers) { {} }
+
+    before do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry) do |**kwargs|
+        captured_handlers.merge!(kwargs[:error_handlers] || {})
+        { status: 200, body: '{"merged": true}' }
+      end
+    end
+
+    def call_merge_pr(**overrides)
+      Fastlane::Helper::GitHubHelper.merge_pr(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token,
+        **overrides
+      )
+    end
+
+    it 'merges the PR with squash by default' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(
+                http_method: 'PUT',
+                path: "/repos/#{repo_name}/pulls/#{pr_number}/merge",
+                body: { merge_method: 'squash' }
+              ))
+
+      call_merge_pr
+    end
+
+    it 'downcases the merge method for the REST API' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(body: { merge_method: 'rebase' }))
+
+      call_merge_pr(merge_method: 'REBASE')
+    end
+
+    it 'error handler for 405 raises with conflict message' do
+      call_merge_pr
+
+      expect { captured_handlers[405].call(body: 'conflict details') }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, /not mergeable.*conflict details/)
+    end
+
+    it 'error handler for 409 raises with checks-not-passed message' do
+      call_merge_pr
+
+      expect { captured_handlers[409].call(body: 'checks pending') }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, /could not be merged.*checks pending/)
+    end
+
+    it 'error handler for unexpected status raises with status and body' do
+      call_merge_pr
+
+      expect { captured_handlers['*'].call(status: 500, body: 'Internal Server Error') }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, /500.*Internal Server Error/)
+    end
+
+    it 'propagates network errors' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .and_raise(StandardError.new("Connection refused"))
+
+      expect { call_merge_pr }.to raise_error(StandardError, /Connection refused/)
+    end
+  end
 end

@@ -9,7 +9,7 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
-    class GitHubHelper
+    class GitHubHelper # rubocop:disable Metrics/ClassLength
       SUPPORTED_PR_LABELS = (%w[breaking build ci docs feat fix perf revenuecatui refactor style test next_release dependencies phc_dependencies force_minor force_patch revenuecatui changelog_ignore].map { |label| "pr:#{label}" }).to_set
 
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
@@ -377,6 +377,24 @@ module Fastlane
                        "Retry #{retries}/#{max_retries} after #{wait_time}s...")
           sleep(wait_time)
         end
+      end
+
+      # Merges a pull request directly via the GitHub REST API.
+      # All required status checks must have passed for the merge to succeed.
+      def self.merge_pr(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')
+        rest_merge_method = merge_method.downcase
+        UI.message("Merging PR ##{pr_number} via #{rest_merge_method}...")
+        github_api_call_with_retry(
+          server_url: "https://api.github.com", http_method: 'PUT',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}/merge",
+          body: { merge_method: rest_merge_method }, api_token: api_token,
+          error_handlers: {
+            405 => proc { |r| UI.user_error!("PR ##{pr_number} is not mergeable (may have conflicts): #{r[:body]}") },
+            409 => proc { |r| UI.user_error!("PR ##{pr_number} could not be merged (required checks may not have passed): #{r[:body]}") },
+            '*' => proc { |r| UI.user_error!("Failed to merge PR ##{pr_number}: GitHub responded with #{r[:status]}: #{r[:body]}") }
+          }
+        )
+        UI.success("PR ##{pr_number} merged successfully")
       end
 
       # Sends a Slack notification when auto-merge fails
