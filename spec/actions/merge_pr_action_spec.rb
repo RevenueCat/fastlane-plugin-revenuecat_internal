@@ -6,7 +6,7 @@ describe Fastlane::Actions::MergePrAction do
   let(:pr_number) { 42 }
 
   describe '#run' do
-    it 'finds the PR and merges with defaults' do
+    it 'finds the PR, merges with defaults, and returns the PR number' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
           repo_name: full_repo_name,
@@ -24,11 +24,13 @@ describe Fastlane::Actions::MergePrAction do
           merge_method: 'squash'
         )
 
-      Fastlane::Actions::MergePrAction.run(
+      result = Fastlane::Actions::MergePrAction.run(
         github_token: github_token,
         repo_name: repo_name,
         branch: branch
       )
+
+      expect(result).to eq(pr_number)
     end
 
     it 'uses the current git branch when branch is not provided' do
@@ -89,6 +91,20 @@ describe Fastlane::Actions::MergePrAction do
         repo_name: repo_name,
         branch: branch,
         merge_method: 'rebase'
+      )
+    end
+
+    it 'downcases uppercase merge_method for REST API compatibility' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
+        .with(hash_including(merge_method: 'squash'))
+
+      Fastlane::Actions::MergePrAction.run(
+        github_token: github_token,
+        repo_name: repo_name,
+        branch: branch,
+        merge_method: 'SQUASH'
       )
     end
 
@@ -156,9 +172,9 @@ describe Fastlane::Actions::MergePrAction do
       expect { option.verify!('YOLO') }.to raise_error(FastlaneCore::Interface::FastlaneError, /Invalid merge_method 'YOLO'/)
     end
 
-    it 'accepts valid merge_method values' do
+    it 'accepts valid merge_method values in any case' do
       option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :merge_method }
-      %w[squash merge rebase].each do |method|
+      %w[squash merge rebase SQUASH MERGE REBASE].each do |method|
         expect { option.verify!(method) }.not_to raise_error
       end
     end
@@ -169,8 +185,8 @@ describe Fastlane::Actions::MergePrAction do
       expect(Fastlane::Actions::MergePrAction.description).not_to be_empty
     end
 
-    it 'has nil return value' do
-      expect(Fastlane::Actions::MergePrAction.return_value).to be_nil
+    it 'documents its return value' do
+      expect(Fastlane::Actions::MergePrAction.return_value).not_to be_nil
     end
 
     it 'supports all platforms' do

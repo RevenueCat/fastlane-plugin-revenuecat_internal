@@ -10,7 +10,7 @@ module Fastlane
         repo_name = params[:repo_name]
         branch = params[:branch] || Actions.sh("git rev-parse --abbrev-ref HEAD").strip
         base_branch = params[:base_branch] || 'main'
-        merge_method = params[:merge_method] || 'squash'
+        merge_method = (params[:merge_method] || 'squash').downcase
 
         full_repo_name = "RevenueCat/#{repo_name}"
 
@@ -27,6 +27,8 @@ module Fastlane
           api_token: github_token,
           merge_method: merge_method
         )
+
+        pr_number
       end
 
       def self.description
@@ -44,7 +46,7 @@ module Fastlane
       end
 
       def self.return_value
-        nil
+        "The PR number that was merged"
       end
 
       def self.available_options
@@ -68,13 +70,13 @@ module Fastlane
                                        default_value: "main",
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :merge_method,
-                                       description: "Merge method: 'squash', 'merge', or 'rebase'",
+                                       description: "Merge method: 'squash', 'merge', or 'rebase' (case-insensitive)",
                                        optional: true,
                                        default_value: "squash",
                                        type: String,
                                        verify_block: proc do |value|
                                          valid = %w[squash merge rebase]
-                                         UI.user_error!("Invalid merge_method '#{value}'. Must be one of: #{valid.join(', ')}") unless valid.include?(value)
+                                         UI.user_error!("Invalid merge_method '#{value}'. Must be one of: #{valid.join(', ')}") unless valid.include?(value.downcase)
                                        end)
         ]
       end
