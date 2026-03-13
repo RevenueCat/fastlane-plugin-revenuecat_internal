@@ -317,18 +317,9 @@ module Fastlane
         pr["number"]
       end
 
-      # Enables GitHub's "auto-merge" (merge when ready) on an existing pull request
-      # using the GraphQL enablePullRequestAutoMerge mutation.
-      #
-      # Requires the repository to have "Allow auto-merge" enabled in Settings > General.
-      #
-      # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
-      # @param pr_number [Integer] Pull request number
-      # @param api_token [String] GitHub API token with repo permissions
-      # @param merge_method [String] GraphQL merge method: 'SQUASH', 'MERGE', or 'REBASE' (default: 'SQUASH')
-      # @param max_retries [Integer] Maximum number of retries for transient "unstable status" errors (default: 3)
-      # @param initial_wait [Integer] Seconds to wait before the first retry; doubles each attempt (default: 10)
-      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH', max_retries: 3, initial_wait: 10)
+      # Enables GitHub's "auto-merge" on a PR via the GraphQL enablePullRequestAutoMerge mutation.
+      # Requires "Allow auto-merge" enabled in repo Settings > General.
+      def self.enable_auto_merge(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')
         UI.message("Enabling auto-merge for PR ##{pr_number}...")
 
         pr_response = github_api_call_with_retry(
@@ -345,38 +336,38 @@ module Fastlane
           query: "mutation { enablePullRequestAutoMerge(input: {pullRequestId: \"#{node_id}\", mergeMethod: #{merge_method}}) { pullRequest { autoMergeRequest { enabledAt } } } }"
         }
 
-        call_auto_merge_mutation_with_retry(
-          mutation: mutation,
-          pr_number: pr_number,
-          api_token: api_token,
-          max_retries: max_retries,
-          initial_wait: initial_wait
+        response = github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'POST',
+          path: '/graphql',
+          body: mutation,
+          api_token: api_token
         )
+
+        graphql_errors = response[:json]['errors'] if response[:json]
+        if graphql_errors && !graphql_errors.empty?
+          error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
+          UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
+        end
 
         UI.success("Auto-merge enabled for PR ##{pr_number}")
       end
 
-      private_class_method def self.call_auto_merge_mutation_with_retry(mutation:, pr_number:, api_token:, max_retries:, initial_wait:)
-        retries = 0
-        loop do
-          response = github_api_call_with_retry(
-            server_url: "https://api.github.com", http_method: 'POST',
-            path: '/graphql', body: mutation, api_token: api_token
-          )
-          graphql_errors = response[:json]['errors'] if response[:json]
-          break unless graphql_errors && !graphql_errors.empty?
-
-          error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
-          unless error_messages.downcase.include?('unstable status') && retries < max_retries
-            UI.user_error!("Failed to enable auto-merge for PR ##{pr_number}: #{error_messages}")
-          end
-
-          retries += 1
-          wait_time = initial_wait * (2**(retries - 1))
-          UI.important("PR ##{pr_number} is in unstable status (checks may still be initializing). " \
-                       "Retry #{retries}/#{max_retries} after #{wait_time}s...")
-          sleep(wait_time)
-        end
+      # Merges a pull request directly via the GitHub REST API.
+      # All required status checks must have passed for the merge to succeed.
+      def self.merge_pr(repo_name:, pr_number:, api_token:, merge_method: 'squash')
+        UI.message("Merging PR ##{pr_number} via #{merge_method}...")
+        github_api_call_with_retry(
+          server_url: "https://api.github.com", http_method: 'PUT',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}/merge",
+          body: { merge_method: merge_method }, api_token: api_token,
+          error_handlers: {
+            405 => proc { |r| UI.user_error!("PR ##{pr_number} is not mergeable (may have conflicts): #{r[:body]}") },
+            409 => proc { |r| UI.user_error!("PR ##{pr_number} could not be merged (required checks may not have passed): #{r[:body]}") },
+            '*' => proc { |r| UI.user_error!("Failed to merge PR ##{pr_number}: GitHub responded with #{r[:status]}: #{r[:body]}") }
+          }
+        )
+        UI.success("PR ##{pr_number} merged successfully")
       end
 
       # Sends a Slack notification when auto-merge fails
