@@ -379,6 +379,46 @@ module Fastlane
         end
       end
 
+      # Adds a pull request to the repository's merge queue using the GraphQL
+      # enqueuePullRequest mutation.
+      #
+      # Requires the repository to have a merge queue configured in its branch
+      # protection rules.
+      #
+      # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
+      # @param pr_number [Integer] Pull request number
+      # @param api_token [String] GitHub API token with repo permissions
+      def self.enqueue_pr(repo_name:, pr_number:, api_token:)
+        UI.message("Adding PR ##{pr_number} to merge queue...")
+
+        pr_response = github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'GET',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}",
+          api_token: api_token
+        )
+        node_id = pr_response[:json]['node_id']
+
+        UI.user_error!("Could not retrieve node_id for PR ##{pr_number}. Cannot enqueue.") if node_id.nil? || node_id.to_s.empty?
+
+        mutation = {
+          query: "mutation { enqueuePullRequest(input: {pullRequestId: \"#{node_id}\"}) { mergeQueueEntry { id } } }"
+        }
+
+        response = github_api_call_with_retry(
+          server_url: "https://api.github.com", http_method: 'POST',
+          path: '/graphql', body: mutation, api_token: api_token
+        )
+
+        graphql_errors = response[:json]['errors'] if response[:json]
+        if graphql_errors && !graphql_errors.empty?
+          error_messages = graphql_errors.map { |e| e['message'] }.join(', ')
+          UI.user_error!("Failed to enqueue PR ##{pr_number}: #{error_messages}")
+        end
+
+        UI.success("PR ##{pr_number} added to merge queue")
+      end
+
       # Merges a pull request directly via the GitHub REST API.
       # All required status checks must have passed for the merge to succeed.
       def self.merge_pr(repo_name:, pr_number:, api_token:, merge_method: 'SQUASH')

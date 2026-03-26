@@ -11,6 +11,7 @@ module Fastlane
         branch = params[:branch] || Actions.sh("git rev-parse --abbrev-ref HEAD").strip
         base_branch = params[:base_branch] || 'main'
         merge_method = params[:merge_method] || 'SQUASH'
+        use_merge_queue = params[:use_merge_queue] || false
 
         full_repo_name = "RevenueCat/#{repo_name}"
 
@@ -21,12 +22,20 @@ module Fastlane
           api_token: github_token
         )
 
-        Helper::GitHubHelper.merge_pr(
-          repo_name: full_repo_name,
-          pr_number: pr_number,
-          api_token: github_token,
-          merge_method: merge_method
-        )
+        if use_merge_queue
+          Helper::GitHubHelper.enqueue_pr(
+            repo_name: full_repo_name,
+            pr_number: pr_number,
+            api_token: github_token
+          )
+        else
+          Helper::GitHubHelper.merge_pr(
+            repo_name: full_repo_name,
+            pr_number: pr_number,
+            api_token: github_token,
+            merge_method: merge_method
+          )
+        end
 
         pr_number
       end
@@ -38,6 +47,7 @@ module Fastlane
       def self.details
         "Finds the open pull request from the specified branch (or the current git branch) " \
           "and merges it directly via the GitHub REST API. " \
+          "When use_merge_queue is true, the PR is added to the repository's merge queue instead. " \
           "All required status checks must have passed for the merge to succeed."
       end
 
@@ -77,7 +87,12 @@ module Fastlane
                                        verify_block: proc do |value|
                                          valid = %w[SQUASH MERGE REBASE]
                                          UI.user_error!("Invalid merge_method '#{value}'. Must be one of: #{valid.join(', ')}") unless valid.include?(value)
-                                       end)
+                                       end),
+          FastlaneCore::ConfigItem.new(key: :use_merge_queue,
+                                       description: "If true, add the PR to the merge queue instead of merging directly",
+                                       optional: true,
+                                       default_value: false,
+                                       type: Boolean)
         ]
       end
 

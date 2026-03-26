@@ -785,6 +785,93 @@ describe Fastlane::Helper::GitHubHelper do
     end
   end
 
+  describe '.enqueue_pr' do
+    let(:repo_name) { 'RevenueCat/mock-repo-name' }
+    let(:pr_number) { 42 }
+    let(:api_token) { 'mock-github-token' }
+    let(:node_id) { 'PR_kwDOFake123' }
+
+    it 'enqueues PR into merge queue' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(
+          server_url: 'https://api.github.com',
+          http_method: 'GET',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}",
+          api_token: api_token
+        )
+        .and_return({ json: { 'node_id' => node_id } })
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(
+          server_url: 'https://api.github.com',
+          http_method: 'POST',
+          path: '/graphql',
+          body: { query: "mutation { enqueuePullRequest(input: {pullRequestId: \"#{node_id}\"}) { mergeQueueEntry { id } } }" },
+          api_token: api_token
+        )
+        .and_return({ json: {} })
+
+      Fastlane::Helper::GitHubHelper.enqueue_pr(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token
+      )
+    end
+
+    it 'raises error if node_id is nil' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(
+          server_url: 'https://api.github.com',
+          http_method: 'GET',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}",
+          api_token: api_token
+        )
+        .and_return({ json: { 'node_id' => nil } })
+
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
+        .with(hash_including(path: '/graphql'))
+
+      expect do
+        Fastlane::Helper::GitHubHelper.enqueue_pr(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Could not retrieve node_id for PR ##{pr_number}/)
+    end
+
+    it 'raises error if GraphQL response contains errors' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: "/repos/#{repo_name}/pulls/#{pr_number}"))
+        .and_return({ json: { 'node_id' => node_id } })
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', path: '/graphql'))
+        .and_return({ json: { 'errors' => [{ 'message' => 'Merge queue is not enabled for this branch' }] } })
+
+      expect do
+        Fastlane::Helper::GitHubHelper.enqueue_pr(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Failed to enqueue PR ##{pr_number}/)
+    end
+
+    it 'propagates network errors' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .and_raise(StandardError.new("Connection refused"))
+
+      expect do
+        Fastlane::Helper::GitHubHelper.enqueue_pr(
+          repo_name: repo_name,
+          pr_number: pr_number,
+          api_token: api_token
+        )
+      end.to raise_error(StandardError, /Connection refused/)
+    end
+  end
+
   describe '.merge_pr' do
     let(:repo_name) { 'RevenueCat/mock-repo-name' }
     let(:pr_number) { 42 }

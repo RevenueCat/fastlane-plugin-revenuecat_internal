@@ -123,11 +123,70 @@ describe Fastlane::Actions::MergePrAction do
         )
       end.to raise_error(StandardError, /Failed to merge PR/)
     end
+
+    it 'uses enqueue_pr when use_merge_queue is true' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+        .with(
+          repo_name: full_repo_name,
+          branch: branch,
+          base_branch: 'main',
+          api_token: github_token
+        )
+        .and_return(pr_number)
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:enqueue_pr)
+        .with(
+          repo_name: full_repo_name,
+          pr_number: pr_number,
+          api_token: github_token
+        )
+
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:merge_pr)
+
+      result = Fastlane::Actions::MergePrAction.run(
+        github_token: github_token,
+        repo_name: repo_name,
+        branch: branch,
+        use_merge_queue: true
+      )
+
+      expect(result).to eq(pr_number)
+    end
+
+    it 'does not use enqueue_pr when use_merge_queue is false' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:enqueue_pr)
+
+      Fastlane::Actions::MergePrAction.run(
+        github_token: github_token,
+        repo_name: repo_name,
+        branch: branch,
+        use_merge_queue: false
+      )
+    end
+
+    it 'propagates errors from enqueue_pr' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:enqueue_pr)
+        .and_raise(StandardError.new("Failed to enqueue PR"))
+
+      expect do
+        Fastlane::Actions::MergePrAction.run(
+          github_token: github_token,
+          repo_name: repo_name,
+          branch: branch,
+          use_merge_queue: true
+        )
+      end.to raise_error(StandardError, /Failed to enqueue PR/)
+    end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::MergePrAction.available_options.size).to eq(5)
+      expect(Fastlane::Actions::MergePrAction.available_options.size).to eq(6)
     end
 
     it 'has github_token option with GITHUB_TOKEN env_name' do
@@ -163,6 +222,12 @@ describe Fastlane::Actions::MergePrAction do
       %w[SQUASH MERGE REBASE].each do |method|
         expect { option.verify!(method) }.not_to raise_error
       end
+    end
+
+    it 'has use_merge_queue option defaulting to false' do
+      option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :use_merge_queue }
+      expect(option.default_value).to eq(false)
+      expect(option.optional).to be true
     end
   end
 
