@@ -79,6 +79,8 @@ module Fastlane
           other: []
         }
 
+        last_phc_dep_line = nil
+
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
 
@@ -96,9 +98,8 @@ module Fastlane
 
             section = get_section_depending_on_types_of_change(types_of_change)
             line = "* #{message} via #{name} (@#{username})"
-            if types_of_change.include?("pr:phc_dependencies")
-              # Append links to native releases
-              line += native_releases_links(github_token, hybrid_common_version, versions_file_path)
+            if types_of_change.include?("pr:phc_dependencies") && last_phc_dep_line.nil?
+              last_phc_dep_line = line
             end
 
             if section.kind_of?(Array) && section.first == :functionalities
@@ -124,6 +125,11 @@ module Fastlane
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
         end
+
+        if last_phc_dep_line && hybrid_common_version && versions_file_path
+          last_phc_dep_line << native_releases_links(github_token, hybrid_common_version, versions_file_path)
+        end
+
         build_changelog_sections(changelog_sections)
       end
       # rubocop:enable Metrics/PerceivedComplexity
