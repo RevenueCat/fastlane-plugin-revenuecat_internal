@@ -96,8 +96,8 @@ module Fastlane
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
             all_labels = item["labels"].map { |label_info| label_info["name"].downcase }.to_set
-            next if filter_labels && (all_labels & filter_labels.map { |l| l.downcase }.to_set).empty?
-            next if exclude_labels && !(all_labels & exclude_labels.map { |l| l.downcase }.to_set).empty?
+            next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
+            next if exclude_labels && !(all_labels & exclude_labels.map(&:downcase).to_set).empty?
 
             types_of_change = get_type_of_change_from_pr_info(item)
             next if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
