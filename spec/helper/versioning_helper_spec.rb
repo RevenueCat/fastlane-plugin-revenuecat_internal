@@ -379,7 +379,7 @@ describe Fastlane::Helper::VersioningHelper do
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
-    context 'with filter_label' do
+    context 'with filter_labels' do
       let(:admob_get_commit_1_response) do
         { body: File.read("#{File.dirname(__FILE__)}/../test_files/admob_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
       end
@@ -402,7 +402,32 @@ describe Fastlane::Helper::VersioningHelper do
           nil,
           nil,
           '4.6.0',
-          filter_label: 'pr:admob'
+          filter_labels: ['pr:admob']
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### ✨ New Features\n" \
+                                "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
+      end
+
+      it 'includes PRs matching any of the filter labels' do
+        hashes = {
+          'a72c0435ecf71248f311900475e881cc07ac2eaf' => admob_get_commit_1_response,
+          '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
+          'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
+          '9a289e554fe384e6987b086fad047671058cf044' => get_commit_4_response,
+          '1625e195a117ad0435864dc8a561e6a0c6052bdf' => get_commit_5_response
+        }
+        setup_commit_search_stubs(hashes)
+        expect_any_instance_of(Object).not_to receive(:sleep)
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          nil,
+          nil,
+          '4.6.0',
+          filter_labels: ['pr:applovin', 'pr:admob']
         )
         expect(changelog).to eq("## RevenueCat SDK\n" \
                                 "### ✨ New Features\n" \
@@ -420,7 +445,7 @@ describe Fastlane::Helper::VersioningHelper do
           nil,
           nil,
           '4.6.0',
-          filter_label: 'pr:admob'
+          filter_labels: ['pr:admob']
         )
         expect(changelog).to eq("")
       end
@@ -445,7 +470,7 @@ describe Fastlane::Helper::VersioningHelper do
           nil,
           nil,
           nil,
-          filter_label: 'pr:admob'
+          filter_labels: ['pr:admob']
         )
         expect(changelog).to eq("")
       end
