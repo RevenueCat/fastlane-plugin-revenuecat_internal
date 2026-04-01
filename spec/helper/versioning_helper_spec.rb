@@ -476,6 +476,69 @@ describe Fastlane::Helper::VersioningHelper do
       end
     end
 
+    context 'with exclude_labels' do
+      let(:admob_get_commit_1_response) do
+        { body: File.read("#{File.dirname(__FILE__)}/../test_files/admob_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+      end
+
+      it 'excludes PRs matching any of the exclude labels' do
+        hashes = {
+          'a72c0435ecf71248f311900475e881cc07ac2eaf' => admob_get_commit_1_response,
+          '0e67cdb1c7582ce3e2fd00367acc24db6242c6d6' => get_commit_2_response,
+          'cfdd80f73d8c91121313d72227b4cbe283b57c1e' => get_commit_3_response,
+          '9a289e554fe384e6987b086fad047671058cf044' => get_commit_4_response,
+          '1625e195a117ad0435864dc8a561e6a0c6052bdf' => get_commit_5_response
+        }
+        setup_commit_search_stubs(hashes)
+        expect_any_instance_of(Object).not_to receive(:sleep)
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          nil,
+          nil,
+          '4.6.0',
+          exclude_labels: ['pr:admob']
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### 🐞 Bugfixes\n" \
+                                "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                                "## RevenueCatUI SDK\n" \
+                                "### 🖼 Paywalls\n" \
+                                "#### ✨ New Features\n" \
+                                "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                                "### 🔄 Other Changes\n" \
+                                "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
+      end
+
+      it 'still includes commits with no PR when exclude_labels is set' do
+        setup_tag_stubs
+        mock_commits_since_last_release("4ceaceb20e700b92197daf8904f5c4e226625d8a", get_commits_response_no_pr)
+
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: '/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:4ceaceb20e700b92197daf8904f5c4e226625d8a',
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(get_commit_no_items)
+        expect_any_instance_of(Object).not_to receive(:sleep)
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          nil,
+          nil,
+          nil,
+          exclude_labels: ['pr:admob']
+        )
+        expect(changelog).to eq("### 🔄 Other Changes\n" \
+                                "* Updating great support link via Miguel José Carranza Guisado")
+      end
+    end
+
     it 'fails if it finds multiple commits with same sha' do
       setup_commit_search_stubs(hashes_to_responses)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
