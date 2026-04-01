@@ -434,6 +434,32 @@ describe Fastlane::Helper::VersioningHelper do
                                 "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)")
       end
 
+      it 'treats empty filter_labels the same as nil' do
+        setup_commit_search_stubs(hashes_to_responses)
+        expect_any_instance_of(Object).not_to receive(:sleep)
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          nil,
+          nil,
+          '4.6.0',
+          filter_labels: []
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### ✨ New Features\n" \
+                                "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                                "### 🐞 Bugfixes\n" \
+                                "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                                "## RevenueCatUI SDK\n" \
+                                "### 🖼 Paywalls\n" \
+                                "#### ✨ New Features\n" \
+                                "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                                "### 🔄 Other Changes\n" \
+                                "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
+      end
+
       it 'returns empty changelog when no PRs match the filter label' do
         setup_commit_search_stubs(hashes_to_responses)
         expect_any_instance_of(Object).not_to receive(:sleep)
@@ -479,6 +505,32 @@ describe Fastlane::Helper::VersioningHelper do
     context 'with exclude_labels' do
       let(:admob_get_commit_1_response) do
         { body: File.read("#{File.dirname(__FILE__)}/../test_files/admob_label_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+      end
+
+      it 'treats empty exclude_labels the same as nil' do
+        setup_commit_search_stubs(hashes_to_responses)
+        expect_any_instance_of(Object).not_to receive(:sleep)
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          nil,
+          nil,
+          '4.6.0',
+          exclude_labels: []
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### ✨ New Features\n" \
+                                "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                                "### 🐞 Bugfixes\n" \
+                                "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                                "## RevenueCatUI SDK\n" \
+                                "### 🖼 Paywalls\n" \
+                                "#### ✨ New Features\n" \
+                                "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                                "### 🔄 Other Changes\n" \
+                                "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
       end
 
       it 'excludes PRs matching any of the exclude labels' do

@@ -54,6 +54,8 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil)
+        filter_labels = nil if filter_labels&.empty?
+        exclude_labels = nil if exclude_labels&.empty?
         base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
         old_version = latest_version_number_smaller_than(target_tag, include_prereleases: include_prereleases)
