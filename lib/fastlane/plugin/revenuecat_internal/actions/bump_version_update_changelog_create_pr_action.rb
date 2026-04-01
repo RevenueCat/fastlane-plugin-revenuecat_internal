@@ -28,6 +28,8 @@ module Fastlane
         enable_auto_merge = params[:enable_auto_merge]
         slack_url = params[:slack_url]
         dry_run = params[:dry_run]
+        filter_labels = params[:filter_labels]
+        exclude_labels = params[:exclude_labels]
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -77,7 +79,7 @@ module Fastlane
           UI.important("No github_token provided.")
         end
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number, filter_labels: filter_labels, exclude_labels: exclude_labels)
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
@@ -230,6 +232,14 @@ module Fastlane
                                        description: "Slack webhook URL to notify on auto-merge failures",
                                        optional: true,
                                        type: String),
+          FastlaneCore::ConfigItem.new(key: :filter_labels,
+                                       description: "Only include PRs with at least one of these labels in the changelog",
+                                       optional: true,
+                                       type: Array),
+          FastlaneCore::ConfigItem.new(key: :exclude_labels,
+                                       description: "Exclude PRs with any of these labels from the changelog",
+                                       optional: true,
+                                       type: Array),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Whether to run the action in dry run mode",
                                        optional: true,

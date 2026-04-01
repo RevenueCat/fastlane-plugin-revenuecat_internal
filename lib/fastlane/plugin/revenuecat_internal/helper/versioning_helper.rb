@@ -53,7 +53,9 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil)
+        filter_labels = nil if filter_labels&.empty?
+        exclude_labels = nil if exclude_labels&.empty?
         base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
         old_version = latest_version_number_smaller_than(target_tag, include_prereleases: include_prereleases)
@@ -93,6 +95,10 @@ module Fastlane
 
             message = "#{item['title']} (##{item['number']})"
             username = item["user"]["login"]
+            all_labels = item["labels"].map { |label_info| label_info["name"].downcase }.to_set
+            next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
+            next if exclude_labels && !(all_labels & exclude_labels.map(&:downcase).to_set).empty?
+
             types_of_change = get_type_of_change_from_pr_info(item)
             next if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
 
@@ -116,11 +122,13 @@ module Fastlane
               changelog_sections[sdk_section][section].push(line) if changelog_sections[sdk_section].key?(section)
             end
           when 0
-            UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-            message = commit["commit"]["message"]
-            name = commit["commit"]["author"]["name"]
-            line = "* #{message} via #{name}"
-            changelog_sections[:other].push(line)
+            unless filter_labels
+              UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
+              message = commit["commit"]["message"]
+              name = commit["commit"]["author"]["name"]
+              line = "* #{message} via #{name}"
+              changelog_sections[:other].push(line)
+            end
           else
             UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
           end
