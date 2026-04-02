@@ -24,7 +24,8 @@ module Fastlane
           changelog,
           upload_assets,
           repo_name,
-          github_api_token
+          github_api_token,
+          commitish: params[:commitish]
         )
       end
 
@@ -60,7 +61,11 @@ module Fastlane
                                        description: "Array of paths to assets to upload in the release",
                                        optional: true,
                                        default_value: [],
-                                       type: Array)
+                                       type: Array),
+          FastlaneCore::ConfigItem.new(key: :commitish,
+                                       description: "Commit SHA to tag the release on. Defaults to HEAD of the current branch",
+                                       optional: true,
+                                       type: String)
         ]
       end
 

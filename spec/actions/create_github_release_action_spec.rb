@@ -14,7 +14,7 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_github_release)
-        .with(release_version, changelog, upload_assets, repo_name, github_api_token)
+        .with(release_version, changelog, upload_assets, repo_name, github_api_token, commitish: nil)
         .once
       Fastlane::Actions::CreateGithubReleaseAction.run(
         version: release_version,
@@ -22,6 +22,21 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
         github_api_token: github_api_token,
         changelog_latest_path: changelog_latest_path,
         upload_assets: upload_assets
+      )
+    end
+
+    it 'passes commitish when provided' do
+      custom_commitish = 'abc123def456'
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_github_release)
+        .with(release_version, changelog, upload_assets, repo_name, github_api_token, commitish: custom_commitish)
+        .once
+      Fastlane::Actions::CreateGithubReleaseAction.run(
+        version: release_version,
+        repo_name: repo_name,
+        github_api_token: github_api_token,
+        changelog_latest_path: changelog_latest_path,
+        upload_assets: upload_assets,
+        commitish: custom_commitish
       )
     end
 
@@ -41,7 +56,7 @@ describe Fastlane::Actions::CreateGithubReleaseAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::CreateGithubReleaseAction.available_options.size).to eq(5)
+      expect(Fastlane::Actions::CreateGithubReleaseAction.available_options.size).to eq(6)
     end
   end
 end
