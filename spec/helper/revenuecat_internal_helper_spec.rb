@@ -1236,6 +1236,34 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         github_api_token
       )
     end
+
+    it 'uses provided commitish instead of HEAD when given' do
+      custom_commitish = 'custom-commit-sha-from-other-repo'
+      allow(Fastlane::Actions).to receive(:sh).with("git fetch --tags -f")
+      allow(Fastlane::Actions).to receive(:sh).with(get_latest_tag_command).and_return('1.10.0')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:create_github_release).with(
+        repository_name: "RevenueCat/fake-repo-name",
+        api_token: github_api_token,
+        name: no_prerelease_version,
+        tag_name: no_prerelease_version,
+        description: release_description,
+        commitish: custom_commitish,
+        upload_assets: upload_assets,
+        is_draft: false,
+        is_prerelease: false,
+        make_latest: true,
+        server_url: server_url
+      )
+      Fastlane::Helper::RevenuecatInternalHelper.create_github_release(
+        no_prerelease_version,
+        release_description,
+        upload_assets,
+        repo_name,
+        github_api_token,
+        commitish: custom_commitish
+      )
+    end
   end
 
   describe '.replace_in' do
