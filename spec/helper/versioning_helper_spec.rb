@@ -149,6 +149,32 @@ describe Fastlane::Helper::VersioningHelper do
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)")
     end
 
+    it 'uses owner/repo#number in changelog lines when cross_repo_pr_reference is set' do
+      setup_commit_search_stubs(hashes_to_responses)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil,
+        nil,
+        '4.6.0',
+        cross_repo_pr_reference: 'RevenueCat/mock-repo-name'
+      )
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### ✨ New Features\n" \
+                              "* added a log when `autoSyncPurchases` is disabled (RevenueCat/mock-repo-name#1749) via aboedo (@aboedo)\n" \
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (RevenueCat/mock-repo-name#1751) via Toni Rico (@tonidero)\n\n" \
+                              "## RevenueCatUI SDK\n" \
+                              "### 🖼 Paywalls\n" \
+                              "#### ✨ New Features\n" \
+                              "* `Paywalls`: multi-package horizontal template (RevenueCat/mock-repo-name#2949) via Toni Rico (@tonidero)\n\n" \
+                              "### 🔄 Other Changes\n" \
+                              "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (RevenueCat/mock-repo-name#2199) via Toni Rico (@tonidero)")
+    end
+
     it 'generates changelog automatically from github commits including feat section' do
       setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features, 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
 

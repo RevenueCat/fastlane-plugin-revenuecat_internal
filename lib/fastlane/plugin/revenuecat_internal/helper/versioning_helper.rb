@@ -53,9 +53,10 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '')
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
+        cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
         base_branch = Actions.git_branch
         Actions.sh("git fetch --tags -f")
         old_version = latest_version_number_smaller_than(target_tag, include_prereleases: include_prereleases)
@@ -93,7 +94,7 @@ module Fastlane
           when 1
             item = items.first
 
-            message = "#{item['title']} (##{item['number']})"
+            message = "#{item['title']} (#{cross_repo_pr_reference}##{item['number']})"
             username = item["user"]["login"]
             all_labels = item["labels"].map { |label_info| label_info["name"].downcase }.to_set
             next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
