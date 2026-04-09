@@ -6,12 +6,11 @@ describe Fastlane::Actions::MergePrAction do
   let(:pr_number) { 42 }
 
   describe '#run' do
-    it 'finds the PR, merges with defaults, and returns the PR number' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+    it 'finds the PR without base_branch, merges with defaults, and returns the PR number' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -38,11 +37,10 @@ describe Fastlane::Actions::MergePrAction do
         .with("git rev-parse --abbrev-ref HEAD")
         .and_return("feature/my-branch\n")
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: 'feature/my-branch',
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -55,8 +53,8 @@ describe Fastlane::Actions::MergePrAction do
       )
     end
 
-    it 'supports a custom base branch' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+    it 'passes base_branch to find_unique_open_pr_number when provided' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
@@ -76,7 +74,7 @@ describe Fastlane::Actions::MergePrAction do
     end
 
     it 'passes custom merge_method to merge_pr' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
         .with(
@@ -94,8 +92,8 @@ describe Fastlane::Actions::MergePrAction do
       )
     end
 
-    it 'propagates errors from find_open_pr_number' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+    it 'propagates errors from find_unique_open_pr_number' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .and_raise(FastlaneCore::Interface::FastlaneError.new)
 
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:merge_pr)
@@ -110,7 +108,7 @@ describe Fastlane::Actions::MergePrAction do
     end
 
     it 'propagates errors from merge_pr' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
         .and_raise(StandardError.new("Failed to merge PR"))
@@ -125,11 +123,10 @@ describe Fastlane::Actions::MergePrAction do
     end
 
     it 'uses enqueue_pr when use_merge_queue is true' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -154,7 +151,7 @@ describe Fastlane::Actions::MergePrAction do
     end
 
     it 'does not use enqueue_pr when use_merge_queue is false' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:merge_pr)
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enqueue_pr)
@@ -168,7 +165,7 @@ describe Fastlane::Actions::MergePrAction do
     end
 
     it 'propagates errors from enqueue_pr' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enqueue_pr)
         .and_raise(StandardError.new("Failed to enqueue PR"))
@@ -200,9 +197,9 @@ describe Fastlane::Actions::MergePrAction do
       expect(option.optional).to be true
     end
 
-    it 'has base_branch option defaulting to main' do
+    it 'has base_branch option that is optional with no default' do
       option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :base_branch }
-      expect(option.default_value).to eq("main")
+      expect(option.default_value).to be_nil
       expect(option.optional).to be true
     end
 
