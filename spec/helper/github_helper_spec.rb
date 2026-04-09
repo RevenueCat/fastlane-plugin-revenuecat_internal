@@ -470,91 +470,153 @@ describe Fastlane::Helper::GitHubHelper do
     let(:branch) { 'release/5.60.0' }
     let(:base_branch) { 'main' }
 
-    def expected_path(head_branch, target_base = base_branch)
-      query = URI.encode_www_form(head: "RevenueCat:#{head_branch}", base: target_base, state: "open")
+    def expected_path_with_base(head_branch, target_base)
+      query = URI.encode_www_form(head: "RevenueCat:#{head_branch}", state: "open", base: target_base)
       "/repos/#{repo_name}/pulls?#{query}"
     end
 
-    it 'returns the PR number for a single matching PR' do
-      pr_response = { body: [{ "number" => 42, "title" => "Release PR" }].to_json }
-
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(
-          server_url: 'https://api.github.com',
-          http_method: 'GET',
-          path: expected_path(branch),
-          api_token: api_token
-        )
-        .and_return(pr_response)
-
-      result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
-        repo_name: repo_name,
-        branch: branch,
-        base_branch: base_branch,
-        api_token: api_token
-      )
-
-      expect(result).to eq(42)
+    def expected_path_without_base(head_branch)
+      query = URI.encode_www_form(head: "RevenueCat:#{head_branch}", state: "open")
+      "/repos/#{repo_name}/pulls?#{query}"
     end
 
-    it 'raises error when no open PR is found' do
-      empty_response = { body: [].to_json }
+    context 'with base_branch specified' do
+      it 'returns the PR number for a single matching PR' do
+        pr_response = { body: [{ "number" => 42, "title" => "Release PR" }].to_json }
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(empty_response)
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(
+            server_url: 'https://api.github.com',
+            http_method: 'GET',
+            path: expected_path_with_base(branch, base_branch),
+            api_token: api_token
+          )
+          .and_return(pr_response)
 
-      expect do
-        Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
           repo_name: repo_name,
           branch: branch,
           base_branch: base_branch,
           api_token: api_token
         )
-      end.to raise_error(FastlaneCore::Interface::FastlaneError, /No open PR found from #{Regexp.escape(branch)} into #{base_branch}/)
-    end
 
-    it 'picks the first (most recent) PR and warns when multiple match' do
-      newer_pr = { "number" => 42, "title" => "New PR" }
-      older_pr = { "number" => 10, "title" => "Old PR" }
-      multi_response = { body: [newer_pr, older_pr].to_json }
+        expect(result).to eq(42)
+      end
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .and_return(multi_response)
+      it 'raises error when no open PR is found' do
+        empty_response = { body: [].to_json }
 
-      expect(FastlaneCore::UI).to receive(:important)
-        .with("Found 2 open PRs from #{branch} into #{base_branch}, using the most recent one")
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .and_return(empty_response)
 
-      result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
-        repo_name: repo_name,
-        branch: branch,
-        base_branch: base_branch,
-        api_token: api_token
-      )
+        expect do
+          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+            repo_name: repo_name,
+            branch: branch,
+            base_branch: base_branch,
+            api_token: api_token
+          )
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /No open PR found from #{Regexp.escape(branch)} into #{base_branch}/)
+      end
 
-      expect(result).to eq(42)
-    end
+      it 'picks the first (most recent) PR and warns when multiple match' do
+        newer_pr = { "number" => 42, "title" => "New PR" }
+        older_pr = { "number" => 10, "title" => "Old PR" }
+        multi_response = { body: [newer_pr, older_pr].to_json }
 
-    it 'URL-encodes branch names with special characters' do
-      special_branch = 'feature/foo&bar#1'
-      pr_response = { body: [{ "number" => 7, "title" => "Special" }].to_json }
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .and_return(multi_response)
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(
-          server_url: 'https://api.github.com',
-          http_method: 'GET',
-          path: expected_path(special_branch),
+        expect(FastlaneCore::UI).to receive(:important)
+          .with("Found 2 open PRs from #{branch} into #{base_branch}, using the most recent one")
+
+        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          repo_name: repo_name,
+          branch: branch,
+          base_branch: base_branch,
           api_token: api_token
         )
-        .and_return(pr_response)
 
-      result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
-        repo_name: repo_name,
-        branch: special_branch,
-        base_branch: base_branch,
-        api_token: api_token
-      )
+        expect(result).to eq(42)
+      end
 
-      expect(result).to eq(7)
+      it 'URL-encodes branch names with special characters' do
+        special_branch = 'feature/foo&bar#1'
+        pr_response = { body: [{ "number" => 7, "title" => "Special" }].to_json }
+
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(
+            server_url: 'https://api.github.com',
+            http_method: 'GET',
+            path: expected_path_with_base(special_branch, base_branch),
+            api_token: api_token
+          )
+          .and_return(pr_response)
+
+        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          repo_name: repo_name,
+          branch: special_branch,
+          base_branch: base_branch,
+          api_token: api_token
+        )
+
+        expect(result).to eq(7)
+      end
+    end
+
+    context 'without base_branch' do
+      it 'returns the PR number when exactly one open PR exists' do
+        pr_response = { body: [{ "number" => 99, "title" => "Release PR" }].to_json }
+
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(
+            server_url: 'https://api.github.com',
+            http_method: 'GET',
+            path: expected_path_without_base(branch),
+            api_token: api_token
+          )
+          .and_return(pr_response)
+
+        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          repo_name: repo_name,
+          branch: branch,
+          api_token: api_token
+        )
+
+        expect(result).to eq(99)
+      end
+
+      it 'raises error when no open PR is found' do
+        empty_response = { body: [].to_json }
+
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .and_return(empty_response)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+            repo_name: repo_name,
+            branch: branch,
+            api_token: api_token
+          )
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /No open PR found from #{Regexp.escape(branch)}/)
+      end
+
+      it 'raises error when multiple open PRs exist' do
+        pr1 = { "number" => 42, "title" => "PR to main", "base" => { "ref" => "main" } }
+        pr2 = { "number" => 10, "title" => "PR to develop", "base" => { "ref" => "develop" } }
+        multi_response = { body: [pr1, pr2].to_json }
+
+        expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .and_return(multi_response)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+            repo_name: repo_name,
+            branch: branch,
+            api_token: api_token
+          )
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /Found 2 open PRs.*Specify base_branch to disambiguate/)
+      end
     end
 
     it 'propagates network errors' do

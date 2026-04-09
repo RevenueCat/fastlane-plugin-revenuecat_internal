@@ -6,12 +6,11 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
   let(:pr_number) { 42 }
 
   describe '#run' do
-    it 'finds the PR and enables auto-merge with defaults' do
+    it 'finds the PR without base_branch and enables auto-merge with defaults' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -40,7 +39,6 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
         .with(
           repo_name: full_repo_name,
           branch: 'feature/my-branch',
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -53,7 +51,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
       )
     end
 
-    it 'supports a custom base branch' do
+    it 'passes base_branch to find_open_pr_number when provided' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
           repo_name: full_repo_name,
@@ -139,9 +137,9 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
       expect(option.optional).to be true
     end
 
-    it 'has base_branch option defaulting to main' do
+    it 'has base_branch option that is optional with no default' do
       option = Fastlane::Actions::EnableAutoMergeForPrAction.available_options.find { |o| o.key == :base_branch }
-      expect(option.default_value).to eq("main")
+      expect(option.default_value).to be_nil
       expect(option.optional).to be true
     end
 

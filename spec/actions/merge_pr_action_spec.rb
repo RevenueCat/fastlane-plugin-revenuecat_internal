@@ -6,12 +6,11 @@ describe Fastlane::Actions::MergePrAction do
   let(:pr_number) { 42 }
 
   describe '#run' do
-    it 'finds the PR, merges with defaults, and returns the PR number' do
+    it 'finds the PR without base_branch, merges with defaults, and returns the PR number' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -42,7 +41,6 @@ describe Fastlane::Actions::MergePrAction do
         .with(
           repo_name: full_repo_name,
           branch: 'feature/my-branch',
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -55,7 +53,7 @@ describe Fastlane::Actions::MergePrAction do
       )
     end
 
-    it 'supports a custom base branch' do
+    it 'passes base_branch to find_open_pr_number when provided' do
       expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
         .with(
           repo_name: full_repo_name,
@@ -129,7 +127,6 @@ describe Fastlane::Actions::MergePrAction do
         .with(
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: 'main',
           api_token: github_token
         )
         .and_return(pr_number)
@@ -200,9 +197,9 @@ describe Fastlane::Actions::MergePrAction do
       expect(option.optional).to be true
     end
 
-    it 'has base_branch option defaulting to main' do
+    it 'has base_branch option that is optional with no default' do
       option = Fastlane::Actions::MergePrAction.available_options.find { |o| o.key == :base_branch }
-      expect(option.default_value).to eq("main")
+      expect(option.default_value).to be_nil
       expect(option.optional).to be true
     end
 
