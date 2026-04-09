@@ -940,4 +940,58 @@ describe Fastlane::Helper::GitHubHelper do
       expect { call_merge_pr }.to raise_error(StandardError, /Connection refused/)
     end
   end
+
+  describe '.update_pr_branch' do
+    let(:repo_name) { 'RevenueCat/mock-repo-name' }
+    let(:pr_number) { 42 }
+    let(:api_token) { 'mock-github-token' }
+    let(:captured_handlers) { {} }
+
+    before do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry) do |**kwargs|
+        captured_handlers.merge!(kwargs[:error_handlers] || {})
+        { status: 202, body: '{"message": "Updating pull request branch."}' }
+      end
+    end
+
+    def call_update_pr_branch
+      Fastlane::Helper::GitHubHelper.update_pr_branch(
+        repo_name: repo_name,
+        pr_number: pr_number,
+        api_token: api_token
+      )
+    end
+
+    it 'calls the update-branch endpoint with PUT' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(
+                http_method: 'PUT',
+                path: "/repos/#{repo_name}/pulls/#{pr_number}/update-branch",
+                body: {}
+              ))
+
+      call_update_pr_branch
+    end
+
+    it 'error handler for 422 raises with conflict message' do
+      call_update_pr_branch
+
+      expect { captured_handlers[422].call(body: 'validation failed') }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, /Cannot update.*conflicts or unexpected HEAD SHA/)
+    end
+
+    it 'error handler for unexpected status raises with status and body' do
+      call_update_pr_branch
+
+      expect { captured_handlers['*'].call(status: 500, body: 'Internal Server Error') }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, /500.*Internal Server Error/)
+    end
+
+    it 'propagates network errors' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .and_raise(StandardError.new("Connection refused"))
+
+      expect { call_update_pr_branch }.to raise_error(StandardError, /Connection refused/)
+    end
+  end
 end
