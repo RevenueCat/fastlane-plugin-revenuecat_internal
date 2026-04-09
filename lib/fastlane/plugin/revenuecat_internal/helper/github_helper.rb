@@ -294,20 +294,26 @@ module Fastlane
       #
       # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
       # @param branch [String] Head branch of the PR
-      # @param base_branch [String, nil] Base branch the PR targets (optional)
       # @param api_token [String] GitHub API token with repo permissions
+      # @param base_branch [String, nil] Base branch the PR targets (optional)
       # @return [Integer] The PR number
-      def self.find_unique_open_pr_number(repo_name:, branch:, base_branch: nil, api_token:)
+      def self.find_unique_open_pr_number(repo_name:, branch:, api_token:, base_branch: nil)
+        prs = fetch_open_prs(repo_name: repo_name, branch: branch, base_branch: base_branch, api_token: api_token)
+        validate_pr_results!(prs, branch: branch, base_branch: base_branch)
+
+        pr = prs.first
+        UI.message("Found PR ##{pr['number']}: #{pr['title']}")
+        pr["number"]
+      end
+
+      private_class_method def self.fetch_open_prs(repo_name:, branch:, base_branch:, api_token:)
         owner = repo_name.split('/').first
         query_params = { head: "#{owner}:#{branch}", state: "open" }
         query_params[:base] = base_branch if base_branch
         query = URI.encode_www_form(query_params)
 
-        if base_branch
-          UI.message("Looking for open PR from #{branch} into #{base_branch}...")
-        else
-          UI.message("Looking for open PR from #{branch}...")
-        end
+        target_msg = base_branch ? " into #{base_branch}" : ""
+        UI.message("Looking for open PR from #{branch}#{target_msg}...")
 
         response = github_api_call_with_retry(
           server_url: "https://api.github.com",
@@ -316,28 +322,24 @@ module Fastlane
           api_token: api_token
         )
 
-        prs = JSON.parse(response[:body])
+        JSON.parse(response[:body])
+      end
 
-        if prs.empty?
-          target = base_branch ? " into #{base_branch}" : ""
-          UI.user_error!("No open PR found from #{branch}#{target}")
+      private_class_method def self.validate_pr_results!(prs, branch:, base_branch:)
+        target = base_branch ? " into #{base_branch}" : ""
+        UI.user_error!("No open PR found from #{branch}#{target}") if prs.empty?
+
+        return unless prs.size > 1
+
+        if base_branch
+          UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
+        else
+          targets = prs.map { |pr| pr.dig('base', 'ref') }.compact.join(', ')
+          UI.user_error!(
+            "Found #{prs.size} open PRs from #{branch} (targeting: #{targets}). " \
+            "Specify base_branch to disambiguate."
+          )
         end
-
-        if prs.size > 1
-          if base_branch
-            UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
-          else
-            targets = prs.map { |pr| pr.dig('base', 'ref') }.compact.join(', ')
-            UI.user_error!(
-              "Found #{prs.size} open PRs from #{branch} (targeting: #{targets}). " \
-              "Specify base_branch to disambiguate."
-            )
-          end
-        end
-
-        pr = prs.first
-        UI.message("Found PR ##{pr['number']}: #{pr['title']}")
-        pr["number"]
       end
 
       # Enables GitHub's "auto-merge" (merge when ready) on an existing pull request
