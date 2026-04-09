@@ -21,7 +21,7 @@ module Fastlane
         }
         find_pr_params[:base_branch] = base_branch if base_branch
 
-        pr_number = Helper::GitHubHelper.find_open_pr_number(**find_pr_params)
+        pr_number = Helper::GitHubHelper.find_unique_open_pr_number(**find_pr_params)
 
         Helper::GitHubHelper.enable_auto_merge(
           repo_name: full_repo_name,

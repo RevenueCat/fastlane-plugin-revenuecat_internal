@@ -284,16 +284,20 @@ module Fastlane
         end
       end
 
-      # Finds an open pull request from the given head branch.
+      # Finds the unique open pull request from the given head branch.
+      #
       # When +base_branch+ is provided the search is scoped to PRs targeting
-      # that base; otherwise all open PRs from +branch+ are returned.
+      # that base. When omitted, all open PRs from +branch+ are considered.
+      #
+      # @raise [FastlaneError] if no open PR is found, or if multiple open PRs
+      #   exist from +branch+ and +base_branch+ was not specified.
       #
       # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
       # @param branch [String] Head branch of the PR
       # @param base_branch [String, nil] Base branch the PR targets (optional)
       # @param api_token [String] GitHub API token with repo permissions
       # @return [Integer] The PR number
-      def self.find_open_pr_number(repo_name:, branch:, base_branch: nil, api_token:)
+      def self.find_unique_open_pr_number(repo_name:, branch:, base_branch: nil, api_token:)
         owner = repo_name.split('/').first
         query_params = { head: "#{owner}:#{branch}", state: "open" }
         query_params[:base] = base_branch if base_branch

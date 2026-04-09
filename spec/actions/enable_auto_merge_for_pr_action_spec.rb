@@ -7,7 +7,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
 
   describe '#run' do
     it 'finds the PR without base_branch and enables auto-merge with defaults' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
@@ -35,7 +35,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
         .with("git rev-parse --abbrev-ref HEAD")
         .and_return("feature/my-branch\n")
 
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: 'feature/my-branch',
@@ -51,8 +51,8 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
       )
     end
 
-    it 'passes base_branch to find_open_pr_number when provided' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+    it 'passes base_branch to find_unique_open_pr_number when provided' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
@@ -72,7 +72,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
     end
 
     it 'passes custom merge_method to enable_auto_merge' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
         .with(
@@ -90,8 +90,8 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
       )
     end
 
-    it 'propagates errors from find_open_pr_number' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+    it 'propagates errors from find_unique_open_pr_number' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .and_raise(FastlaneCore::Interface::FastlaneError.new)
 
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
@@ -106,7 +106,7 @@ describe Fastlane::Actions::EnableAutoMergeForPrAction do
     end
 
     it 'propagates errors from enable_auto_merge' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number).and_return(pr_number)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number).and_return(pr_number)
 
       expect(Fastlane::Helper::GitHubHelper).to receive(:enable_auto_merge)
         .and_raise(StandardError.new("Failed to enable auto-merge"))

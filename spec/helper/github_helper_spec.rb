@@ -464,7 +464,7 @@ describe Fastlane::Helper::GitHubHelper do
     end
   end
 
-  describe '.find_open_pr_number' do
+  describe '.find_unique_open_pr_number' do
     let(:repo_name) { 'RevenueCat/mock-repo-name' }
     let(:api_token) { 'mock-github-token' }
     let(:branch) { 'release/5.60.0' }
@@ -493,7 +493,7 @@ describe Fastlane::Helper::GitHubHelper do
           )
           .and_return(pr_response)
 
-        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        result = Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
           repo_name: repo_name,
           branch: branch,
           base_branch: base_branch,
@@ -510,7 +510,7 @@ describe Fastlane::Helper::GitHubHelper do
           .and_return(empty_response)
 
         expect do
-          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
             repo_name: repo_name,
             branch: branch,
             base_branch: base_branch,
@@ -530,7 +530,7 @@ describe Fastlane::Helper::GitHubHelper do
         expect(FastlaneCore::UI).to receive(:important)
           .with("Found 2 open PRs from #{branch} into #{base_branch}, using the most recent one")
 
-        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        result = Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
           repo_name: repo_name,
           branch: branch,
           base_branch: base_branch,
@@ -553,7 +553,7 @@ describe Fastlane::Helper::GitHubHelper do
           )
           .and_return(pr_response)
 
-        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        result = Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
           repo_name: repo_name,
           branch: special_branch,
           base_branch: base_branch,
@@ -577,7 +577,7 @@ describe Fastlane::Helper::GitHubHelper do
           )
           .and_return(pr_response)
 
-        result = Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        result = Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
           repo_name: repo_name,
           branch: branch,
           api_token: api_token
@@ -593,7 +593,7 @@ describe Fastlane::Helper::GitHubHelper do
           .and_return(empty_response)
 
         expect do
-          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
             repo_name: repo_name,
             branch: branch,
             api_token: api_token
@@ -610,7 +610,7 @@ describe Fastlane::Helper::GitHubHelper do
           .and_return(multi_response)
 
         expect do
-          Fastlane::Helper::GitHubHelper.find_open_pr_number(
+          Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
             repo_name: repo_name,
             branch: branch,
             api_token: api_token
@@ -624,7 +624,7 @@ describe Fastlane::Helper::GitHubHelper do
         .and_raise(StandardError.new("Connection refused"))
 
       expect do
-        Fastlane::Helper::GitHubHelper.find_open_pr_number(
+        Fastlane::Helper::GitHubHelper.find_unique_open_pr_number(
           repo_name: repo_name,
           branch: branch,
           base_branch: base_branch,
