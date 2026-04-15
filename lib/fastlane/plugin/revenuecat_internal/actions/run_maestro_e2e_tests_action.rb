@@ -41,6 +41,11 @@ module Fastlane
         success
       end
 
+      # Appends the environment name to each <testcase> name attribute in the JUnit XML report.
+      # This is needed because purchases-ios runs Maestro tests against multiple backend
+      # environments (e.g. production, sandbox) in the same CI job. Without this, CircleCI
+      # merges identically-named test cases from different environments into a single entry,
+      # making it impossible to tell which environment a failure came from.
       def self.postprocess_junit_report(output_dir, environment_name)
         junit_file = "#{output_dir}/report.xml"
         return unless File.exist?(junit_file)
