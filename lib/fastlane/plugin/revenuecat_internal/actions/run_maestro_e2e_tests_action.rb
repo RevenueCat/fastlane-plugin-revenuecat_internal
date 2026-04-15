@@ -65,7 +65,7 @@ module Fastlane
       end
 
       def self.authors
-        ["Andrés Pallares"]
+        ["Antonio Pallares"]
       end
 
       def self.available_options
