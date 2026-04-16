@@ -7,8 +7,12 @@ module Fastlane
   module Actions
     class RunMaestroE2eTestsAction < Action
       def self.run(params)
-        flow_dir = params[:flow_dir]
-        output_dir = params[:output_dir]
+        # Fastlane's sh() resolves relative paths from the fastlane/ directory,
+        # but Ruby File operations resolve from the process cwd (project root).
+        # Resolve all paths relative to the fastlane/ directory for consistency.
+        fastlane_dir = FastlaneCore::FastlaneFolder.path
+        flow_dir = File.expand_path(params[:flow_dir], fastlane_dir)
+        output_dir = File.expand_path(params[:output_dir], fastlane_dir)
         max_retries = params[:max_retries]
         environment_name = params[:environment_name]
 

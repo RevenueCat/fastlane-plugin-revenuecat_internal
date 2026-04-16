@@ -1,9 +1,11 @@
 describe Fastlane::Actions::RunMaestroE2eTestsAction do
   describe '#run' do
+    let(:fastlane_dir) { '/project/fastlane/' }
     let(:flow_dir) { '/tmp/maestro_test_flows' }
     let(:output_dir) { '/tmp/maestro_test_output' }
 
     before do
+      allow(FastlaneCore::FastlaneFolder).to receive(:path).and_return(fastlane_dir)
       allow(File).to receive(:directory?).and_call_original
       allow(File).to receive(:directory?).with(flow_dir).and_return(true)
       allow(FileUtils).to receive(:mkdir_p)
@@ -21,6 +23,23 @@ describe Fastlane::Actions::RunMaestroE2eTestsAction do
           output_dir: output_dir,
           max_retries: 5
         )
+      end
+    end
+
+    context 'when using relative paths' do
+      it 'resolves paths relative to the fastlane directory' do
+        resolved_flow = File.expand_path("../e2e-tests/maestro/", fastlane_dir)
+        allow(File).to receive(:directory?).with(resolved_flow).and_return(true)
+        allow(Fastlane::Actions).to receive(:sh)
+
+        Fastlane::Actions::RunMaestroE2eTestsAction.run(
+          flow_dir: '../e2e-tests/maestro/',
+          output_dir: 'test_output',
+          max_retries: 5
+        )
+
+        resolved_output = File.expand_path("test_output", fastlane_dir)
+        expect(FileUtils).to have_received(:mkdir_p).with(resolved_output)
       end
     end
 
