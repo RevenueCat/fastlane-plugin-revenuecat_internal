@@ -33,7 +33,7 @@ FastlaneCore::UI.define_singleton_method(:respond_to_missing?) do |method_name, 
 end
 
 RSpec.configure do |config|
-  config.mock_with :rspec do |mocks|
+  config.mock_with(:rspec) do |mocks|
     mocks.verify_partial_doubles = true
   end
 end
