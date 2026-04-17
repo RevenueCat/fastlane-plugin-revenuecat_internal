@@ -9,16 +9,18 @@ module Fastlane
         github_token = params[:github_token]
         repo_name = params[:repo_name]
         branch = params[:branch] || Actions.sh("git rev-parse --abbrev-ref HEAD").strip
-        base_branch = params[:base_branch] || 'main'
+        base_branch = params[:base_branch]
 
         full_repo_name = "RevenueCat/#{repo_name}"
 
-        pr_number = Helper::GitHubHelper.find_open_pr_number(
+        find_pr_params = {
           repo_name: full_repo_name,
           branch: branch,
-          base_branch: base_branch,
           api_token: github_token
-        )
+        }
+        find_pr_params[:base_branch] = base_branch if base_branch
+
+        pr_number = Helper::GitHubHelper.find_unique_open_pr_number(**find_pr_params)
 
         Helper::GitHubHelper.update_pr_branch(
           repo_name: full_repo_name,
@@ -61,9 +63,9 @@ module Fastlane
                                        optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :base_branch,
-                                       description: "Base branch the PR targets. Defaults to 'main'",
+                                       description: "Base branch the PR targets. When omitted the action auto-detects the PR, " \
+                                                    "failing if multiple open PRs exist for the same head branch",
                                        optional: true,
-                                       default_value: "main",
                                        type: String)
         ]
       end
