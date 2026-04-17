@@ -462,6 +462,28 @@ module Fastlane
         UI.success("PR ##{pr_number} merged successfully")
       end
 
+      # Updates a pull request branch by merging the base branch into the head branch.
+      # This is equivalent to clicking "Update branch" in the GitHub UI.
+      #
+      # @param repo_name [String] Full repo name with owner, e.g. "RevenueCat/purchases-ios"
+      # @param pr_number [Integer] Pull request number
+      # @param api_token [String] GitHub API token with repo permissions
+      def self.update_pr_branch(repo_name:, pr_number:, api_token:)
+        UI.message("Updating branch for PR ##{pr_number}...")
+        github_api_call_with_retry(
+          server_url: "https://api.github.com",
+          http_method: 'PUT',
+          path: "/repos/#{repo_name}/pulls/#{pr_number}/update-branch",
+          body: {},
+          api_token: api_token,
+          error_handlers: {
+            422 => proc { |r| UI.user_error!("Cannot update PR ##{pr_number} branch (may have conflicts or unexpected HEAD SHA): #{r[:body]}") },
+            '*' => proc { |r| UI.user_error!("Failed to update branch for PR ##{pr_number}: GitHub responded with #{r[:status]}: #{r[:body]}") }
+          }
+        )
+        UI.success("Branch updated for PR ##{pr_number}")
+      end
+
       # Sends a Slack notification when auto-merge fails
       # @param repo_name [String] Repository name (without owner)
       # @param pr_title [String] Pull request title
