@@ -7,7 +7,7 @@ describe Fastlane::Actions::UpdatePrBranchAction do
 
   describe '#run' do
     it 'finds the PR without base_branch and updates the branch' do
-      expect(Fastlane::Helper::GitHubHelper).to receive(:find_open_pr_number)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:find_unique_open_pr_number)
         .with(
           repo_name: full_repo_name,
           branch: branch,
