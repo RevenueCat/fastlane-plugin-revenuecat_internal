@@ -487,26 +487,26 @@ module Fastlane
         native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
         if include_purchases_js
           previous_phc_version = extract_semver_from_versions_file(versions_latest_release[PHC_VERSION_COLUMN])
-          native_dependency_changelogs += js_releases_links(github_token, phc_version, previous_phc_version)
+          native_dependency_changelogs += js_releases_links(github_token, previous_phc_version, phc_version)
         end
         native_dependency_changelogs.join("\n")
       end
 
-      private_class_method def self.js_releases_links(github_token, phc_version, previous_phc_version)
+      private_class_method def self.js_releases_links(github_token, previous_phc_version, new_phc_version)
         unless Gem::Version.correct?(previous_phc_version)
-          UI.error("Malformed previous PHC version #{previous_phc_version} for version #{phc_version} of purchases-hybrid-common. Skipping purchases-js changelog.")
+          UI.error("Malformed previous PHC version #{previous_phc_version} for version #{new_phc_version} of purchases-hybrid-common. Skipping purchases-js changelog.")
           return []
         end
 
         previous_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(previous_phc_version, github_token)
         UI.message("Obtained purchases-js version #{previous_js_version} for previous PHC version #{previous_phc_version}")
-        new_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(phc_version, github_token)
-        UI.message("Obtained purchases-js version #{new_js_version} for PHC version #{phc_version}")
+        new_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(new_phc_version, github_token)
+        UI.message("Obtained purchases-js version #{new_js_version} for PHC version #{new_phc_version}")
 
         js_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_js_version, new_js_version, REPO_NAME_JS)
         platform_changelogs(js_releases, 'Web')
       rescue StandardError => e
-        UI.error("Could not resolve purchases-js versions for PHC #{previous_phc_version} -> #{phc_version}: #{e.message}. Skipping purchases-js changelog.")
+        UI.error("Could not resolve purchases-js versions for PHC #{previous_phc_version} -> #{new_phc_version}: #{e.message}. Skipping purchases-js changelog.")
         []
       end
 
