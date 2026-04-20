@@ -6,11 +6,15 @@ require_relative '../helper/update_hybrids_versions_file_helper'
 module Fastlane
   module Actions
     class UpdateHybridsVersionsFileAction < Action
+      WEB_SDK_COLUMN_HEADER = 'Web SDK version'.freeze
+
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         versions_file_path = params[:versions_file_path]
         new_sdk_version = params[:new_sdk_version]
         hybrid_common_version = params[:hybrid_common_version]
         github_token = params[:github_token]
+        include_purchases_js = params[:include_purchases_js]
 
         UI.user_error!("VERSIONS.md file not found") unless File.exist?(versions_file_path)
 
@@ -22,6 +26,11 @@ module Fastlane
 
         billing_client_version = Helper::UpdateHybridsVersionsFileHelper.get_android_billing_client_version(android_version, github_token)
         UI.message("Obtained android billing client version #{billing_client_version} for PHC version #{hybrid_common_version}")
+
+        if include_purchases_js
+          js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(hybrid_common_version, github_token)
+          UI.message("Obtained purchases-js version #{js_version} for PHC version #{hybrid_common_version}")
+        end
 
         File.open(versions_file_path, 'r+') do |file|
           lines = file.each_line.to_a
@@ -39,17 +48,53 @@ module Fastlane
             end
           end
 
-          new_line = [
+          # Insert the Web SDK column just before Play Billing when opting in,
+          # backfilling previous rows with a blank cell.
+          if include_purchases_js && !lines[0].include?(WEB_SDK_COLUMN_HEADER)
+            lines[0] = insert_cell_before_last_cell(lines[0], " #{WEB_SDK_COLUMN_HEADER} ")
+            lines[1] = insert_cell_before_last_cell(lines[1], '-----------------')
+            lines.each_with_index do |line, index|
+              next if index < 2
+
+              lines[index] = insert_cell_before_last_cell(line, ' ')
+            end
+          end
+
+          cells = [
             new_sdk_version,
             "[#{ios_version}](https://github.com/RevenueCat/purchases-ios/releases/tag/#{ios_version})",
             "[#{android_version}](https://github.com/RevenueCat/purchases-android/releases/tag/#{android_version})",
-            "[#{hybrid_common_version}](https://github.com/RevenueCat/purchases-hybrid-common/releases/tag/#{hybrid_common_version})",
-            "[#{billing_client_version}](https://developer.android.com/google/play/billing/release-notes)"
-          ].join(' | ')
+            "[#{hybrid_common_version}](https://github.com/RevenueCat/purchases-hybrid-common/releases/tag/#{hybrid_common_version})"
+          ]
+          if lines[0].include?(WEB_SDK_COLUMN_HEADER)
+            cells << (include_purchases_js ? "[#{js_version}](https://github.com/RevenueCat/purchases-js/releases/tag/#{js_version})" : '')
+          end
+          cells << "[#{billing_client_version}](https://developer.android.com/google/play/billing/release-notes)"
+
+          new_line = cells.join(' | ')
           lines.insert(2, "| #{new_line} |\n")
           file.rewind
           file.write(lines.join)
         end
+      end
+      # rubocop:enable Metrics/PerceivedComplexity
+
+      # Inserts a new cell into a pipe-delimited markdown row right before the
+      # last data cell. Leaves any trailing newline intact. Passes the line
+      # through unchanged if it isn't a proper pipe-delimited row (e.g. a
+      # markdown separator without leading/trailing pipes).
+      private_class_method def self.insert_cell_before_last_cell(line, cell_content)
+        had_newline = line.end_with?("\n")
+        # Limit -1 preserves the trailing empty string from a closing `|`, so
+        # a proper row "| a | b | c |" splits into ["", " a ", " b ", " c ", ""].
+        parts = line.chomp.split('|', -1)
+        # Need at least [leading_empty, last_data_cell, trailing_empty] to have a
+        # cell to insert before.
+        return line if parts.length < 3
+
+        parts.insert(parts.length - 2, cell_content)
+        result = parts.join('|')
+        had_newline ? "#{result}\n" : result
       end
 
       def self.description
@@ -79,7 +124,13 @@ module Fastlane
                                        description: "GitHub token for API authentication",
                                        optional: true,
                                        type: String,
-                                       sensitive: true)
+                                       sensitive: true),
+          FastlaneCore::ConfigItem.new(key: :include_purchases_js,
+                                       description: "Whether to include a purchases-js (Web SDK) version column (for hybrids with web support, e.g. Flutter, React Native); " \
+                                                    "adds a 'Web SDK version' column if missing and backfills previous rows with a blank cell",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 
