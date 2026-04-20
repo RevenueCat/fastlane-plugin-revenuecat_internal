@@ -1,0 +1,16 @@
+{
+    "name": "package.json",
+    "path": "purchases-js-hybrid-mappings/package.json",
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "size": 512,
+    "url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/purchases-js-hybrid-mappings/package.json?ref=18.0.0",
+    "html_url": "https://github.com/RevenueCat/purchases-hybrid-common/blob/18.0.0/purchases-js-hybrid-mappings/package.json",
+    "git_url": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/git/blobs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "download_url": "https://raw.githubusercontent.com/RevenueCat/purchases-hybrid-common/18.0.0/purchases-js-hybrid-mappings/package.json",
+    "type": "file",
+    "content": "ewogICJuYW1lIjogIkByZXZlbnVlY2F0L3B1cmNoYXNlcy1qcy1oeWJyaWQtbWFwcGluZ3MiLAogICJ2ZXJzaW9uIjogIjE4LjAuMCIsCiAgImRlc2NyaXB0aW9uIjogIlJldmVudWVDYXQncyBKYXZhU2NyaXB0IGh5YnJpZCBtYXBwaW5ncyBmb3IgcHVyY2hhc2VzLWpzIiwKICAiZGVwZW5kZW5jaWVzIjogewogICAgIkByZXZlbnVlY2F0L3B1cmNoYXNlcy1qcyI6ICIxLjM0LjAiCiAgfQp9Cg==\n",
+    "encoding": "base64",
+    "_links": {
+        "self": "https://api.github.com/repos/RevenueCat/purchases-hybrid-common/contents/purchases-js-hybrid-mappings/package.json?ref=18.0.0"
+    }
+}
