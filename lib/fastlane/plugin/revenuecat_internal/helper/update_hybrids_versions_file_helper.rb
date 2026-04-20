@@ -1,4 +1,5 @@
 require 'base64'
+require 'json'
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
@@ -24,6 +25,16 @@ module Fastlane
         matches = contents.match("s.dependency 'RevenueCat', '(.*)'").captures
         UI.user_error!("Could not find ios version in #{repo_name} in file '#{path}'") if matches.length != 1
         matches[0]
+      end
+
+      def self.get_js_version_for_hybrid_common_version(hybrid_common_version, github_token)
+        path = 'purchases-js-hybrid-mappings/package.json'
+        repo_name = 'purchases-hybrid-common'
+        contents = get_contents_file_github(path, repo_name, hybrid_common_version, github_token)
+        package_json = JSON.parse(contents)
+        version = package_json.dig('dependencies', '@revenuecat/purchases-js')
+        UI.user_error!("Could not find purchases-js version in #{repo_name} in file '#{path}'") if version.nil? || version.empty?
+        version
       end
 
       def self.get_android_billing_client_version(android_version, github_token)

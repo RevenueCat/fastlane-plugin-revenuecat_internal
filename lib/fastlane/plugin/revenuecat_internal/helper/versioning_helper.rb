@@ -53,7 +53,7 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '')
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -136,7 +136,7 @@ module Fastlane
         end
 
         if last_phc_dep_line && hybrid_common_version && versions_file_path
-          last_phc_dep_line << native_releases_links(github_token, hybrid_common_version, versions_file_path)
+          last_phc_dep_line << native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
         end
 
         build_changelog_sections(changelog_sections)
@@ -449,7 +449,7 @@ module Fastlane
         end
       end
 
-      private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path)
+      private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path, include_purchases_js: false)
         latest_release_row = File.readlines(versions_file_path)[2]
         if latest_release_row.nil?
           UI.error("Can't detect iOS and Android version for version #{phc_version} of purchases-hybrid-common. Empty VERSIONS.md")
@@ -485,7 +485,25 @@ module Fastlane
         native_dependency_changelogs = [""]
         native_dependency_changelogs += platform_changelogs(android_releases, 'Android')
         native_dependency_changelogs += platform_changelogs(ios_releases, 'iOS')
+        if include_purchases_js
+          previous_phc_version = extract_semver_from_versions_file(versions_latest_release[PHC_VERSION_COLUMN])
+          native_dependency_changelogs += js_releases_links(github_token, previous_phc_version, phc_version)
+        end
         native_dependency_changelogs.join("\n")
+      end
+
+      private_class_method def self.js_releases_links(github_token, previous_phc_version, new_phc_version)
+        unless Gem::Version.correct?(previous_phc_version)
+          UI.user_error!("Malformed previous PHC version #{previous_phc_version} for version #{new_phc_version} of purchases-hybrid-common.")
+        end
+
+        previous_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(previous_phc_version, github_token)
+        UI.message("Obtained purchases-js version #{previous_js_version} for previous PHC version #{previous_phc_version}")
+        new_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(new_phc_version, github_token)
+        UI.message("Obtained purchases-js version #{new_js_version} for PHC version #{new_phc_version}")
+
+        js_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_js_version, new_js_version, REPO_NAME_JS)
+        platform_changelogs(js_releases, 'Web')
       end
 
       private_class_method def self.extract_semver_from_versions_file(version_string)

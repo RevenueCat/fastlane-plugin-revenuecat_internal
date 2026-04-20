@@ -381,6 +381,118 @@ describe Fastlane::Helper::VersioningHelper do
                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.2 (#550) via RevenueCat Git Bot (@RCGitBot)")
     end
 
+    it 'includes purchases-js release links when include_purchases_js is true' do
+      stub_native_and_js_releases(
+        js_releases: [
+          { 'name' => '1.34.0', 'html_url' => 'https://github.com/RevenueCat/purchases-js/releases/tag/1.34.0' }
+        ]
+      )
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
+        .with('4.5.2', 'mock-github-token').and_return('1.33.0').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('1.34.0').once
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        hybrid_common_version,
+        versions_path,
+        nil,
+        include_purchases_js: true
+      )
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 📦 Dependency Updates\n" \
+                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
+                              "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
+                              "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
+                              "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)\n" \
+                              "\s\s* [Web 1.34.0](https://github.com/RevenueCat/purchases-js/releases/tag/1.34.0)")
+    end
+
+    it 'does not fetch purchases-js data when include_purchases_js is false (default)' do
+      mock_native_releases
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).not_to receive(:get_js_version_for_hybrid_common_version)
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        hybrid_common_version,
+        versions_path
+      )
+      expect(changelog).not_to include('Web ')
+    end
+
+    it 'propagates the error when the purchases-js version lookup fails (e.g. old PHC without the hybrid mappings file)' do
+      stub_native_and_js_releases(js_releases: [])
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
+        .with('4.5.2', 'mock-github-token').and_raise(StandardError.new('404 Not Found'))
+      expect do
+        Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          hybrid_common_version,
+          versions_path,
+          nil,
+          include_purchases_js: true
+        )
+      end.to raise_exception(StandardError, '404 Not Found')
+    end
+
+    it 'raises a user error when the previous PHC version in VERSIONS.md is malformed and include_purchases_js is on' do
+      stub_native_and_js_releases(js_releases: [])
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(File).to receive(:readlines).with(versions_path)
+                                         .and_return(["| Version | iOS version | Android version | Common files version |\n",
+                                                      "|---------|-------------|-----------------|----------------------|\n",
+                                                      "| 4.5.3   | 4.15.2      | 5.6.5           | not-a-version        |"])
+      expect do
+        Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          hybrid_common_version,
+          versions_path,
+          nil,
+          include_purchases_js: true
+        )
+      end.to raise_exception(FastlaneCore::Interface::FastlaneError, /Malformed previous PHC version not-a-version/)
+    end
+
+    it 'does not append purchases-js links when the JS version did not change' do
+      stub_native_and_js_releases(js_releases: [])
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
+        .with('4.5.2', 'mock-github-token').and_return('1.34.0').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('1.34.0').once
+      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        hybrid_common_version,
+        versions_path,
+        nil,
+        include_purchases_js: true
+      )
+      expect(changelog).not_to include('Web ')
+      expect(changelog).to include('[Android 5.6.6]')
+      expect(changelog).to include('[iOS 4.15.4]')
+    end
+
     it 'sleeps between getting commits info if passing rate limit sleep' do
       setup_commit_search_stubs(hashes_to_responses)
       expect_any_instance_of(Object).to receive(:sleep).with(3).exactly(5).times
@@ -738,6 +850,30 @@ describe Fastlane::Helper::VersioningHelper do
               error_handlers: anything,
               api_token: 'mock-github-token')
         .and_return(purchases_ios_releases)
+    end
+
+    # Stubs everything `native_releases_links` needs by directly mocking the
+    # release-fetch layer and the native/JS PHC version lookups. Lets tests
+    # control each platform's releases independently of the big JSON fixtures.
+    def stub_native_and_js_releases(js_releases:)
+      allow(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6')
+      allow(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4')
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_releases_between_tags)
+        .with('mock-github-token', '5.6.5', '5.6.6', 'purchases-android')
+        .and_return([
+                      { 'name' => '5.6.6', 'html_url' => 'https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6' }
+                    ])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_releases_between_tags)
+        .with('mock-github-token', '4.15.2', '4.15.4', 'purchases-ios')
+        .and_return([
+                      { 'name' => '4.15.4', 'html_url' => 'https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4' },
+                      { 'name' => '4.15.3', 'html_url' => 'https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3' }
+                    ])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_releases_between_tags)
+        .with('mock-github-token', anything, anything, 'purchases-js')
+        .and_return(js_releases)
     end
   end
 
