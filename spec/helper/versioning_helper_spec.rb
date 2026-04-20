@@ -431,29 +431,44 @@ describe Fastlane::Helper::VersioningHelper do
       expect(changelog).not_to include('Web ')
     end
 
-    it 'skips purchases-js section gracefully when the previous PHC lacks the hybrid mappings file' do
+    it 'propagates the error when the purchases-js version lookup fails (e.g. old PHC without the hybrid mappings file)' do
       stub_native_and_js_releases(js_releases: [])
       setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
       expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_js_version_for_hybrid_common_version)
         .with('4.5.2', 'mock-github-token').and_raise(StandardError.new('404 Not Found'))
-      expect(FastlaneCore::UI).to receive(:error)
-        .with(/Could not resolve purchases-js versions for PHC 4.5.2 -> 4.5.3.*404 Not Found.*Skipping purchases-js changelog\./).once
-      changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
-        'mock-repo-name',
-        'mock-github-token',
-        0,
-        false,
-        hybrid_common_version,
-        versions_path,
-        nil,
-        include_purchases_js: true
-      )
-      expect(changelog).to eq("## RevenueCat SDK\n" \
-                              "### 📦 Dependency Updates\n" \
-                              "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
-                              "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
-                              "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
-                              "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)")
+      expect do
+        Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          hybrid_common_version,
+          versions_path,
+          nil,
+          include_purchases_js: true
+        )
+      end.to raise_exception(StandardError, '404 Not Found')
+    end
+
+    it 'raises a user error when the previous PHC version in VERSIONS.md is malformed and include_purchases_js is on' do
+      stub_native_and_js_releases(js_releases: [])
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(File).to receive(:readlines).with(versions_path)
+                                         .and_return(["| Version | iOS version | Android version | Common files version |\n",
+                                                      "|---------|-------------|-----------------|----------------------|\n",
+                                                      "| 4.5.3   | 4.15.2      | 5.6.5           | not-a-version        |"])
+      expect do
+        Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name',
+          'mock-github-token',
+          0,
+          false,
+          hybrid_common_version,
+          versions_path,
+          nil,
+          include_purchases_js: true
+        )
+      end.to raise_exception(FastlaneCore::Interface::FastlaneError, /Malformed previous PHC version not-a-version/)
     end
 
     it 'does not append purchases-js links when the JS version did not change' do

@@ -494,8 +494,7 @@ module Fastlane
 
       private_class_method def self.js_releases_links(github_token, previous_phc_version, new_phc_version)
         unless Gem::Version.correct?(previous_phc_version)
-          UI.error("Malformed previous PHC version #{previous_phc_version} for version #{new_phc_version} of purchases-hybrid-common. Skipping purchases-js changelog.")
-          return []
+          UI.user_error!("Malformed previous PHC version #{previous_phc_version} for version #{new_phc_version} of purchases-hybrid-common.")
         end
 
         previous_js_version = Helper::UpdateHybridsVersionsFileHelper.get_js_version_for_hybrid_common_version(previous_phc_version, github_token)
@@ -505,9 +504,6 @@ module Fastlane
 
         js_releases = Helper::GitHubHelper.get_releases_between_tags(github_token, previous_js_version, new_js_version, REPO_NAME_JS)
         platform_changelogs(js_releases, 'Web')
-      rescue StandardError => e
-        UI.error("Could not resolve purchases-js versions for PHC #{previous_phc_version} -> #{new_phc_version}: #{e.message}. Skipping purchases-js changelog.")
-        []
       end
 
       private_class_method def self.extract_semver_from_versions_file(version_string)
