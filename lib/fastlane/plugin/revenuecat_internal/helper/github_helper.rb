@@ -36,7 +36,7 @@ module Fastlane
         end
       end
 
-      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: nil)
         if github_token.nil? || github_token.empty?
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
           return []
@@ -47,7 +47,7 @@ module Fastlane
           sleep(rate_limit_sleep)
         end
 
-        # Get pull request associate with commit message
+        # Get pull request associated with commit via search API
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                              path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
                                              http_method: 'GET',
@@ -55,7 +55,40 @@ module Fastlane
                                              api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
-        return items
+        return items unless items.empty? && commit_message
+
+        # Fallback: extract PR number from commit message and fetch directly.
+        # Squash-merge commits contain the PR number as "(#1234)" in the first line.
+        # External contributor PRs have two: "...original (#111) by @user (#222)" —
+        # the last one is the merged PR.
+        pr_number = extract_pr_number_from_commit_message(commit_message)
+        return [] unless pr_number
+
+        UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
+        fetch_pr_by_number(pr_number, github_token, repo_name)
+      end
+
+      def self.extract_pr_number_from_commit_message(commit_message)
+        return nil if commit_message.nil?
+
+        first_line = commit_message.split("\n").first
+        matches = first_line&.scan(/\(#(\d+)\)/)
+        return nil if matches.nil? || matches.empty?
+
+        matches.last.first.to_i
+      end
+
+      def self.fetch_pr_by_number(pr_number, github_token, repo_name)
+        pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                             path: "/repos/RevenueCat/#{repo_name}/pulls/#{pr_number}",
+                                             http_method: 'GET',
+                                             body: {},
+                                             api_token: github_token)
+        pr = JSON.parse(pr_resp[:body])
+        [pr]
+      rescue StandardError => e
+        UI.important("Failed to fetch PR ##{pr_number} directly: #{e.message}")
+        []
       end
 
       def self.check_authentication_and_rate_limits(github_token)

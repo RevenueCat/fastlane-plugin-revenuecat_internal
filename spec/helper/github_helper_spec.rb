@@ -55,6 +55,131 @@ describe Fastlane::Helper::GitHubHelper do
       )
       expect(items).not_to be_nil
     end
+
+    context 'when search returns empty and commit_message is provided' do
+      let(:empty_search_response) { { body: '{"items": []}' } }
+      let(:pr_response) do
+        { body: '{"number": 6650, "title": "Fall back to getCustomerInfo", "user": {"login": "rickvdl"}, "labels": [{"name": "pr:fix"}]}' }
+      end
+
+      it 'falls back to direct PR lookup from commit message' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
+          .and_return(pr_response)
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Fall back to getCustomerInfo (#6650)\n\n* individual commit 1\n* individual commit 2"
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(6650)
+        expect(items.first['title']).to eq('Fall back to getCustomerInfo')
+      end
+
+      it 'extracts last PR number for external contributor PRs' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/3368"))
+          .and_return({ body: '{"number": 3368, "title": "Guard showInAppMessages", "user": {"login": "MonikaMateska"}, "labels": [{"name": "pr:fix"}]}' })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "[EXTERNAL] fix(google): guard showInAppMessages (#3367) by @matteinn (#3368)"
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(3368)
+      end
+
+      it 'returns empty when commit message has no PR number' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Some commit without a PR reference"
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'returns empty when direct PR fetch fails' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/9999"))
+          .and_raise(StandardError.new("404 Not Found"))
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Some feature (#9999)"
+        )
+
+        expect(items).to eq([])
+      end
+    end
+
+    context 'when search returns empty and no commit_message is provided' do
+      let(:empty_search_response) { { body: '{"items": []}' } }
+
+      it 'returns empty without attempting fallback' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /\/pulls\/\d+/))
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items).to eq([])
+      end
+    end
+  end
+
+  describe '.extract_pr_number_from_commit_message' do
+    it 'extracts PR number from standard squash merge message' do
+      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+        "Add some feature (#1234)\n\n* commit 1\n* commit 2"
+      )
+      expect(result).to eq(1234)
+    end
+
+    it 'extracts last PR number from external contributor message' do
+      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+        "[EXTERNAL] fix: guard something (#3367) by @matteinn (#3368)"
+      )
+      expect(result).to eq(3368)
+    end
+
+    it 'returns nil when no PR number present' do
+      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+        "Some commit without PR reference"
+      )
+      expect(result).to be_nil
+    end
+
+    it 'only considers the first line' do
+      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+        "Main title (#100)\n\nBody mentions (#999)"
+      )
+      expect(result).to eq(100)
+    end
+
+    it 'returns nil for nil input' do
+      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(nil)
+      expect(result).to be_nil
+    end
   end
 
   describe '.get_commits_since_old_version' do

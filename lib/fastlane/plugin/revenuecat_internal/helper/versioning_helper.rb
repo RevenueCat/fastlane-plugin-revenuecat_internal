@@ -88,7 +88,8 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+          commit_message = commit["commit"]["message"]
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
 
           case items.size
           when 1
@@ -416,11 +417,10 @@ module Fastlane
           break if type_of_bump == :major
 
           sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+          commit_message = commit["commit"]["message"]
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
 
           if items.size == 0
-            # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump
-            # if there are no more commits, we'll skip the version bump
             UI.important("There is no pull request associated with #{sha}")
             next
           elsif items.size > 1
