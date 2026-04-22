@@ -12,8 +12,9 @@ module Fastlane
         rate_limit_sleep = params[:github_rate_limit]
         include_prereleases = false
         current_version = params[:current_version]
+        fallback_pr_lookup = params[:fallback_pr_lookup]
 
-        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version)
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: fallback_pr_lookup)
       end
 
       def self.description
@@ -45,7 +46,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :current_version,
                                        description: "Current version of the SDK",
                                        optional: true,
-                                       type: String)
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :fallback_pr_lookup,
+                                       description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit message and fetching it directly via the REST API",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 

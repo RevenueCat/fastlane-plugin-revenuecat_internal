@@ -31,13 +31,13 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup)
 
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
@@ -53,7 +53,7 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -88,7 +88,7 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          commit_message = commit["commit"]["message"]
+          commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
 
           case items.size
@@ -409,7 +409,7 @@ module Fastlane
           .to_set
       end
 
-      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: false)
         base_branch = Actions.git_branch
 
         type_of_bump = :skip
@@ -417,7 +417,7 @@ module Fastlane
           break if type_of_bump == :major
 
           sha = commit["sha"]
-          commit_message = commit["commit"]["message"]
+          commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
 
           if items.size == 0
