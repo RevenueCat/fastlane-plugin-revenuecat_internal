@@ -61,8 +61,17 @@ module Fastlane
         # Squash-merge commits contain the PR number as "(#1234)" in the first line.
         # External contributor PRs have two: "...original (#111) by @user (#222)" —
         # the last one is the merged PR.
+        #
+        # This fallback assumes squash-merge workflows. For rebase-and-merge, individual
+        # commits don't get "(#N)" appended, so the regex no-ops before reaching the
+        # REST call. For true merge commits, the merge commit does contain "(#N)" and
+        # its SHA matches merge_commit_sha, so the fallback works there too.
         pr_number = extract_pr_number_from_commit_message(commit_message)
         return [] unless pr_number
+
+        if rate_limit_sleep > 0
+          sleep(rate_limit_sleep)
+        end
 
         UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
         fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
@@ -96,6 +105,11 @@ module Fastlane
           return []
         end
 
+        # This check assumes squash merges where the commit on the base branch IS the
+        # merge_commit_sha. For rebase-and-merge this would reject every commit except
+        # the last one, but those commits won't have "(#N)" in their message so the
+        # regex already returns nil above. If a future repo uses a non-squash workflow
+        # and hits this path, this is the line to revisit.
         if expected_sha && pr["merge_commit_sha"] != expected_sha
           UI.important("PR ##{pr_number} merge SHA #{pr['merge_commit_sha']} does not match commit #{expected_sha}. Skipping.")
           return []
