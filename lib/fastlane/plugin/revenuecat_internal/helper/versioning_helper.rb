@@ -416,25 +416,30 @@ module Fastlane
         commits.each do |commit|
           break if type_of_bump == :major
 
-          sha = commit["sha"]
-          commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
+          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+          next if type_of_bump_for_commit.nil?
 
-          if items.size == 0
-            UI.important("There is no pull request associated with #{sha}")
-            next
-          elsif items.size > 1
-            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
-          end
-
-          item = items.first
-          commit_supported_labels = get_type_of_change_from_pr_info(item)
-          # Filter out pr:changelog_ignore as it shouldn't affect version determination
-          labels_for_version = commit_supported_labels.reject { |label| label == "pr:changelog_ignore" }.to_set
-          type_of_bump_for_commit = get_type_of_bump_from_types_of_change(labels_for_version)
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
         end
         type_of_bump
+      end
+
+      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+        sha = commit["sha"]
+        commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
+
+        if items.size == 0
+          UI.important("There is no pull request associated with #{sha}")
+          return nil
+        elsif items.size > 1
+          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
+        end
+
+        commit_supported_labels = get_type_of_change_from_pr_info(items.first)
+        # Filter out pr:changelog_ignore as it shouldn't affect version determination
+        labels_for_version = commit_supported_labels.reject { |label| label == "pr:changelog_ignore" }.to_set
+        get_type_of_bump_from_types_of_change(labels_for_version)
       end
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)

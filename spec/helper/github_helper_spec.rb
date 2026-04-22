@@ -73,7 +73,7 @@ describe Fastlane::Helper::GitHubHelper do
 
       it 'falls back to direct PR lookup from commit message' do
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
@@ -101,7 +101,7 @@ describe Fastlane::Helper::GitHubHelper do
         }
 
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/3368"))
@@ -118,7 +118,7 @@ describe Fastlane::Helper::GitHubHelper do
 
       it 'returns empty when commit message has no PR number' do
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
@@ -131,7 +131,7 @@ describe Fastlane::Helper::GitHubHelper do
 
       it 'returns empty when direct PR fetch fails' do
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/9999"))
@@ -148,7 +148,7 @@ describe Fastlane::Helper::GitHubHelper do
       it 'rejects PR that was never merged' do
         unmerged_pr = valid_pr_body.merge('merged_at' => nil)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
@@ -165,7 +165,7 @@ describe Fastlane::Helper::GitHubHelper do
       it 'rejects PR that targets a different base branch' do
         wrong_base_pr = valid_pr_body.merge('base' => { 'ref' => 'release/5.68.0' })
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
@@ -182,7 +182,7 @@ describe Fastlane::Helper::GitHubHelper do
       it 'rejects PR whose merge commit SHA does not match' do
         wrong_sha_pr = valid_pr_body.merge('merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef')
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
@@ -202,11 +202,11 @@ describe Fastlane::Helper::GitHubHelper do
 
       it 'returns empty without attempting fallback' do
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /search\/issues/))
+          .with(hash_including(path: %r{search/issues}))
           .and_return(empty_search_response)
 
         expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
-          .with(hash_including(path: /\/pulls\/\d+/))
+          .with(hash_including(path: %r{/pulls/\d+}))
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main'
