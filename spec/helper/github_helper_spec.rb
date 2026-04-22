@@ -58,9 +58,18 @@ describe Fastlane::Helper::GitHubHelper do
 
     context 'when search returns empty and commit_message is provided' do
       let(:empty_search_response) { { body: '{"items": []}' } }
-      let(:pr_response) do
-        { body: '{"number": 6650, "title": "Fall back to getCustomerInfo", "user": {"login": "rickvdl"}, "labels": [{"name": "pr:fix"}]}' }
+      let(:valid_pr_body) do
+        {
+          'number' => 6650,
+          'title' => 'Fall back to getCustomerInfo',
+          'user' => { 'login' => 'rickvdl' },
+          'labels' => [{ 'name' => 'pr:fix' }],
+          'merged_at' => '2026-04-22T08:12:37Z',
+          'merge_commit_sha' => hash,
+          'base' => { 'ref' => 'main' }
+        }
       end
+      let(:pr_response) { { body: valid_pr_body.to_json } }
 
       it 'falls back to direct PR lookup from commit message' do
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
@@ -81,12 +90,22 @@ describe Fastlane::Helper::GitHubHelper do
       end
 
       it 'extracts last PR number for external contributor PRs' do
+        external_pr_body = {
+          'number' => 3368,
+          'title' => 'Guard showInAppMessages',
+          'user' => { 'login' => 'MonikaMateska' },
+          'labels' => [{ 'name' => 'pr:fix' }],
+          'merged_at' => '2026-04-22T08:00:00Z',
+          'merge_commit_sha' => hash,
+          'base' => { 'ref' => 'main' }
+        }
+
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: /search\/issues/))
           .and_return(empty_search_response)
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/3368"))
-          .and_return({ body: '{"number": 3368, "title": "Guard showInAppMessages", "user": {"login": "MonikaMateska"}, "labels": [{"name": "pr:fix"}]}' })
+          .and_return({ body: external_pr_body.to_json })
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
@@ -121,6 +140,57 @@ describe Fastlane::Helper::GitHubHelper do
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
           commit_message: "Some feature (#9999)"
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'rejects PR that was never merged' do
+        unmerged_pr = valid_pr_body.merge('merged_at' => nil)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
+          .and_return({ body: unmerged_pr.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Some feature (#6650)"
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'rejects PR that targets a different base branch' do
+        wrong_base_pr = valid_pr_body.merge('base' => { 'ref' => 'release/5.68.0' })
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
+          .and_return({ body: wrong_base_pr.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Some feature (#6650)"
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'rejects PR whose merge commit SHA does not match' do
+        wrong_sha_pr = valid_pr_body.merge('merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef')
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: /search\/issues/))
+          .and_return(empty_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/pulls/6650"))
+          .and_return({ body: wrong_sha_pr.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main',
+          commit_message: "Some feature (#6650)"
         )
 
         expect(items).to eq([])

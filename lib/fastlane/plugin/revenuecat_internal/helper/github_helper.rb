@@ -65,7 +65,7 @@ module Fastlane
         return [] unless pr_number
 
         UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
-        fetch_pr_by_number(pr_number, github_token, repo_name)
+        fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
       end
 
       def self.extract_pr_number_from_commit_message(commit_message)
@@ -78,13 +78,29 @@ module Fastlane
         matches.last.first.to_i
       end
 
-      def self.fetch_pr_by_number(pr_number, github_token, repo_name)
+      def self.fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: nil, expected_sha: nil)
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                              path: "/repos/RevenueCat/#{repo_name}/pulls/#{pr_number}",
                                              http_method: 'GET',
                                              body: {},
                                              api_token: github_token)
         pr = JSON.parse(pr_resp[:body])
+
+        unless pr["merged_at"]
+          UI.important("PR ##{pr_number} was never merged, skipping.")
+          return []
+        end
+
+        if expected_base && pr.dig("base", "ref") != expected_base
+          UI.important("PR ##{pr_number} targets #{pr.dig('base', 'ref')}, not #{expected_base}. Skipping.")
+          return []
+        end
+
+        if expected_sha && pr["merge_commit_sha"] != expected_sha
+          UI.important("PR ##{pr_number} merge SHA #{pr['merge_commit_sha']} does not match commit #{expected_sha}. Skipping.")
+          return []
+        end
+
         [pr]
       rescue StandardError => e
         UI.important("Failed to fetch PR ##{pr_number} directly: #{e.message}")
