@@ -219,35 +219,39 @@ describe Fastlane::Helper::GitHubHelper do
 
   describe '.extract_pr_number_from_commit_message' do
     it 'extracts PR number from standard squash merge message' do
-      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+      result = Fastlane::Helper::GitHubHelper.send(
+        :extract_pr_number_from_commit_message,
         "Add some feature (#1234)\n\n* commit 1\n* commit 2"
       )
       expect(result).to eq(1234)
     end
 
     it 'extracts last PR number from external contributor message' do
-      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+      result = Fastlane::Helper::GitHubHelper.send(
+        :extract_pr_number_from_commit_message,
         "[EXTERNAL] fix: guard something (#3367) by @matteinn (#3368)"
       )
       expect(result).to eq(3368)
     end
 
     it 'returns nil when no PR number present' do
-      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+      result = Fastlane::Helper::GitHubHelper.send(
+        :extract_pr_number_from_commit_message,
         "Some commit without PR reference"
       )
       expect(result).to be_nil
     end
 
     it 'only considers the first line' do
-      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(
+      result = Fastlane::Helper::GitHubHelper.send(
+        :extract_pr_number_from_commit_message,
         "Main title (#100)\n\nBody mentions (#999)"
       )
       expect(result).to eq(100)
     end
 
     it 'returns nil for nil input' do
-      result = Fastlane::Helper::GitHubHelper.extract_pr_number_from_commit_message(nil)
+      result = Fastlane::Helper::GitHubHelper.send(:extract_pr_number_from_commit_message, nil)
       expect(result).to be_nil
     end
   end

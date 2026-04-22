@@ -48,7 +48,7 @@ module Fastlane
                                        optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :fallback_pr_lookup,
-                                       description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit message and fetching it directly via the REST API",
+                                       description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit subject '(#N)' pattern and fetching it directly via the REST API. Assumes squash-merge workflows — a no-op on rebase-and-merge or true-merge workflows whose commit subjects don't include '(#N)'",
                                        optional: true,
                                        is_string: false,
                                        default_value: false)

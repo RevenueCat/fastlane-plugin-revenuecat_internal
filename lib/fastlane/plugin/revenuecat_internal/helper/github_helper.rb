@@ -77,7 +77,7 @@ module Fastlane
         fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
       end
 
-      def self.extract_pr_number_from_commit_message(commit_message)
+      private_class_method def self.extract_pr_number_from_commit_message(commit_message)
         return nil if commit_message.nil?
 
         first_line = commit_message.split("\n").first
@@ -87,7 +87,7 @@ module Fastlane
         matches.last.first.to_i
       end
 
-      def self.fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: nil, expected_sha: nil)
+      private_class_method def self.fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: nil, expected_sha: nil)
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                              path: "/repos/RevenueCat/#{repo_name}/pulls/#{pr_number}",
                                              http_method: 'GET',
