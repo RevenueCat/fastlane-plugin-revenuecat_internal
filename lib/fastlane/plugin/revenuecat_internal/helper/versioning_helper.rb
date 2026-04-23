@@ -88,8 +88,8 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
+          fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
 
           case items.size
           when 1
@@ -426,8 +426,8 @@ module Fastlane
 
       private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
         sha = commit["sha"]
-        commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
-        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message: commit_message)
+        fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
 
         if items.size == 0
           UI.important("There is no pull request associated with #{sha}")

@@ -56,7 +56,7 @@ describe Fastlane::Helper::GitHubHelper do
       expect(items).not_to be_nil
     end
 
-    context 'when search returns empty and commit_message is provided' do
+    context 'when search returns empty and fallback_commit_message is provided' do
       let(:empty_search_response) { { body: '{"items": []}' } }
       let(:valid_pr_body) do
         {
@@ -81,7 +81,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Fall back to getCustomerInfo (#6650)\n\n* individual commit 1\n* individual commit 2"
+          fallback_commit_message: "Fall back to getCustomerInfo (#6650)\n\n* individual commit 1\n* individual commit 2"
         )
 
         expect(items.length).to eq(1)
@@ -109,7 +109,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "[EXTERNAL] fix(google): guard showInAppMessages (#3367) by @matteinn (#3368)"
+          fallback_commit_message: "[EXTERNAL] fix(google): guard showInAppMessages (#3367) by @matteinn (#3368)"
         )
 
         expect(items.length).to eq(1)
@@ -123,7 +123,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Some commit without a PR reference"
+          fallback_commit_message: "Some commit without a PR reference"
         )
 
         expect(items).to eq([])
@@ -139,7 +139,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Some feature (#9999)"
+          fallback_commit_message: "Some feature (#9999)"
         )
 
         expect(items).to eq([])
@@ -156,7 +156,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Some feature (#6650)"
+          fallback_commit_message: "Some feature (#6650)"
         )
 
         expect(items).to eq([])
@@ -173,7 +173,7 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Some feature (#6650)"
+          fallback_commit_message: "Some feature (#6650)"
         )
 
         expect(items).to eq([])
@@ -190,14 +190,14 @@ describe Fastlane::Helper::GitHubHelper do
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main',
-          commit_message: "Some feature (#6650)"
+          fallback_commit_message: "Some feature (#6650)"
         )
 
         expect(items).to eq([])
       end
     end
 
-    context 'when search returns empty and no commit_message is provided' do
+    context 'when search returns empty and no fallback_commit_message is provided' do
       let(:empty_search_response) { { body: '{"items": []}' } }
 
       it 'returns empty without attempting fallback' do
