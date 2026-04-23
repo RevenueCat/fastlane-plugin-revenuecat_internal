@@ -36,7 +36,11 @@ module Fastlane
         end
       end
 
-      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+      # When +fallback_commit_message+ is nil, the search API result is returned as-is.
+      # When it is a non-nil string, and the search API returns no items, the helper
+      # attempts a fallback lookup by extracting the PR number from the commit message
+      # and fetching the PR directly via the REST API. Pass nil to disable the fallback.
+      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil)
         if github_token.nil? || github_token.empty?
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
           return []
@@ -47,7 +51,7 @@ module Fastlane
           sleep(rate_limit_sleep)
         end
 
-        # Get pull request associate with commit message
+        # Get pull request associated with commit via search API
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                              path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
                                              http_method: 'GET',
@@ -55,7 +59,70 @@ module Fastlane
                                              api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
-        return items
+        return items unless items.empty? && fallback_commit_message
+
+        # Fallback: extract PR number from commit message and fetch directly.
+        # Squash-merge commits contain the PR number as "(#1234)" in the first line.
+        # External contributor PRs have two: "...original (#111) by @user (#222)" —
+        # the last one is the merged PR.
+        #
+        # This fallback assumes squash-merge workflows. For rebase-and-merge, individual
+        # commits don't get "(#N)" appended, so the regex no-ops before reaching the
+        # REST call. For true merge commits, the merge commit does contain "(#N)" and
+        # its SHA matches merge_commit_sha, so the fallback works there too.
+        pr_number = extract_pr_number_from_commit_message(fallback_commit_message)
+        return [] unless pr_number
+
+        if rate_limit_sleep > 0
+          sleep(rate_limit_sleep)
+        end
+
+        UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
+        fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
+      end
+
+      private_class_method def self.extract_pr_number_from_commit_message(commit_message)
+        return nil if commit_message.nil?
+
+        first_line = commit_message.split("\n").first
+        matches = first_line&.scan(/\(#(\d+)\)/)
+        return nil if matches.nil? || matches.empty?
+
+        matches.last.first.to_i
+      end
+
+      private_class_method def self.fetch_pr_by_number(pr_number, github_token, repo_name, expected_base:, expected_sha:)
+        pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                             path: "/repos/RevenueCat/#{repo_name}/pulls/#{pr_number}",
+                                             http_method: 'GET',
+                                             body: {},
+                                             api_token: github_token)
+        pr = JSON.parse(pr_resp[:body])
+
+        unless pr["merged_at"]
+          UI.important("PR ##{pr_number} was never merged, skipping.")
+          return []
+        end
+
+        if pr.dig("base", "ref") != expected_base
+          UI.important("PR ##{pr_number} targets #{pr.dig('base', 'ref')}, not #{expected_base}. Skipping.")
+          return []
+        end
+
+        # This check assumes squash merges where the commit on the base branch IS the
+        # merge_commit_sha. For rebase-and-merge this would reject every commit except
+        # the last one, but those commits won't have "(#N)" in their message so the
+        # regex already returns nil above. If a future repo uses a non-squash workflow
+        # and hits this path, this is the line to revisit.
+        if pr["merge_commit_sha"] != expected_sha
+          UI.important("PR ##{pr_number} merge SHA #{pr['merge_commit_sha']} does not match commit #{expected_sha}. Skipping.")
+          return []
+        end
+
+        [pr]
+      rescue StandardError => e
+        UI.important("Failed to fetch PR ##{pr_number} directly: #{e.message}")
+        []
       end
 
       def self.check_authentication_and_rate_limits(github_token)

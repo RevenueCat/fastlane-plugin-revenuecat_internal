@@ -31,6 +31,7 @@ module Fastlane
         filter_labels = params[:filter_labels]
         exclude_labels = params[:exclude_labels]
         include_purchases_js = params[:include_purchases_js]
+        fallback_pr_lookup = params[:fallback_pr_lookup]
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -80,7 +81,7 @@ module Fastlane
           UI.important("No github_token provided.")
         end
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number, filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js)
+        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number, filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup)
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
@@ -243,6 +244,11 @@ module Fastlane
                                        type: Array),
           FastlaneCore::ConfigItem.new(key: :include_purchases_js,
                                        description: "Whether to include purchases-js version bumps in the changelog (for hybrids with web support, e.g. Flutter, React Native)",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :fallback_pr_lookup,
+                                       description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit subject '(#N)' pattern and fetching it directly via the REST API. Assumes squash-merge workflows — a no-op on rebase-and-merge or true-merge workflows whose commit subjects don't include '(#N)'",
                                        optional: true,
                                        is_string: false,
                                        default_value: false),

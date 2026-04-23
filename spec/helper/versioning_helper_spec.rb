@@ -835,6 +835,114 @@ describe Fastlane::Helper::VersioningHelper do
                               "* Updating great support link via Miguel José Carranza Guisado")
     end
 
+    context 'with fallback_pr_lookup opt-in' do
+      let(:fake_sha) { 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }
+      let(:empty_search_response) { { body: JSON.generate('items' => []) } }
+      let(:commits_with_pr_ref_response) do
+        {
+          body: JSON.generate(
+            'commits' => [
+              {
+                'sha' => fake_sha,
+                'commit' => {
+                  'author' => { 'name' => 'Antonio Pallares' },
+                  'message' => "Fix flaky race condition (#42)\n\n* inner commit details"
+                }
+              }
+            ]
+          )
+        }
+      end
+      let(:valid_pr_response) do
+        {
+          body: JSON.generate(
+            'number' => 42,
+            'title' => 'Fix flaky race condition',
+            'user' => { 'login' => 'pallares' },
+            'labels' => [{ 'name' => 'pr:fix' }],
+            'merged_at' => '2026-04-22T12:00:00Z',
+            'merge_commit_sha' => fake_sha,
+            'base' => { 'ref' => 'main' }
+          )
+        }
+      end
+
+      before do
+        setup_tag_stubs
+        mock_commits_since_last_release(fake_sha, commits_with_pr_ref_response)
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{fake_sha}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(empty_search_response)
+      end
+
+      it 'falls back to direct PR lookup and uses PR metadata when enabled' do
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/repos/RevenueCat/mock-repo-name/pulls/42",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(valid_pr_response)
+          .once
+
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil,
+          fallback_pr_lookup: true
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### 🐞 Bugfixes\n" \
+                                "* Fix flaky race condition (#42) via Antonio Pallares (@pallares)")
+      end
+
+      it 'does not hit the direct PR endpoint when disabled and classifies commit as Other' do
+        expect(Fastlane::Actions::GithubApiAction).not_to receive(:run)
+          .with(hash_including(path: %r{/pulls/\d+\z}))
+
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil
+        )
+        expect(changelog).to eq("### 🔄 Other Changes\n" \
+                                "* Fix flaky race condition (#42)\n\n* inner commit details via Antonio Pallares")
+      end
+
+      it 'does not hit the direct PR endpoint when enabled but commit subject has no PR reference' do
+        commits_no_pr_ref_response = {
+          body: JSON.generate(
+            'commits' => [
+              {
+                'sha' => fake_sha,
+                'commit' => {
+                  'author' => { 'name' => 'Antonio Pallares' },
+                  'message' => "Direct push without PR reference"
+                }
+              }
+            ]
+          )
+        }
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/repos/RevenueCat/mock-repo-name/compare/1.11.0...#{fake_sha}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(commits_no_pr_ref_response)
+
+        expect(Fastlane::Actions::GithubApiAction).not_to receive(:run)
+          .with(hash_including(path: %r{/pulls/\d+\z}))
+
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil,
+          fallback_pr_lookup: true
+        )
+        expect(changelog).to eq("### 🔄 Other Changes\n" \
+                                "* Direct push without PR reference via Antonio Pallares")
+      end
+    end
+
     def mock_native_releases
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
@@ -1344,6 +1452,80 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(next_version).to eq("2.0.0")
       expect(type_of_bump).to eq(:major)
+    end
+
+    context 'with fallback_pr_lookup opt-in' do
+      let(:fake_sha) { 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }
+      let(:empty_search_response) { { body: JSON.generate('items' => []) } }
+      let(:commits_with_pr_ref_response) do
+        {
+          body: JSON.generate(
+            'commits' => [
+              {
+                'sha' => fake_sha,
+                'commit' => {
+                  'author' => { 'name' => 'Antonio Pallares' },
+                  'message' => "Fix flaky race condition (#42)"
+                }
+              }
+            ]
+          )
+        }
+      end
+      let(:patch_pr_response) do
+        {
+          body: JSON.generate(
+            'number' => 42,
+            'title' => 'Fix flaky race condition',
+            'user' => { 'login' => 'pallares' },
+            'labels' => [{ 'name' => 'pr:fix' }],
+            'merged_at' => '2026-04-22T12:00:00Z',
+            'merge_commit_sha' => fake_sha,
+            'base' => { 'ref' => 'main' }
+          )
+        }
+      end
+
+      before do
+        setup_tag_stubs
+        mock_commits_since_last_release(fake_sha, commits_with_pr_ref_response)
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{fake_sha}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(empty_search_response)
+      end
+
+      it 'falls back to direct PR lookup and uses PR labels to determine the bump when enabled' do
+        expect(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/repos/RevenueCat/mock-repo-name/pulls/42",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(patch_pr_response)
+          .once
+
+        next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+          'mock-repo-name', 'mock-github-token', 0, false, nil,
+          fallback_pr_lookup: true
+        )
+        expect(type_of_bump).to eq(:patch)
+        expect(next_version).to eq("1.11.1")
+      end
+
+      it 'does not hit the direct PR endpoint when disabled and stays at :skip' do
+        expect(Fastlane::Actions::GithubApiAction).not_to receive(:run)
+          .with(hash_including(path: %r{/pulls/\d+\z}))
+
+        next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+          'mock-repo-name', 'mock-github-token', 0, false, nil
+        )
+        expect(type_of_bump).to eq(:skip)
+        expect(next_version).to eq("1.11.0")
+      end
     end
   end
 

@@ -31,13 +31,13 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup)
 
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
@@ -53,7 +53,7 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false)
+      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -88,7 +88,8 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+          fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
 
           case items.size
           when 1
@@ -408,33 +409,37 @@ module Fastlane
           .to_set
       end
 
-      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name)
+      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: false)
         base_branch = Actions.git_branch
 
         type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
 
-          sha = commit["sha"]
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
+          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+          next if type_of_bump_for_commit.nil?
 
-          if items.size == 0
-            # skip this commit to minimize risk. If there are more commits, we'll use the current type_of_bump
-            # if there are no more commits, we'll skip the version bump
-            UI.important("There is no pull request associated with #{sha}")
-            next
-          elsif items.size > 1
-            UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
-          end
-
-          item = items.first
-          commit_supported_labels = get_type_of_change_from_pr_info(item)
-          # Filter out pr:changelog_ignore as it shouldn't affect version determination
-          labels_for_version = commit_supported_labels.reject { |label| label == "pr:changelog_ignore" }.to_set
-          type_of_bump_for_commit = get_type_of_bump_from_types_of_change(labels_for_version)
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
         end
         type_of_bump
+      end
+
+      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+        sha = commit["sha"]
+        fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+
+        if items.size == 0
+          UI.important("There is no pull request associated with #{sha}")
+          return nil
+        elsif items.size > 1
+          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
+        end
+
+        commit_supported_labels = get_type_of_change_from_pr_info(items.first)
+        # Filter out pr:changelog_ignore as it shouldn't affect version determination
+        labels_for_version = commit_supported_labels.reject { |label| label == "pr:changelog_ignore" }.to_set
+        get_type_of_bump_from_types_of_change(labels_for_version)
       end
 
       private_class_method def self.get_type_of_bump_from_types_of_change(change_types)
