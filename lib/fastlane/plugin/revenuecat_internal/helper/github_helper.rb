@@ -40,13 +40,6 @@ module Fastlane
       # When it is a non-nil string, and the search API returns no items, the helper
       # attempts a fallback lookup by extracting the PR number from the commit message
       # and fetching the PR directly via the REST API. Pass nil to disable the fallback.
-      #
-      # When the search API returns more than one PR for the same SHA (e.g. because a
-      # stacked PR brought commits from the base branch into its head), this helper
-      # disambiguates by fetching each candidate's `merge_commit_sha` and keeping only
-      # the PR whose merge SHA equals the queried commit. If exactly one candidate
-      # survives, only that PR is returned; otherwise the original list is returned
-      # so the caller can apply its own policy.
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil)
         if github_token.nil? || github_token.empty?
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
