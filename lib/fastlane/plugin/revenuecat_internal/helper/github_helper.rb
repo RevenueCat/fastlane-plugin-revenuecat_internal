@@ -40,6 +40,13 @@ module Fastlane
       # When it is a non-nil string, and the search API returns no items, the helper
       # attempts a fallback lookup by extracting the PR number from the commit message
       # and fetching the PR directly via the REST API. Pass nil to disable the fallback.
+      #
+      # When the search API returns more than one PR for the same SHA (e.g. because a
+      # stacked PR brought commits from the base branch into its head), this helper
+      # disambiguates by fetching each candidate's `merge_commit_sha` and keeping only
+      # the PR whose merge SHA equals the queried commit. If exactly one candidate
+      # survives, only that PR is returned; otherwise the original list is returned
+      # so the caller can apply its own policy.
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil)
         if github_token.nil? || github_token.empty?
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
@@ -51,6 +58,10 @@ module Fastlane
           sleep(rate_limit_sleep)
         end
 
+        if base_branch.to_s.strip.empty?
+          UI.important("No base branch provided for PR search of SHA #{sha}; relying on the `SHA:` qualifier alone, which may match stacked PRs that contain the commit.")
+        end
+
         # Get pull request associated with commit via search API
         pr_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                              path: "/search/issues?q=repo:RevenueCat/#{repo_name}+is:pr+base:#{base_branch}+SHA:#{sha}",
@@ -59,17 +70,25 @@ module Fastlane
                                              api_token: github_token)
         body = JSON.parse(pr_resp[:body])
         items = body["items"]
-        return items unless items.empty? && fallback_commit_message
 
-        # Fallback: extract PR number from commit message and fetch directly.
-        # Squash-merge commits contain the PR number as "(#1234)" in the first line.
-        # External contributor PRs have two: "...original (#111) by @user (#222)" —
-        # the last one is the merged PR.
-        #
-        # This fallback assumes squash-merge workflows. For rebase-and-merge, individual
-        # commits don't get "(#N)" appended, so the regex no-ops before reaching the
-        # REST call. For true merge commits, the merge commit does contain "(#N)" and
-        # its SHA matches merge_commit_sha, so the fallback works there too.
+        return items if items.size == 1
+        return disambiguate_pr_items_by_merge_commit_sha(items, sha, github_token, rate_limit_sleep, repo_name) if items.size > 1
+
+        attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
+      end
+
+      # Fallback: extract PR number from commit message and fetch directly.
+      # Squash-merge commits contain the PR number as "(#1234)" in the first line.
+      # External contributor PRs have two: "...original (#111) by @user (#222)" —
+      # the last one is the merged PR.
+      #
+      # This fallback assumes squash-merge workflows. For rebase-and-merge, individual
+      # commits don't get "(#N)" appended, so the regex no-ops before reaching the
+      # REST call. For true merge commits, the merge commit does contain "(#N)" and
+      # its SHA matches merge_commit_sha, so the fallback works there too.
+      private_class_method def self.attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
+        return [] unless fallback_commit_message
+
         pr_number = extract_pr_number_from_commit_message(fallback_commit_message)
         return [] unless pr_number
 
@@ -79,6 +98,53 @@ module Fastlane
 
         UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
         fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
+      end
+
+      # GitHub's `SHA:<sha>` PR-search qualifier matches any PR whose branch contains
+      # the commit, not just the PR that introduced it. Stacked PRs that brought the
+      # base branch into their head therefore appear as spurious matches.
+      #
+      # When the search returns multiple PRs for the same SHA, we disambiguate by
+      # fetching each candidate's `merge_commit_sha`, which is the commit GitHub
+      # leaves on the base branch when the PR merges:
+      #   - squash merge → the squashed commit pushed to the base ref
+      #   - merge commit → the merge commit itself
+      #   - rebase merge → the tip commit after the rebase
+      # In all three cases, the originating PR's `merge_commit_sha` equals the SHA
+      # that ends up in `git log <prev_tag>..<new_tag>` on the base branch, so it is
+      # the unambiguous attribution signal.
+      #
+      # If exactly one candidate matches, only that PR is returned. If zero or more
+      # than one match, the original list is returned unchanged so the caller can
+      # decide how to handle the ambiguity (typically: error out).
+      private_class_method def self.disambiguate_pr_items_by_merge_commit_sha(items, sha, github_token, rate_limit_sleep, repo_name)
+        pr_numbers = items.map { |item| "##{item['number']}" }.join(', ')
+        UI.message("Search API returned #{items.size} PRs (#{pr_numbers}) for #{sha}; disambiguating by merge_commit_sha.")
+
+        matches = items.select do |item|
+          pr_number = item["number"]
+          if rate_limit_sleep > 0
+            sleep(rate_limit_sleep)
+          end
+
+          begin
+            detail_resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                                     path: "/repos/RevenueCat/#{repo_name}/pulls/#{pr_number}",
+                                                     http_method: 'GET',
+                                                     body: {},
+                                                     api_token: github_token)
+            detail = JSON.parse(detail_resp[:body])
+            detail["merge_commit_sha"] == sha
+          rescue StandardError => e
+            UI.important("Failed to fetch PR ##{pr_number} for disambiguation: #{e.message}")
+            false
+          end
+        end
+
+        return matches if matches.size == 1
+
+        UI.important("Could not disambiguate #{items.size} PRs for #{sha} via merge_commit_sha (#{matches.size} candidate(s) matched).")
+        items
       end
 
       private_class_method def self.extract_pr_number_from_commit_message(commit_message)
