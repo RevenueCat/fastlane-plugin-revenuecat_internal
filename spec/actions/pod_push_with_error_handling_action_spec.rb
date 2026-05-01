@@ -34,6 +34,8 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       error_message = "Some unexpected failure"
       allow(Fastlane::Actions::PodPushAction).to receive(:run).and_raise(StandardError.new(error_message))
 
+      expect(FastlaneCore::UI).to receive(:error).with("❌ Pod push failed with an unknown error and won't retry. You can rerun this job using SSH. Error: Some unexpected failure")
+
       expect do
         Fastlane::Actions::PodPushWithErrorHandlingAction.run(path: podspec_path)
       end.to raise_error(Fastlane::Actions::PodPushUnknownError, "❌ Pod push failed: Some unexpected failure")
@@ -64,6 +66,32 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       )
 
       expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
+    end
+
+    it 'retries up to 3 times when spec sources do not contain a satisfying dependency' do
+      error_message = "None of your spec sources contain a spec satisfying the dependency: `PurchasesHybridCommon (= 18.2.0)`."
+      call_count = 0
+
+      allow(Fastlane::Actions::PodPushAction).to receive(:run) do
+        call_count += 1
+        raise StandardError, error_message if call_count <= 3
+
+        'Successfully pushed'
+      end
+
+      allow_any_instance_of(Object).to receive(:sleep)
+
+      expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
+      expect(FastlaneCore::UI).to receive(:message).with(/Attempt \d/).exactly(4).times
+
+      result = Fastlane::Actions::PodPushWithErrorHandlingAction.run(
+        path: podspec_path,
+        synchronous: true,
+        verbose: false,
+        allow_warnings: false
+      )
+
+      expect(result).to eq(true)
     end
 
     it 'retries up to 3 times on internal server error' do
