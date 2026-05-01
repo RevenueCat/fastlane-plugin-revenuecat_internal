@@ -46,6 +46,7 @@ module Fastlane
               return false
             end
 
+            FastlaneCore::UI.error("❌ Pod push failed with an unknown error and won't retry. You can rerun this job using SSH. Error: #{e.message}")
             raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
           end
         end
@@ -59,7 +60,8 @@ module Fastlane
 
       def self.retryable_error?(msg)
         msg.include?("[!] Calling the GitHub commit API timed out.") ||
-          msg.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.")
+          msg.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.") ||
+          msg.include?("None of your spec sources contain a spec satisfying the dependency")
       end
 
       def self.description
