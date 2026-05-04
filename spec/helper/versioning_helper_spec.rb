@@ -729,7 +729,7 @@ describe Fastlane::Helper::VersioningHelper do
       end
     end
 
-    it 'fails if it finds multiple commits with same sha' do
+    it 'fails if it finds multiple commits with same sha and disambiguation does not narrow it down' do
       setup_commit_search_stubs(hashes_to_responses)
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
         .with(server_url: server_url,
@@ -738,6 +738,18 @@ describe Fastlane::Helper::VersioningHelper do
               body: {},
               api_token: 'mock-github-token')
         .and_return(duplicate_items_get_commit_2_response)
+      # When disambiguation can't narrow the candidates (here both items return a
+      # `merge_commit_sha` that does not match the queried SHA), the helper falls
+      # back to the original list and the caller errors out with the actionable
+      # message that includes the matching PR numbers.
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/pulls/1751',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
       expect do
         Fastlane::Helper::VersioningHelper.auto_generate_changelog(
           'mock-repo-name',
@@ -747,7 +759,7 @@ describe Fastlane::Helper::VersioningHelper do
           nil,
           nil
         )
-      end.to raise_exception(StandardError)
+      end.to raise_exception(StandardError, /Multiple PRs \(#1751, #1751\) match commit 0e67cdb1c7582ce3e2fd00367acc24db6242c6d6/)
     end
 
     it 'breaking fix is added to breaking changes section' do
@@ -1395,7 +1407,7 @@ describe Fastlane::Helper::VersioningHelper do
       expect(type_of_bump).to eq(:minor)
     end
 
-    it 'fails if it finds multiple commits with same sha' do
+    it 'fails if it finds multiple commits with same sha and disambiguation does not narrow it down' do
       setup_commit_search_stubs(hashes_to_responses)
 
       allow(Fastlane::Actions::GithubApiAction).to receive(:run)
@@ -1405,6 +1417,16 @@ describe Fastlane::Helper::VersioningHelper do
               body: {},
               api_token: 'mock-github-token')
         .and_return(get_duplicate_items_fix_commit_response)
+      # See the analogous spec under `.auto_generate_changelog` for why the
+      # `merge_commit_sha` returned here intentionally does not match.
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+        .with(server_url: server_url,
+              path: '/repos/RevenueCat/mock-repo-name/pulls/1751',
+              http_method: http_method,
+              body: {},
+              api_token: 'mock-github-token')
+        .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
       expect do
         Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
           'mock-repo-name',
@@ -1413,7 +1435,7 @@ describe Fastlane::Helper::VersioningHelper do
           false,
           nil
         )
-      end.to raise_exception(StandardError)
+      end.to raise_exception(StandardError, /Multiple PRs \(#1751, #1751\) match commit 0e67cdb1c7582ce3e2fd00367acc24db6242c6d6/)
     end
 
     it 'skips if it finds commit without a pr associated' do

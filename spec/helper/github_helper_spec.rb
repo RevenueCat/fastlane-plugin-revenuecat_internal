@@ -215,6 +215,143 @@ describe Fastlane::Helper::GitHubHelper do
         expect(items).to eq([])
       end
     end
+
+    context 'when search returns multiple PRs for the same SHA' do
+      # GitHub's `SHA:<sha>` qualifier matches any PR whose branch contains the
+      # commit, not just the PR that introduced it. When a stacked PR brings
+      # the base branch into its head, the search returns spurious extra
+      # candidates. Disambiguate by `merge_commit_sha` against the queried SHA.
+      let(:multi_search_response) do
+        {
+          body: {
+            'items' => [
+              { 'number' => 6693, 'title' => 'Add workflowTrigger to ButtonComponent.Action' },
+              { 'number' => 6697, 'title' => 'Cache decoded images by file URL in `FileImageLoader`' }
+            ]
+          }.to_json
+        }
+      end
+
+      it 'returns the single PR whose merge_commit_sha matches the queried SHA' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6693'))
+          .and_return({ body: { 'merge_commit_sha' => hash }.to_json })
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6697'))
+          .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(6693)
+      end
+
+      it 'returns the original list when no candidate matches by merge_commit_sha' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{/pulls/\d+}))
+          .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(2)
+      end
+
+      it 'returns the original list when more than one candidate matches by merge_commit_sha' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{/pulls/\d+}))
+          .and_return({ body: { 'merge_commit_sha' => hash }.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(2)
+      end
+
+      it 'treats failures while fetching candidate PR details as non-matches' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6693'))
+          .and_return({ body: { 'merge_commit_sha' => hash }.to_json })
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6697'))
+          .and_raise(StandardError.new('502 Bad Gateway'))
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(6693)
+      end
+
+      it 'sleeps between candidate detail fetches when rate limit sleep is set' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{/pulls/\d+}))
+          .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
+        # Once for the initial wait before the search, once per candidate before
+        # its detail fetch (2 candidates).
+        expect_any_instance_of(Object).to receive(:sleep).with(2).exactly(3).times
+
+        Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 2, 'mock-repo-name', 'main'
+        )
+      end
+    end
+
+    context 'when base_branch is empty' do
+      let(:multi_search_response) do
+        {
+          body: {
+            'items' => [
+              { 'number' => 6693, 'title' => 'Originating PR' },
+              { 'number' => 6697, 'title' => 'Stacked PR that brought main commits into its head' }
+            ]
+          }.to_json
+        }
+      end
+
+      it 'still searches and disambiguates without a base filter' do
+        # When base_branch is empty (e.g. detached-HEAD CI on a tag), the search
+        # collapses to the SHA filter alone. Disambiguation by merge_commit_sha
+        # must still produce a single attribution.
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:+SHA:#{hash}"))
+          .and_return(multi_search_response)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6693'))
+          .and_return({ body: { 'merge_commit_sha' => hash }.to_json })
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: '/repos/RevenueCat/mock-repo-name/pulls/6697'))
+          .and_return({ body: { 'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }.to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', ''
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(6693)
+      end
+    end
   end
 
   describe '.extract_pr_number_from_commit_message' do

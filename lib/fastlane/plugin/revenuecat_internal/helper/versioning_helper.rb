@@ -132,7 +132,8 @@ module Fastlane
               changelog_sections[:other].push(line)
             end
           else
-            UI.user_error!("Cannot generate changelog. Multiple commits found for #{sha}")
+            pr_numbers = items.map { |multi_item| "##{multi_item['number']}" }.join(', ')
+            UI.user_error!("Cannot generate changelog. Multiple PRs (#{pr_numbers}) match commit #{sha} and disambiguation by merge_commit_sha did not yield a single match.")
           end
         end
 
@@ -433,7 +434,8 @@ module Fastlane
           UI.important("There is no pull request associated with #{sha}")
           return nil
         elsif items.size > 1
-          UI.user_error!("Cannot determine next version. Multiple commits found for #{sha}")
+          pr_numbers = items.map { |item| "##{item['number']}" }.join(', ')
+          UI.user_error!("Cannot determine next version. Multiple PRs (#{pr_numbers}) match commit #{sha} and disambiguation by merge_commit_sha did not yield a single match.")
         end
 
         commit_supported_labels = get_type_of_change_from_pr_info(items.first)
