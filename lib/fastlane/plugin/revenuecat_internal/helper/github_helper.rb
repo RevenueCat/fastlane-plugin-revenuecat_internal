@@ -320,10 +320,15 @@ module Fastlane
 
         all_releases = JSON.parse(response[:body])
 
-        # Filters releases between tags
+        # Filters releases between tags. Drafts and prereleases are excluded.
         all_releases.select do |release|
-          version = Gem::Version.new(release["tag_name"])
-          start_tag < version && version <= end_tag && !release["prerelease"]
+          next false if release["draft"] || release["prerelease"]
+
+          tag_name = release["tag_name"]
+          next false unless Gem::Version.correct?(tag_name)
+
+          version = Gem::Version.new(tag_name)
+          start_tag < version && version <= end_tag
         end
       end
 

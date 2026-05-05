@@ -427,6 +427,83 @@ describe Fastlane::Helper::GitHubHelper do
     end
   end
 
+  describe '.get_releases_between_tags' do
+    let(:server_url) { 'https://api.github.com' }
+    let(:http_method) { 'GET' }
+    let(:github_token) { 'mock-github-token' }
+    let(:repo_name) { 'mock-repo-name' }
+
+    def stub_releases_api_with(releases)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(
+                server_url: server_url,
+                http_method: http_method,
+                path: "repos/RevenueCat/#{repo_name}/releases?per_page=50",
+                api_token: github_token
+              ))
+        .and_return(body: releases.to_json)
+    end
+
+    it 'returns published non-prerelease releases strictly above start_tag and at-or-below end_tag' do
+      stub_releases_api_with([
+                               { 'tag_name' => '1.38.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.37.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.36.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.35.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.34.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.39.0', 'draft' => false, 'prerelease' => false }
+                             ])
+
+      releases = Fastlane::Helper::GitHubHelper.get_releases_between_tags(
+        github_token, '1.34.0', '1.38.0', repo_name
+      )
+
+      expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0', '1.36.0', '1.35.0'])
+    end
+
+    it 'excludes prereleases' do
+      stub_releases_api_with([
+                               { 'tag_name' => '1.38.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.38.0-rc.1', 'draft' => false, 'prerelease' => true },
+                               { 'tag_name' => '1.37.0', 'draft' => false, 'prerelease' => false }
+                             ])
+
+      releases = Fastlane::Helper::GitHubHelper.get_releases_between_tags(
+        github_token, '1.36.0', '1.38.0', repo_name
+      )
+
+      expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0'])
+    end
+
+    it 'excludes draft releases (which may carry placeholder tag_name values)' do
+      stub_releases_api_with([
+                               { 'tag_name' => '1.38.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.37.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => 'v0.0.1', 'draft' => true,  'prerelease' => true }
+                             ])
+
+      releases = Fastlane::Helper::GitHubHelper.get_releases_between_tags(
+        github_token, '1.36.0', '1.38.0', repo_name
+      )
+
+      expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0'])
+    end
+
+    it 'skips releases whose tag_name is not a valid Gem::Version' do
+      stub_releases_api_with([
+                               { 'tag_name' => '1.38.0', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => 'not-a-version', 'draft' => false, 'prerelease' => false },
+                               { 'tag_name' => '1.37.0', 'draft' => false, 'prerelease' => false }
+                             ])
+
+      releases = Fastlane::Helper::GitHubHelper.get_releases_between_tags(
+        github_token, '1.36.0', '1.38.0', repo_name
+      )
+
+      expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0'])
+    end
+  end
+
   describe '.create_github_release' do
     let(:server_url) { 'https://api.github.com' }
     let(:repo_name) { 'mock-repo-name' }
