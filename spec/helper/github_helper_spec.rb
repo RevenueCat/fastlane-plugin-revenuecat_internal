@@ -488,20 +488,6 @@ describe Fastlane::Helper::GitHubHelper do
 
       expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0'])
     end
-
-    it 'skips releases whose tag_name is not a valid Gem::Version' do
-      stub_releases_api_with([
-                               { 'tag_name' => '1.38.0', 'draft' => false, 'prerelease' => false },
-                               { 'tag_name' => 'not-a-version', 'draft' => false, 'prerelease' => false },
-                               { 'tag_name' => '1.37.0', 'draft' => false, 'prerelease' => false }
-                             ])
-
-      releases = Fastlane::Helper::GitHubHelper.get_releases_between_tags(
-        github_token, '1.36.0', '1.38.0', repo_name
-      )
-
-      expect(releases.map { |r| r['tag_name'] }).to eq(['1.38.0', '1.37.0'])
-    end
   end
 
   describe '.create_github_release' do

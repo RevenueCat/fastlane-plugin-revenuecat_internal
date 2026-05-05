@@ -324,10 +324,7 @@ module Fastlane
         all_releases.select do |release|
           next false if release["draft"] || release["prerelease"]
 
-          tag_name = release["tag_name"]
-          next false unless Gem::Version.correct?(tag_name)
-
-          version = Gem::Version.new(tag_name)
+          version = Gem::Version.new(release["tag_name"])
           start_tag < version && version <= end_tag
         end
       end
