@@ -98,27 +98,18 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
     end
 
     describe 'when tests fail' do
-      it 'sends failure messages to both feed and binary-solo channels' do
-        expected_binary_solo_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
-        expected_feed_message = "#{platform} backend integration tests failed. On-call is pinged in <#CL407G2QL|binary-solo>."
+      it 'pings on-call in the feed channel by default' do
+        expected_feed_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
 
-        # Expect call to binary-solo (with on-call ping)
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: expected_binary_solo_message,
-            slack_url: slack_url_binary_solo,
-            success: false
-          )
-        ).ordered
+        expect(mock_other_action).not_to receive(:slack).with(hash_including(slack_url: slack_url_binary_solo))
 
-        # Expect call to feed channel
         expect(mock_other_action).to receive(:slack).once.with(
           hash_including(
             message: expected_feed_message,
             slack_url: slack_url_feed,
             success: false
           )
-        ).ordered
+        )
 
         action_instance.run(
           environment: environment,
@@ -128,32 +119,36 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         )
       end
 
-      it 'does not notify binary-solo when message_binary_solo_on_failure is explicitly false' do
-        expected_feed_message = "#{platform} backend integration tests failed. On-call is pinged in <#CL407G2QL|binary-solo>."
+      it 'also notifies binary-solo when message_binary_solo_on_failure is explicitly true' do
+        expected_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
 
-        # Expect no binary-solo call
-        expect(mock_other_action).not_to receive(:slack).with(hash_including(slack_url: slack_url_binary_solo))
-
-        # Expect feed channel only
         expect(mock_other_action).to receive(:slack).once.with(
           hash_including(
-            message: expected_feed_message,
+            message: expected_message,
+            slack_url: slack_url_binary_solo,
+            success: false
+          )
+        ).ordered
+
+        expect(mock_other_action).to receive(:slack).once.with(
+          hash_including(
+            message: expected_message,
             slack_url: slack_url_feed,
             success: false
           )
-        )
+        ).ordered
 
         action_instance.run(
           environment: environment,
           success: false,
           version: version,
           platform: platform,
-          message_binary_solo_on_failure: false
+          message_binary_solo_on_failure: true
         )
       end
 
-      it 'defaults to false when success parameter is not provided' do
-        expect(mock_other_action).to receive(:slack).twice
+      it 'defaults to failure when success parameter is not provided' do
+        expect(mock_other_action).to receive(:slack).once
 
         action_instance.run(
           environment: environment,
@@ -419,7 +414,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         end.to raise_error(FastlaneCore::Interface::FastlaneError)
       end
 
-      it 'fails when SLACK_URL_BINARY_SOLO is missing' do
+      it 'fails when SLACK_URL_BINARY_SOLO is missing and binary-solo notifications are enabled' do
         ENV.delete('SLACK_URL_BINARY_SOLO')
 
         expect(FastlaneCore::UI).to receive(:user_error!)
@@ -429,11 +424,25 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         expect do
           action_instance.run(
             environment: environment,
-            success: true,
+            success: false,
             version: version,
-            platform: platform
+            platform: platform,
+            message_binary_solo_on_failure: true
           )
         end.to raise_error(FastlaneCore::Interface::FastlaneError)
+      end
+
+      it 'does not require SLACK_URL_BINARY_SOLO when binary-solo notifications are disabled' do
+        ENV.delete('SLACK_URL_BINARY_SOLO')
+
+        expect(mock_other_action).to receive(:slack).once
+
+        action_instance.run(
+          environment: environment,
+          success: true,
+          version: version,
+          platform: platform
+        )
       end
     end
 

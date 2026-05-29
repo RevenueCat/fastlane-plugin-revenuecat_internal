@@ -5,6 +5,8 @@ require_relative '../helper/revenuecat_internal_helper'
 module Fastlane
   module Actions
     class SlackBackendIntegrationTestResultsAction < Action
+      ON_CALL_SDK_MENTION = "<!subteam^S0939BTV0SY|oncall-sdk>"
+
       # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         if ENV["CI"] != "true"
@@ -18,7 +20,7 @@ module Fastlane
 
         environment = params[:environment]
         success = params[:success] || false
-        message_binary_solo_on_failure = params[:message_binary_solo_on_failure] != false
+        message_binary_solo_on_failure = params[:message_binary_solo_on_failure] == true
 
         version = params[:version] || begin
           File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
@@ -35,18 +37,19 @@ module Fastlane
                                         end
 
         slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
-        slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
+        failure_message = "#{ON_CALL_SDK_MENTION} #{platform} backend integration tests failed."
 
         message_feed =
           if success
             "#{platform} backend integration tests finished successfully."
           else
-            "#{platform} backend integration tests failed. On-call is pinged in <#CL407G2QL|binary-solo>."
+            failure_message
           end
 
         message_binary_solo =
-          unless success
-            "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
+          if !success && message_binary_solo_on_failure
+            failure_message
           end
 
         slack_options = {
@@ -90,7 +93,9 @@ module Fastlane
           }
         }
 
-        if message_binary_solo && message_binary_solo_on_failure
+        if message_binary_solo
+          slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
           other_action.slack(
             slack_options.merge(
               message: message_binary_solo,
@@ -136,9 +141,9 @@ module Fastlane
                                        optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :message_binary_solo_on_failure,
-                                       description: "Whether to ping the binary-solo / on-call group when tests fail",
+                                       description: "Whether to also notify binary-solo when tests fail. On-call is always pinged in the backend integration tests feed channel on failure",
                                        optional: true,
-                                       default_value: true,
+                                       default_value: false,
                                        is_string: false)
         ]
       end
