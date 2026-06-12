@@ -918,6 +918,22 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
         Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], enable_auto_merge: true)
       end.not_to raise_error
     end
+
+    it 'creates pr with explicit reviewers when provided' do
+      expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
+        .with(
+          api_token: 'fake-github-pr-token',
+          title: 'fake-title',
+          base: 'main',
+          body: 'fake-changelog',
+          repo: 'RevenueCat/fake-repo-name',
+          head: 'fake-branch',
+          api_url: 'https://api.github.com',
+          labels: ['label_1', 'label_2'],
+          team_reviewers: ['team1', 'team2']
+        ).once
+      Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'], team_reviewers: ['team1', 'team2'])
+    end
   end
 
   describe '.create_pr_if_necessary' do

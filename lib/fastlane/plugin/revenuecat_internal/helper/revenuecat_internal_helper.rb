@@ -173,8 +173,8 @@ module Fastlane
         Actions::PushToGitRemoteAction.run(remote: 'origin')
       end
 
-      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels: [], enable_auto_merge: false, slack_url: nil)
-        pr_url = Actions::CreatePullRequestAction.run(
+      def self.create_pr(title, body, repo_name, base_branch, head_branch, github_pr_token, labels: [], team_reviewers: ['coresdk'], enable_auto_merge: false, slack_url: nil)
+        options = {
           api_token: github_pr_token,
           title: title,
           base: base_branch,
@@ -182,9 +182,11 @@ module Fastlane
           repo: "RevenueCat/#{repo_name}",
           head: head_branch,
           api_url: 'https://api.github.com',
-          labels: labels,
-          team_reviewers: ['coresdk']
-        )
+          labels: labels
+        }
+        options[:team_reviewers] = team_reviewers unless team_reviewers.empty?
+
+        pr_url = Actions::CreatePullRequestAction.run(**options)
 
         return unless enable_auto_merge
 
