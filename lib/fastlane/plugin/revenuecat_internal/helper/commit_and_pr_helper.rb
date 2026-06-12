@@ -16,7 +16,7 @@ module Fastlane
           return false
         end
 
-        paths = split_csv(commit_paths)
+        paths = split_by_comma(commit_paths)
         push_changes = lambda do
           if paths.empty?
             Actions.sh("git", "add", "--all", ".")
@@ -36,12 +36,12 @@ module Fastlane
 
         RevenuecatInternalHelper.create_pr_if_necessary(
           title, body, repo_name, base_branch, branch_name, github_pr_token,
-          split_csv(labels), split_csv(team_reviewers)
+          split_by_comma(labels), split_by_comma(team_reviewers)
         )
         true
       end
 
-      def self.split_csv(value)
+      def self.split_by_comma(value)
         return [] if value.nil?
 
         value.split(",").map(&:strip).reject(&:empty?)
