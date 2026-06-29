@@ -10,36 +10,16 @@ module Fastlane
     class SlackBackendIntegrationTestResultsAction < Action
       ON_CALL_SDK_MENTION = "<!subteam^S0939BTV0SY|oncall-sdk>"
 
-      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
-        if ENV["CI"] != "true"
-          UI.message("Not running in CI environment, skipping slack notification.")
-          return
-        end
-        unless ENV["CIRCLE_PULL_REQUEST"].to_s.empty?
-          UI.message("Running in pull request context, skipping slack notification.")
-          return
-        end
+        return unless should_send_notification?
 
         environment = params[:environment]
         success = params[:success] || false
         message_binary_solo_on_failure = params[:message_binary_solo_on_failure] == true
 
-        version = params[:version] || begin
-          File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
-        rescue StandardError
-          nil
-        end || UI.user_error!("Missing version parameter")
-
-        major_version = version.split('.')[0]
         repo_name = ENV.fetch("CIRCLE_PROJECT_REPONAME", nil)
-        platform = params[:platform] || case repo_name
-                                        when "purchases-android" then "Android"
-                                        when "purchases-ios" then "iOS"
-                                        else UI.user_error!("Missing platform parameter")
-                                        end
-
-        slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+        major_version = resolve_version(params).split('.')[0]
+        platform = resolve_platform(params, repo_name)
 
         failure_message = "#{ON_CALL_SDK_MENTION} #{platform} backend integration tests failed."
 
@@ -59,15 +39,57 @@ module Fastlane
         ]
         build_url = ENV.fetch("CIRCLE_BUILD_URL", nil)
 
-        if !success && message_binary_solo_on_failure
+        post_messages(
+          success: success,
+          notify_binary_solo: message_binary_solo_on_failure,
+          feed_message: message_feed,
+          fields: detail_fields,
+          build_url: build_url
+        )
+      end
+
+      def self.post_messages(success:, notify_binary_solo:, feed_message:, fields:, build_url:)
+        if notify_binary_solo && !success
           slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
 
-          post_to_slack(slack_url_binary_solo, build_payload(failure_message, success, detail_fields, build_url))
+          post_to_slack(slack_url_binary_solo, build_payload(feed_message, success, fields, build_url))
         end
 
-        post_to_slack(slack_url_feed, build_payload(message_feed, success, detail_fields, build_url))
+        slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
+        post_to_slack(slack_url_feed, build_payload(feed_message, success, fields, build_url))
       end
-      # rubocop:enable Metrics/PerceivedComplexity
+
+      def self.should_send_notification?
+        if ENV["CI"] != "true"
+          UI.message("Not running in CI environment, skipping slack notification.")
+          return false
+        end
+        unless ENV["CIRCLE_PULL_REQUEST"].to_s.empty?
+          UI.message("Running in pull request context, skipping slack notification.")
+          return false
+        end
+
+        true
+      end
+
+      def self.resolve_version(params)
+        version = params[:version] || begin
+          File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
+        rescue StandardError
+          nil
+        end
+
+        version || UI.user_error!("Missing version parameter")
+      end
+
+      def self.resolve_platform(params, repo_name)
+        params[:platform] || case repo_name
+                             when "purchases-android" then "Android"
+                             when "purchases-ios" then "iOS"
+                             else UI.user_error!("Missing platform parameter")
+                             end
+      end
 
       def self.build_payload(message, success, fields, build_url)
         detail_blocks = [
