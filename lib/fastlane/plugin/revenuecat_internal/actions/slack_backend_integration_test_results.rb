@@ -69,14 +69,6 @@ module Fastlane
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      # Builds a Block Kit message payload.
-      #
-      # The headline (which carries the on-call mention on failure) is placed in a top-level
-      # `blocks` section so it renders consistently across all Slack clients, including mobile.
-      # Legacy secondary attachments render mentions unreliably (they can show up as
-      # "@[group unavailable]" on mobile), so we only use an attachment to keep the colored
-      # status bar, and put its secondary content (the run details) in Block Kit blocks too.
-      # See https://docs.slack.dev/messaging/migrating-outmoded-message-compositions-to-blocks
       def self.build_payload(message, success, fields, build_url)
         detail_blocks = [
           {
