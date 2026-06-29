@@ -41,15 +41,15 @@ module Fastlane
 
         post_messages(
           success: success,
-          notify_binary_solo: message_binary_solo_on_failure,
+          notify_binary_solo_on_failure: message_binary_solo_on_failure,
           feed_message: message_feed,
           fields: detail_fields,
           build_url: build_url
         )
       end
 
-      def self.post_messages(success:, notify_binary_solo:, feed_message:, fields:, build_url:)
-        if notify_binary_solo && !success
+      def self.post_messages(success:, notify_binary_solo_on_failure:, feed_message:, fields:, build_url:)
+        if notify_binary_solo_on_failure && !success
           slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
 
           post_to_slack(slack_url_binary_solo, build_payload(feed_message, success, fields, build_url))
