@@ -1,5 +1,8 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
+require 'net/http'
+require 'uri'
+require 'json'
 require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
@@ -7,36 +10,16 @@ module Fastlane
     class SlackBackendIntegrationTestResultsAction < Action
       ON_CALL_SDK_MENTION = "<!subteam^S0939BTV0SY|oncall-sdk>"
 
-      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
-        if ENV["CI"] != "true"
-          UI.message("Not running in CI environment, skipping slack notification.")
-          return
-        end
-        unless ENV["CIRCLE_PULL_REQUEST"].to_s.empty?
-          UI.message("Running in pull request context, skipping slack notification.")
-          return
-        end
+        return unless should_send_notification?
 
         environment = params[:environment]
         success = params[:success] || false
         message_binary_solo_on_failure = params[:message_binary_solo_on_failure] == true
 
-        version = params[:version] || begin
-          File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
-        rescue StandardError
-          nil
-        end || UI.user_error!("Missing version parameter")
-
-        major_version = version.split('.')[0]
         repo_name = ENV.fetch("CIRCLE_PROJECT_REPONAME", nil)
-        platform = params[:platform] || case repo_name
-                                        when "purchases-android" then "Android"
-                                        when "purchases-ios" then "iOS"
-                                        else UI.user_error!("Missing platform parameter")
-                                        end
-
-        slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+        major_version = resolve_version(params).split('.')[0]
+        platform = resolve_platform(params, repo_name)
 
         failure_message = "#{ON_CALL_SDK_MENTION} #{platform} backend integration tests failed."
 
@@ -47,71 +30,123 @@ module Fastlane
             failure_message
           end
 
-        message_binary_solo =
-          if !success && message_binary_solo_on_failure
-            failure_message
-          end
+        detail_fields = [
+          { title: "SDK", value: repo_name },
+          { title: "SDK version", value: major_version },
+          { title: "Git branch", value: Actions.sh("git rev-parse --abbrev-ref HEAD").strip },
+          { title: "Environment", value: environment },
+          { title: "Test suite", value: ENV.fetch("CIRCLE_JOB", nil) }
+        ]
+        build_url = ENV.fetch("CIRCLE_BUILD_URL", nil)
 
-        slack_options = {
+        post_messages(
           success: success,
-          default_payloads: [],
-          attachment_properties: {
-            actions: [
+          notify_binary_solo_on_failure: message_binary_solo_on_failure,
+          feed_message: message_feed,
+          fields: detail_fields,
+          build_url: build_url
+        )
+      end
+
+      def self.post_messages(success:, notify_binary_solo_on_failure:, feed_message:, fields:, build_url:)
+        if notify_binary_solo_on_failure && !success
+          slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
+          post_to_slack(slack_url_binary_solo, build_payload(feed_message, success, fields, build_url))
+        end
+
+        slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
+        post_to_slack(slack_url_feed, build_payload(feed_message, success, fields, build_url))
+      end
+
+      def self.should_send_notification?
+        if ENV["CI"] != "true"
+          UI.message("Not running in CI environment, skipping slack notification.")
+          return false
+        end
+        unless ENV["CIRCLE_PULL_REQUEST"].to_s.empty?
+          UI.message("Running in pull request context, skipping slack notification.")
+          return false
+        end
+
+        true
+      end
+
+      def self.resolve_version(params)
+        version = params[:version] || begin
+          File.readlines(File.expand_path('.version', Dir.pwd)).first&.strip
+        rescue StandardError
+          nil
+        end
+
+        version || UI.user_error!("Missing version parameter")
+      end
+
+      def self.resolve_platform(params, repo_name)
+        params[:platform] || case repo_name
+                             when "purchases-android" then "Android"
+                             when "purchases-ios" then "iOS"
+                             else UI.user_error!("Missing platform parameter")
+                             end
+      end
+
+      def self.build_payload(message, success, fields, build_url)
+        detail_blocks = [
+          {
+            type: "section",
+            fields: fields.map do |field|
+              { type: "mrkdwn", text: "*#{field[:title]}*\n#{field[:value]}" }
+            end
+          }
+        ]
+
+        unless build_url.to_s.empty?
+          detail_blocks << {
+            type: "actions",
+            elements: [
               {
                 type: "button",
-                text: "View CircleCI logs",
-                url: ENV.fetch("CIRCLE_BUILD_URL", nil)
-              }
-            ],
-            fields: [
-              {
-                title: "SDK",
-                value: repo_name,
-                short: true
-              },
-              {
-                title: "SDK version",
-                value: major_version,
-                short: true
-              },
-              {
-                title: "Git branch",
-                value: Actions.sh("git rev-parse --abbrev-ref HEAD"),
-                short: true
-              },
-              {
-                title: "Environment",
-                value: environment,
-                short: true
-              },
-              {
-                title: "Test suite",
-                value: ENV.fetch("CIRCLE_JOB", nil),
-                short: false
+                text: { type: "plain_text", text: "View CircleCI logs" },
+                url: build_url
               }
             ]
           }
-        }
-
-        if message_binary_solo
-          slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
-
-          other_action.slack(
-            slack_options.merge(
-              message: message_binary_solo,
-              slack_url: slack_url_binary_solo
-            )
-          )
         end
 
-        other_action.slack(
-          slack_options.merge(
-            message: message_feed,
-            slack_url: slack_url_feed
-          )
-        )
+        {
+          text: message,
+          blocks: [
+            {
+              type: "section",
+              text: { type: "mrkdwn", text: message }
+            }
+          ],
+          attachments: [
+            {
+              color: success ? "good" : "danger",
+              blocks: detail_blocks
+            }
+          ]
+        }
       end
-      # rubocop:enable Metrics/PerceivedComplexity
+
+      def self.post_to_slack(slack_url, payload)
+        uri = URI.parse(slack_url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = uri.scheme == "https"
+
+        request = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
+        request.body = payload.to_json
+
+        response = http.request(request)
+
+        unless response.kind_of?(Net::HTTPSuccess)
+          UI.user_error!("Error sending Slack notification: #{response.code} #{response.body}")
+        end
+
+        UI.success("Successfully sent Slack notification")
+      end
 
       def self.description
         "Sends backend integration test results to Slack channels with detailed CircleCI context"
