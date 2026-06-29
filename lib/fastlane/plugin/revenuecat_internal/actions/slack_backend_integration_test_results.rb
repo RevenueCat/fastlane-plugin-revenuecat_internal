@@ -1,5 +1,8 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
+require 'net/http'
+require 'uri'
+require 'json'
 require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
@@ -47,71 +50,89 @@ module Fastlane
             failure_message
           end
 
-        message_binary_solo =
-          if !success && message_binary_solo_on_failure
-            failure_message
-          end
+        detail_fields = [
+          { title: "SDK", value: repo_name },
+          { title: "SDK version", value: major_version },
+          { title: "Git branch", value: Actions.sh("git rev-parse --abbrev-ref HEAD").strip },
+          { title: "Environment", value: environment },
+          { title: "Test suite", value: ENV.fetch("CIRCLE_JOB", nil) }
+        ]
+        build_url = ENV.fetch("CIRCLE_BUILD_URL", nil)
 
-        slack_options = {
-          success: success,
-          default_payloads: [],
-          attachment_properties: {
-            actions: [
+        if !success && message_binary_solo_on_failure
+          slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
+
+          post_to_slack(slack_url_binary_solo, build_payload(failure_message, success, detail_fields, build_url))
+        end
+
+        post_to_slack(slack_url_feed, build_payload(message_feed, success, detail_fields, build_url))
+      end
+      # rubocop:enable Metrics/PerceivedComplexity
+
+      # Builds a Block Kit message payload.
+      #
+      # The headline (which carries the on-call mention on failure) is placed in a top-level
+      # `blocks` section so it renders consistently across all Slack clients, including mobile.
+      # Legacy secondary attachments render mentions unreliably (they can show up as
+      # "@[group unavailable]" on mobile), so we only use an attachment to keep the colored
+      # status bar, and put its secondary content (the run details) in Block Kit blocks too.
+      # See https://docs.slack.dev/messaging/migrating-outmoded-message-compositions-to-blocks
+      def self.build_payload(message, success, fields, build_url)
+        detail_blocks = [
+          {
+            type: "section",
+            fields: fields.map do |field|
+              { type: "mrkdwn", text: "*#{field[:title]}*\n#{field[:value]}" }
+            end
+          }
+        ]
+
+        unless build_url.to_s.empty?
+          detail_blocks << {
+            type: "actions",
+            elements: [
               {
                 type: "button",
-                text: "View CircleCI logs",
-                url: ENV.fetch("CIRCLE_BUILD_URL", nil)
-              }
-            ],
-            fields: [
-              {
-                title: "SDK",
-                value: repo_name,
-                short: true
-              },
-              {
-                title: "SDK version",
-                value: major_version,
-                short: true
-              },
-              {
-                title: "Git branch",
-                value: Actions.sh("git rev-parse --abbrev-ref HEAD"),
-                short: true
-              },
-              {
-                title: "Environment",
-                value: environment,
-                short: true
-              },
-              {
-                title: "Test suite",
-                value: ENV.fetch("CIRCLE_JOB", nil),
-                short: false
+                text: { type: "plain_text", text: "View CircleCI logs" },
+                url: build_url
               }
             ]
           }
-        }
-
-        if message_binary_solo
-          slack_url_binary_solo = ENV.fetch("SLACK_URL_BINARY_SOLO") { UI.user_error!("Missing required SLACK_URL_BINARY_SOLO environment variable. Make sure to provide the slack-secrets CircleCI context.") }
-
-          other_action.slack(
-            slack_options.merge(
-              message: message_binary_solo,
-              slack_url: slack_url_binary_solo
-            )
-          )
         end
 
-        other_action.slack(
-          slack_options.merge(
-            message: message_feed,
-            slack_url: slack_url_feed
-          )
-        )
+        {
+          text: message,
+          blocks: [
+            {
+              type: "section",
+              text: { type: "mrkdwn", text: message }
+            }
+          ],
+          attachments: [
+            {
+              color: success ? "good" : "danger",
+              blocks: detail_blocks
+            }
+          ]
+        }
       end
-      # rubocop:enable Metrics/PerceivedComplexity
+
+      def self.post_to_slack(slack_url, payload)
+        uri = URI.parse(slack_url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = uri.scheme == "https"
+
+        request = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
+        request.body = payload.to_json
+
+        response = http.request(request)
+
+        unless response.kind_of?(Net::HTTPSuccess)
+          UI.user_error!("Error sending Slack notification: #{response.code} #{response.body}")
+        end
+
+        UI.success("Successfully sent Slack notification")
+      end
 
       def self.description
         "Sends backend integration test results to Slack channels with detailed CircleCI context"

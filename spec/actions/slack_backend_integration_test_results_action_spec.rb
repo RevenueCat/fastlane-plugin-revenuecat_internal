@@ -10,8 +10,6 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
     let(:repo_name) { 'purchases-ios' }
     let(:git_branch) { 'main' }
     let(:action_instance) { Fastlane::Actions::SlackBackendIntegrationTestResultsAction }
-    let(:mock_runner) { double('Runner') }
-    let(:mock_other_action) { double('OtherAction') }
 
     before(:each) do
       ENV['CI'] = 'true'
@@ -27,11 +25,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       allow(Fastlane::Actions).to receive(:sh)
         .with("git rev-parse --abbrev-ref HEAD")
         .and_return(git_branch)
-      allow(mock_other_action).to receive(:slack)
-      allow(mock_other_action).to receive(:runner).and_return(mock_runner)
-      allow(mock_runner).to receive(:trigger_action_by_name)
-      allow(action_instance).to receive(:runner).and_return(mock_runner)
-      allow(action_instance).to receive(:other_action).and_return(mock_other_action)
+      allow(action_instance).to receive(:post_to_slack)
     end
 
     after(:each) do
@@ -44,17 +38,31 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV['CIRCLE_PULL_REQUEST'] = @backup_circle_pull_request if @backup_circle_pull_request
     end
 
+    # Returns the headline text rendered in the top-level section block, which is where the
+    # on-call mention lives so it renders reliably on every Slack client (including mobile).
+    def headline_text(payload)
+      payload[:blocks].first[:text][:text]
+    end
+
+    def attachment(payload)
+      payload[:attachments].first
+    end
+
+    def field_values(payload)
+      attachment(payload)[:blocks].first[:fields].map { |field| field[:text] }
+    end
+
     describe 'when tests succeed' do
       it 'sends success message to feed channel only' do
         expected_message = "#{platform} backend integration tests finished successfully."
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: expected_message,
-            slack_url: slack_url_feed,
-            success: true
-          )
-        )
+        expect(action_instance).not_to receive(:post_to_slack).with(slack_url_binary_solo, anything)
+        expect(action_instance).to receive(:post_to_slack).once do |url, payload|
+          expect(url).to eq(slack_url_feed)
+          expect(payload[:text]).to eq(expected_message)
+          expect(headline_text(payload)).to eq(expected_message)
+          expect(attachment(payload)[:color]).to eq('good')
+        end
 
         action_instance.run(
           environment: environment,
@@ -64,29 +72,22 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         )
       end
 
-      it 'includes correct attachment fields' do
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            success: true,
-            default_payloads: [],
-            attachment_properties: hash_including(
-              fields: array_including(
-                hash_including(title: 'SDK', value: repo_name, short: true),
-                hash_including(title: 'SDK version', value: '8', short: true),
-                hash_including(title: 'Git branch', value: git_branch, short: true),
-                hash_including(title: 'Environment', value: environment, short: true),
-                hash_including(title: 'Test suite', value: circle_job, short: false)
-              ),
-              actions: array_including(
-                hash_including(
-                  type: 'button',
-                  text: 'View CircleCI logs',
-                  url: circle_build_url
-                )
-              )
-            )
+      it 'includes correct details and CircleCI logs button' do
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(field_values(payload)).to include(
+            "*SDK*\n#{repo_name}",
+            "*SDK version*\n8",
+            "*Git branch*\n#{git_branch}",
+            "*Environment*\n#{environment}",
+            "*Test suite*\n#{circle_job}"
           )
-        )
+
+          actions_block = attachment(payload)[:blocks].find { |block| block[:type] == 'actions' }
+          expect(actions_block).not_to be_nil
+          button = actions_block[:elements].first
+          expect(button[:text][:text]).to eq('View CircleCI logs')
+          expect(button[:url]).to eq(circle_build_url)
+        end
 
         action_instance.run(
           environment: environment,
@@ -101,15 +102,13 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'pings on-call in the feed channel by default' do
         expected_feed_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
 
-        expect(mock_other_action).not_to receive(:slack).with(hash_including(slack_url: slack_url_binary_solo))
-
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: expected_feed_message,
-            slack_url: slack_url_feed,
-            success: false
-          )
-        )
+        expect(action_instance).not_to receive(:post_to_slack).with(slack_url_binary_solo, anything)
+        expect(action_instance).to receive(:post_to_slack).once do |url, payload|
+          expect(url).to eq(slack_url_feed)
+          expect(payload[:text]).to eq(expected_feed_message)
+          expect(headline_text(payload)).to eq(expected_feed_message)
+          expect(attachment(payload)[:color]).to eq('danger')
+        end
 
         action_instance.run(
           environment: environment,
@@ -122,21 +121,14 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'also notifies binary-solo when message_binary_solo_on_failure is explicitly true' do
         expected_message = "<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed."
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: expected_message,
-            slack_url: slack_url_binary_solo,
-            success: false
-          )
-        ).ordered
-
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: expected_message,
-            slack_url: slack_url_feed,
-            success: false
-          )
-        ).ordered
+        expect(action_instance).to receive(:post_to_slack).once.ordered do |url, payload|
+          expect(url).to eq(slack_url_binary_solo)
+          expect(headline_text(payload)).to eq(expected_message)
+        end
+        expect(action_instance).to receive(:post_to_slack).once.ordered do |url, payload|
+          expect(url).to eq(slack_url_feed)
+          expect(headline_text(payload)).to eq(expected_message)
+        end
 
         action_instance.run(
           environment: environment,
@@ -148,7 +140,10 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       end
 
       it 'defaults to failure when success parameter is not provided' do
-        expect(mock_other_action).to receive(:slack).once
+        expect(action_instance).to receive(:post_to_slack).once do |url, payload|
+          expect(url).to eq(slack_url_feed)
+          expect(attachment(payload)[:color]).to eq('danger')
+        end
 
         action_instance.run(
           environment: environment,
@@ -160,7 +155,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
     describe 'version handling' do
       it 'uses provided version parameter' do
-        expect(mock_other_action).to receive(:slack).once
+        expect(action_instance).to receive(:post_to_slack).once
 
         action_instance.run(
           environment: environment,
@@ -175,15 +170,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
           .with(File.expand_path('.version', Dir.pwd))
           .and_return(["10.0.0\n"])
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            attachment_properties: hash_including(
-              fields: array_including(
-                hash_including(title: 'SDK version', value: '10')
-              )
-            )
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(field_values(payload)).to include("*SDK version*\n10")
+        end
 
         action_instance.run(
           environment: environment,
@@ -197,15 +186,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
           .with(File.expand_path('.version', Dir.pwd))
           .and_return(["  11.0.0  \n"])
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            attachment_properties: hash_including(
-              fields: array_including(
-                hash_including(title: 'SDK version', value: '11')
-              )
-            )
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(field_values(payload)).to include("*SDK version*\n11")
+        end
 
         action_instance.run(
           environment: environment,
@@ -237,11 +220,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'infers iOS from purchases-ios repo name' do
         ENV['CIRCLE_PROJECT_REPONAME'] = 'purchases-ios'
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: 'iOS backend integration tests finished successfully.'
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(headline_text(payload)).to eq('iOS backend integration tests finished successfully.')
+        end
 
         action_instance.run(
           environment: environment,
@@ -253,11 +234,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'infers Android from purchases-android repo name' do
         ENV['CIRCLE_PROJECT_REPONAME'] = 'purchases-android'
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: 'Android backend integration tests finished successfully.'
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(headline_text(payload)).to eq('Android backend integration tests finished successfully.')
+        end
 
         action_instance.run(
           environment: environment,
@@ -269,11 +248,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'uses explicit platform parameter over inferred value' do
         ENV['CIRCLE_PROJECT_REPONAME'] = 'purchases-android'
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: 'iOS backend integration tests finished successfully.'
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(headline_text(payload)).to eq('iOS backend integration tests finished successfully.')
+        end
 
         action_instance.run(
           environment: environment,
@@ -286,11 +263,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'succeeds when platform is explicitly provided despite unknown repo name' do
         ENV['CIRCLE_PROJECT_REPONAME'] = 'unknown-repo'
 
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            message: 'Android backend integration tests finished successfully.'
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(headline_text(payload)).to eq('Android backend integration tests finished successfully.')
+        end
 
         action_instance.run(
           environment: environment,
@@ -324,8 +299,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         expect(Fastlane::UI).to receive(:message)
           .with('Not running in CI environment, skipping slack notification.')
 
-        # Should not call slack
-        expect(mock_other_action).not_to receive(:slack)
+        expect(action_instance).not_to receive(:post_to_slack)
 
         action_instance.run(
           environment: environment,
@@ -341,7 +315,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         expect(Fastlane::UI).to receive(:message)
           .with('Not running in CI environment, skipping slack notification.')
 
-        expect(mock_other_action).not_to receive(:slack)
+        expect(action_instance).not_to receive(:post_to_slack)
 
         action_instance.run(
           environment: environment,
@@ -359,7 +333,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         expect(Fastlane::UI).to receive(:message)
           .with('Running in pull request context, skipping slack notification.')
 
-        expect(mock_other_action).not_to receive(:slack)
+        expect(action_instance).not_to receive(:post_to_slack)
 
         action_instance.run(
           environment: environment,
@@ -372,7 +346,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'continues normally when CIRCLE_PULL_REQUEST is not set' do
         ENV.delete('CIRCLE_PULL_REQUEST')
 
-        expect(mock_other_action).to receive(:slack).once
+        expect(action_instance).to receive(:post_to_slack).once
 
         action_instance.run(
           environment: environment,
@@ -385,7 +359,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'continues normally when CIRCLE_PULL_REQUEST is set to empty string' do
         ENV['CIRCLE_PULL_REQUEST'] = ''
 
-        expect(mock_other_action).to receive(:slack).once
+        expect(action_instance).to receive(:post_to_slack).once
 
         action_instance.run(
           environment: environment,
@@ -435,7 +409,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'does not require SLACK_URL_BINARY_SOLO when binary-solo notifications are disabled' do
         ENV.delete('SLACK_URL_BINARY_SOLO')
 
-        expect(mock_other_action).to receive(:slack).once
+        expect(action_instance).to receive(:post_to_slack).once
 
         action_instance.run(
           environment: environment,
@@ -448,15 +422,9 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
     describe 'major version extraction' do
       it 'extracts major version from semantic version' do
-        expect(mock_other_action).to receive(:slack).once.with(
-          hash_including(
-            attachment_properties: hash_including(
-              fields: array_including(
-                hash_including(title: 'SDK version', value: '12')
-              )
-            )
-          )
-        )
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(field_values(payload)).to include("*SDK version*\n12")
+        end
 
         action_instance.run(
           environment: environment,
