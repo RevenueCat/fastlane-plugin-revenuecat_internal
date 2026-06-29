@@ -61,7 +61,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
           expect(url).to eq(slack_url_feed)
           expect(payload[:text]).to eq(expected_message)
           expect(headline_text(payload)).to eq(expected_message)
-          expect(attachment(payload)[:color]).to eq('good')
+          expect(attachment(payload)[:color]).to eq('#36A64F')
         end
 
         action_instance.run(
@@ -107,7 +107,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
           expect(url).to eq(slack_url_feed)
           expect(payload[:text]).to eq(expected_feed_message)
           expect(headline_text(payload)).to eq(expected_feed_message)
-          expect(attachment(payload)[:color]).to eq('danger')
+          expect(attachment(payload)[:color]).to eq('#D00000')
         end
 
         action_instance.run(
@@ -142,7 +142,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       it 'defaults to failure when success parameter is not provided' do
         expect(action_instance).to receive(:post_to_slack).once do |url, payload|
           expect(url).to eq(slack_url_feed)
-          expect(attachment(payload)[:color]).to eq('danger')
+          expect(attachment(payload)[:color]).to eq('#D00000')
         end
 
         action_instance.run(

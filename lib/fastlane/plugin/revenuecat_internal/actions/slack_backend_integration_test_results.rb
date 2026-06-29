@@ -10,6 +10,9 @@ module Fastlane
     class SlackBackendIntegrationTestResultsAction < Action
       ON_CALL_SDK_MENTION = "<!subteam^S0939BTV0SY|oncall-sdk>"
 
+      SUCCESS_COLOR = "#36A64F"
+      FAILURE_COLOR = "#D00000"
+
       def self.run(params)
         return unless should_send_notification?
 
@@ -124,7 +127,7 @@ module Fastlane
           ],
           attachments: [
             {
-              color: success ? "good" : "danger",
+              color: success ? SUCCESS_COLOR : FAILURE_COLOR,
               blocks: detail_blocks
             }
           ]
