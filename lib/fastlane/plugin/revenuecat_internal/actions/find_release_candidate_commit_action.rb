@@ -1,0 +1,60 @@
+require 'fastlane/action'
+require 'fastlane_core/configuration/config_item'
+require_relative '../helper/app_release_train_helper'
+
+module Fastlane
+  module Actions
+    class FindReleaseCandidateCommitAction < Action
+      def self.run(params)
+        Helper::AppReleaseTrainHelper.find_candidate_commit(
+          params[:repo_name],
+          params[:github_token],
+          skip_label: params[:skip_label],
+          lookback: params[:lookback]
+        )
+      end
+
+      def self.description
+        "Finds the newest first-parent commit with an uploaded candidate build (a builds/* tag), walking past commits whose merged PR has the skip label, and failing on an untagged commit without it."
+      end
+
+      def self.authors
+        ["Josh Holtz"]
+      end
+
+      def self.return_value
+        "The SHA of the newest commit with a candidate build"
+      end
+
+      def self.available_options
+        [
+          FastlaneCore::ConfigItem.new(key: :repo_name,
+                                       env_name: "RC_INTERNAL_REPO_NAME",
+                                       description: "Name of the repo of the app",
+                                       optional: false,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :github_token,
+                                       env_name: "GITHUB_TOKEN",
+                                       description: "Github token to use to fetch PR labels",
+                                       optional: false,
+                                       sensitive: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :skip_label,
+                                       description: "PR label that marks merges which intentionally skip the candidate upload",
+                                       optional: true,
+                                       default_value: "upload:skip",
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :lookback,
+                                       description: "How many first-parent commits to walk before giving up",
+                                       optional: true,
+                                       default_value: 30,
+                                       type: Integer)
+        ]
+      end
+
+      def self.is_supported?(platform)
+        true
+      end
+    end
+  end
+end
