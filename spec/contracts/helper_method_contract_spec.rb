@@ -8,6 +8,7 @@ require 'set'
 # Complements verify_partial_doubles (which catches test-side mock mismatches)
 # by covering the implementation side.
 HELPER_CLASSES = {
+  'AppReleaseTrainHelper' => Fastlane::Helper::AppReleaseTrainHelper,
   'GitHubHelper' => Fastlane::Helper::GitHubHelper,
   'RevenuecatInternalHelper' => Fastlane::Helper::RevenuecatInternalHelper,
   'VersioningHelper' => Fastlane::Helper::VersioningHelper,
