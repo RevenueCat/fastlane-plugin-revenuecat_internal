@@ -2,6 +2,10 @@ require 'fastlane/action'
 require 'fastlane_core/ui/ui'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane/actions/pod_push'
+require 'open3'
+require 'net/http'
+require 'json'
+require 'uri'
 
 module Fastlane
   module Actions
@@ -10,6 +14,7 @@ module Fastlane
     class PodPushWithErrorHandlingAction < Action
       MAX_RETRIES = 3
       INITIAL_DELAY = 5
+      TRUNK_BASE_URL = 'https://trunk.cocoapods.org/api/v1/pods'
 
       def self.run(params)
         attempts = 0
@@ -27,12 +32,18 @@ module Fastlane
             )
             return true
           rescue StandardError => e
-            output_str = e.message
-
-            if duplicate_entry?(output_str)
-              FastlaneCore::UI.error("⚠️ Duplicate entry detected. Skipping push.")
+            # The push reported an error, but the pod may actually have been
+            # published: it was already on trunk from a previous run, or this
+            # push succeeded and only reported an error afterwards. `pod trunk
+            # push` surfaces "duplicate entry" only in its output, which fastlane
+            # truncates and omits from the raised error message when stdout is a
+            # TTY (>= 2.237.0), so the message is unreliable. Ask trunk directly.
+            if pod_published?(params[:path])
+              FastlaneCore::UI.important("✅ Pod is already published to CocoaPods trunk. Treating the push as successful.")
               return true
             end
+
+            output_str = e.message
 
             if retryable_error?(output_str) && attempts <= MAX_RETRIES
               delay = INITIAL_DELAY * (2**(attempts - 1))
@@ -54,8 +65,38 @@ module Fastlane
         false
       end
 
-      def self.duplicate_entry?(msg)
-        msg.include?("[!] Unable to accept duplicate entry for:")
+      # Returns true if the podspec's version is already published to CocoaPods
+      # trunk. Used to recover from a push that failed but nonetheless published
+      # the pod (or was already published). Any lookup failure returns false so
+      # the caller keeps treating the push as failed rather than silently
+      # swallowing a real error.
+      def self.pod_published?(path)
+        name, version = pod_name_and_version(path)
+        return false if name.nil? || version.nil?
+
+        trunk_has_version?(name, version)
+      end
+
+      def self.pod_name_and_version(path)
+        output, _error, status = Open3.capture3('pod', 'ipc', 'spec', path.to_s)
+        return [nil, nil] unless status.success?
+
+        spec = JSON.parse(output)
+        [spec['name'], spec['version']]
+      rescue StandardError => e
+        FastlaneCore::UI.important("⚠️ Could not read pod name/version from #{path}: #{e.message}")
+        [nil, nil]
+      end
+
+      def self.trunk_has_version?(name, version)
+        response = Net::HTTP.get_response(URI("#{TRUNK_BASE_URL}/#{name}"))
+        return false unless response.kind_of?(Net::HTTPSuccess)
+
+        versions = JSON.parse(response.body).fetch('versions', [])
+        versions.any? { |entry| entry['name'] == version }
+      rescue StandardError => e
+        FastlaneCore::UI.important("⚠️ Could not verify whether #{name} #{version} is on CocoaPods trunk: #{e.message}")
+        false
       end
 
       def self.retryable_error?(msg)
