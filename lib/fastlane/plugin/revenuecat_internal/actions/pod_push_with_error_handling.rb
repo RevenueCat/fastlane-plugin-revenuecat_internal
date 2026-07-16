@@ -2,7 +2,7 @@ require 'fastlane/action'
 require 'fastlane_core/ui/ui'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane/actions/pod_push'
-require 'open3'
+require 'fastlane/actions/read_podspec'
 require 'net/http'
 require 'json'
 require 'uri'
@@ -78,10 +78,7 @@ module Fastlane
       end
 
       def self.pod_name_and_version(path)
-        output, _error, status = Open3.capture3('pod', 'ipc', 'spec', path.to_s)
-        return [nil, nil] unless status.success?
-
-        spec = JSON.parse(output)
+        spec = Fastlane::Actions::ReadPodspecAction.run(path: path)
         [spec['name'], spec['version']]
       rescue StandardError => e
         FastlaneCore::UI.important("⚠️ Could not read pod name/version from #{path}: #{e.message}")

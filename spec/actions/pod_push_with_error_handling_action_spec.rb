@@ -147,43 +147,41 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       allow(FastlaneCore::UI).to receive(:important)
     end
 
-    # Stubs `pod ipc spec <path>` to return a spec JSON for the given name/version.
-    def stub_pod_ipc_spec(name:, version:, success: true)
-      status = instance_double(Process::Status, success?: success)
-      body = success ? { name: name, version: version }.to_json : ''
-      allow(Open3).to receive(:capture3).with('pod', 'ipc', 'spec', podspec_path).and_return([body, '', status])
+    # Stubs `read_podspec` to return a spec hash for the given name/version.
+    def stub_read_podspec(name:, version:)
+      allow(Fastlane::Actions::ReadPodspecAction).to receive(:run).with(path: podspec_path).and_return('name' => name, 'version' => version)
     end
 
     it 'returns true when the version is listed on trunk' do
-      stub_pod_ipc_spec(name: pod_name, version: pod_version)
+      stub_read_podspec(name: pod_name, version: pod_version)
       stub_request(:get, trunk_url).to_return(status: 200, body: { versions: [{ name: '5.80.0' }, { name: pod_version }] }.to_json)
 
       expect(described_class.pod_published?(podspec_path)).to eq(true)
     end
 
     it 'returns false when the version is not listed on trunk' do
-      stub_pod_ipc_spec(name: pod_name, version: pod_version)
+      stub_read_podspec(name: pod_name, version: pod_version)
       stub_request(:get, trunk_url).to_return(status: 200, body: { versions: [{ name: '5.80.0' }] }.to_json)
 
       expect(described_class.pod_published?(podspec_path)).to eq(false)
     end
 
     it 'returns false when the trunk request is not successful' do
-      stub_pod_ipc_spec(name: pod_name, version: pod_version)
+      stub_read_podspec(name: pod_name, version: pod_version)
       stub_request(:get, trunk_url).to_return(status: 404, body: '')
 
       expect(described_class.pod_published?(podspec_path)).to eq(false)
     end
 
     it 'returns false when the trunk request raises' do
-      stub_pod_ipc_spec(name: pod_name, version: pod_version)
+      stub_read_podspec(name: pod_name, version: pod_version)
       stub_request(:get, trunk_url).to_raise(SocketError.new('no connection'))
 
       expect(described_class.pod_published?(podspec_path)).to eq(false)
     end
 
     it 'returns false when reading the podspec fails' do
-      stub_pod_ipc_spec(name: pod_name, version: pod_version, success: false)
+      allow(Fastlane::Actions::ReadPodspecAction).to receive(:run).with(path: podspec_path).and_raise(StandardError.new('cannot read podspec'))
 
       expect(described_class.pod_published?(podspec_path)).to eq(false)
     end
