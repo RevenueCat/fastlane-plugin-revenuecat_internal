@@ -43,21 +43,21 @@ module Fastlane
               return true
             end
 
-            output_str = e.message
-
-            if retryable_error?(output_str) && attempts <= MAX_RETRIES
+            # `pod trunk push` exits non-zero for every kind of failure, and
+            # fastlane (>= 2.237.0) omits the underlying command output from the
+            # raised error's message, so we can't reliably tell transient
+            # failures (CocoaPods 500s, GitHub timeouts, stale spec index) apart
+            # from permanent ones. Retry on any failure. A push that actually
+            # published is already short-circuited by the pod_published? check
+            # above, so retries can't turn into duplicate-entry failures.
+            if attempts <= MAX_RETRIES
               delay = INITIAL_DELAY * (2**(attempts - 1))
-              FastlaneCore::UI.important("⚠️ Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
+              FastlaneCore::UI.important("⚠️ Pod push failed: #{e.message} Retrying in #{delay} seconds... (#{attempts}/#{MAX_RETRIES})")
               sleep(delay)
               next
             end
 
-            if attempts > MAX_RETRIES
-              FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries due to persistent server issues.")
-              return false
-            end
-
-            FastlaneCore::UI.error("❌ Pod push failed with an unknown error and won't retry. You can rerun this job using SSH. Error: #{e.message}")
+            FastlaneCore::UI.error("❌ Pod push failed after #{MAX_RETRIES} retries. You can rerun this job using SSH. Error: #{e.message}")
             raise PodPushUnknownError, "❌ Pod push failed: #{e.message}"
           end
         end
@@ -74,7 +74,9 @@ module Fastlane
         name, version = pod_name_and_version(path)
         return false if name.nil? || version.nil?
 
-        trunk_has_version?(name, version)
+        published = trunk_has_version?(name, version)
+        FastlaneCore::UI.message("ℹ️ #{name} #{version} is not yet published to CocoaPods trunk.") unless published
+        published
       end
 
       def self.pod_name_and_version(path)
@@ -96,14 +98,8 @@ module Fastlane
         false
       end
 
-      def self.retryable_error?(msg)
-        msg.include?("[!] Calling the GitHub commit API timed out.") ||
-          msg.include?("[!] An internal server error occurred. Please check for any known status issues at https://twitter.com/CocoaPods and try again later.") ||
-          msg.include?("None of your spec sources contain a spec satisfying the dependency")
-      end
-
       def self.description
-        'Pushes a podspec to CocoaPods with retry handling for GitHub timeouts and internal server errors.'
+        'Pushes a podspec to CocoaPods, retrying on failure and tolerating pods that are already published.'
       end
 
       def self.authors
@@ -111,11 +107,11 @@ module Fastlane
       end
 
       def self.return_value
-        'Returns true if successful. Retries up to 3 times on GitHub API timeouts and internal server errors. Returns false on persistent failure.'
+        'Returns true if the pod was pushed or is already on CocoaPods trunk. Retries up to 3 times on failure and raises PodPushUnknownError if all attempts fail.'
       end
 
       def self.details
-        'A custom Fastlane action that wraps `pod_push`, handles duplicate entry errors, and retries on GitHub API timeouts and internal server errors.'
+        'A custom Fastlane action that wraps `pod_push`, treats an already-published pod as success by checking CocoaPods trunk, and retries on any push failure.'
       end
 
       def self.is_supported?(platform)

@@ -36,14 +36,17 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       expect(FastlaneCore::UI).to have_received(:important).with("✅ Pod is already published to CocoaPods trunk. Treating the push as successful.")
     end
 
-    it 'raises a PodPushUnknownError when the push errors and the pod is not on trunk' do
+    it 'retries then raises a PodPushUnknownError when the push keeps failing and the pod is not on trunk' do
       allow(Fastlane::Actions::PodPushAction).to receive(:run).and_raise(StandardError.new('Some unexpected failure'))
+      allow_any_instance_of(Object).to receive(:sleep)
 
-      expect(FastlaneCore::UI).to receive(:error).with("❌ Pod push failed with an unknown error and won't retry. You can rerun this job using SSH. Error: Some unexpected failure")
+      expect(FastlaneCore::UI).to receive(:important).with(/Retrying in \d+ seconds/).exactly(3).times
 
       expect do
         described_class.run(path: podspec_path)
       end.to raise_error(Fastlane::Actions::PodPushUnknownError, "❌ Pod push failed: Some unexpected failure")
+
+      expect(Fastlane::Actions::PodPushAction).to have_received(:run).exactly(4).times
     end
 
     it 'retries up to 3 times on GitHub API timeout' do
@@ -126,14 +129,16 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       expect(result).to eq(true) # ✅ Ensure success on the 4th attempt
     end
 
-    it 'returns false after exhausting retries on a persistent retryable error' do
+    it 'raises after exhausting retries when the pod never lands on trunk' do
       allow(Fastlane::Actions::PodPushAction).to receive(:run).and_raise(StandardError.new('[!] Calling the GitHub commit API timed out.'))
       allow_any_instance_of(Object).to receive(:sleep)
 
-      result = described_class.run(path: podspec_path)
+      expect do
+        described_class.run(path: podspec_path)
+      end.to raise_error(Fastlane::Actions::PodPushUnknownError)
 
-      expect(result).to eq(false)
-      expect(FastlaneCore::UI).to have_received(:error).with("❌ Pod push failed after 3 retries due to persistent server issues.")
+      expect(Fastlane::Actions::PodPushAction).to have_received(:run).exactly(4).times
+      expect(FastlaneCore::UI).to have_received(:error).with("❌ Pod push failed after 3 retries. You can rerun this job using SSH. Error: [!] Calling the GitHub commit API timed out.")
     end
   end
 
@@ -145,6 +150,7 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
 
     before do
       allow(FastlaneCore::UI).to receive(:important)
+      allow(FastlaneCore::UI).to receive(:message)
     end
 
     # Stubs `read_podspec` to return a spec hash for the given name/version.
@@ -159,11 +165,12 @@ describe Fastlane::Actions::PodPushWithErrorHandlingAction do
       expect(described_class.pod_published?(podspec_path)).to eq(true)
     end
 
-    it 'returns false when the version is not listed on trunk' do
+    it 'returns false and logs when the version is not listed on trunk' do
       stub_read_podspec(name: pod_name, version: pod_version)
       stub_request(:get, trunk_url).to_return(status: 200, body: { versions: [{ name: '5.80.0' }] }.to_json)
 
       expect(described_class.pod_published?(podspec_path)).to eq(false)
+      expect(FastlaneCore::UI).to have_received(:message).with("ℹ️ #{pod_name} #{pod_version} is not yet published to CocoaPods trunk.")
     end
 
     it 'returns false when the trunk request is not successful' do
