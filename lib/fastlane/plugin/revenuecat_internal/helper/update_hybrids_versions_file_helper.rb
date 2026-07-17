@@ -41,9 +41,11 @@ module Fastlane
         path = 'gradle/libs.versions.toml'
         repo_name = 'purchases-android'
         contents = get_contents_file_github(path, repo_name, android_version, github_token)
-        matches = contents.match('bc8 = "(.*)"').captures
-        UI.user_error!("Could not find android billing client version in #{repo_name} in file '#{path}'") if matches.length != 1
-        matches[0]
+        # purchases-android has used different key names for the Billing Library version over time
+        # (e.g. `billingClient` on main, `bc8` while the BC7/BC8 dimension existed), so try each.
+        match = contents.match('billingClient = "(.*)"') || contents.match('bc8 = "(.*)"')
+        UI.user_error!("Could not find android billing client version in #{repo_name} in file '#{path}'") if match.nil?
+        match.captures[0]
       end
 
       private_class_method def self.get_contents_file_github(file_path, repo_name, ref = 'main', github_token = nil)
