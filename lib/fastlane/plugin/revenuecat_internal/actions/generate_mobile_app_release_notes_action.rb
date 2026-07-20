@@ -12,8 +12,14 @@ module Fastlane
 
       STORE_INSTRUCTIONS = {
         'ios' => "These notes are for the App Store \"What's New\" section.",
-        'android' => "These notes are for the Google Play \"What's new\" section. " \
-                     "The full text must not exceed 500 characters."
+        'android' => "These notes are for the Google Play \"What's new\" section."
+      }.freeze
+
+      # Store character limits for the release notes field, used as the default
+      # max length when the caller does not pass one explicitly.
+      DEFAULT_MAX_LENGTHS = {
+        'ios' => 4000,
+        'android' => 500
       }.freeze
 
       def self.run(params)
@@ -23,12 +29,15 @@ module Fastlane
           UI.user_error!("Unsupported platform '#{platform}'. Supported platforms: #{STORE_INSTRUCTIONS.keys.join(', ')}")
         end
 
+        max_length = params[:max_length] || DEFAULT_MAX_LENGTHS[platform]
+
         prompt = <<~PROMPT
           #{File.read(PROMPT_PATH)}
 
           ## Target store
 
           #{store_instructions}
+          The full text must not exceed #{max_length} characters.
 
           ## Changes in this release
 
@@ -50,6 +59,10 @@ module Fastlane
 
         release_notes = stdout.strip
         UI.user_error!("Generating release notes produced empty output") if release_notes.empty?
+
+        if release_notes.length > max_length
+          UI.user_error!("Generated release notes are #{release_notes.length} characters, which exceeds the #{max_length} character limit for '#{platform}'")
+        end
 
         UI.message("Generated release notes:\n#{release_notes}")
         release_notes
@@ -91,6 +104,10 @@ module Fastlane
                                        description: "Maximum number of seconds to wait for the Claude CLI before failing",
                                        optional: true,
                                        default_value: 120,
+                                       type: Integer),
+          FastlaneCore::ConfigItem.new(key: :max_length,
+                                       description: "Maximum number of characters allowed in the release notes. Injected into the prompt and enforced on the output. Defaults to the store limit (4000 for ios, 500 for android)",
+                                       optional: true,
                                        type: Integer)
         ]
       end
