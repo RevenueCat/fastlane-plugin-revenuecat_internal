@@ -10,12 +10,13 @@ module Fastlane
           params[:repo_name],
           params[:github_token],
           skip_label: params[:skip_label],
-          lookback: params[:lookback]
+          lookback: params[:lookback],
+          allow_unbuilt: params[:allow_unbuilt]
         )
       end
 
       def self.description
-        "Finds the newest first-parent commit with an uploaded candidate build (a builds/* tag), walking past commits whose merged PR has the skip label, and failing on an untagged commit without it."
+        "Finds the newest first-parent commit with an uploaded candidate build (a builds/* tag). Untagged commits fail the walk unless their merged PR has the skip label, or allow_unbuilt is set (for repos that upload on a schedule rather than per merge)."
       end
 
       def self.authors
@@ -48,7 +49,12 @@ module Fastlane
                                        description: "How many first-parent commits to walk before giving up",
                                        optional: true,
                                        default_value: 30,
-                                       type: Integer)
+                                       type: Integer),
+          FastlaneCore::ConfigItem.new(key: :allow_unbuilt,
+                                       description: "Treat untagged commits as normal (uploads happen on a schedule, not per merge) instead of failing without the skip label",
+                                       optional: true,
+                                       default_value: false,
+                                       type: Boolean)
         ]
       end
 

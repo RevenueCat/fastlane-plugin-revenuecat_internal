@@ -2,7 +2,7 @@ describe Fastlane::Actions::FindReleaseCandidateCommitAction do
   describe '#run' do
     it 'calls the helper with the appropriate parameters' do
       expect(Fastlane::Helper::AppReleaseTrainHelper).to receive(:find_candidate_commit)
-        .with('mock-repo-name', 'mock-github-token', skip_label: 'upload:skip', lookback: 30)
+        .with('mock-repo-name', 'mock-github-token', skip_label: 'upload:skip', lookback: 30, allow_unbuilt: false)
         .and_return('abc123')
         .once
 
@@ -10,7 +10,8 @@ describe Fastlane::Actions::FindReleaseCandidateCommitAction do
         repo_name: 'mock-repo-name',
         github_token: 'mock-github-token',
         skip_label: 'upload:skip',
-        lookback: 30
+        lookback: 30,
+        allow_unbuilt: false
       )
       expect(sha).to eq('abc123')
     end
@@ -18,7 +19,7 @@ describe Fastlane::Actions::FindReleaseCandidateCommitAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::FindReleaseCandidateCommitAction.available_options.size).to eq(4)
+      expect(Fastlane::Actions::FindReleaseCandidateCommitAction.available_options.size).to eq(5)
     end
 
     it 'has the documented defaults' do
@@ -26,6 +27,7 @@ describe Fastlane::Actions::FindReleaseCandidateCommitAction do
       defaults = options.to_h { |option| [option.key, option.default_value] }
       expect(defaults[:skip_label]).to eq('upload:skip')
       expect(defaults[:lookback]).to eq(30)
+      expect(defaults[:allow_unbuilt]).to eq(false)
     end
   end
 end
