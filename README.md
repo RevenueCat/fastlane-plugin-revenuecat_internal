@@ -25,6 +25,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `get_latest_github_release_within_same_major`: This action will return the latest release found in github for the same major version as the one given as parameter.
 - `update_hybrids_versions_file`: This action is meant for hybrid sdks only. It will update the `VERSIONS.md` file given with a new entry including the new version if the SDK and the iOS, Android and hybrid common sdk versions.
 - `validate_version_not_in_maven_central`: This action checks if a specific version of Maven artifacts already exists in Maven Central before deployment. It prevents accidental re-releases by failing if any of the specified artifacts are already published.
+- `generate_mobile_app_release_notes`: This action generates customer-facing release notes for the RevenueCat mobile app in the on-brand voice using the Claude CLI. It takes the list of changes and the target store (`ios` or `android`, which enforces Google Play's 500 character limit) and returns the generated notes as a String.
 
 ## Example
 

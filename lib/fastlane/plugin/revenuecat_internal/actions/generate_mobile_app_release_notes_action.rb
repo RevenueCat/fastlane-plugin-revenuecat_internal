@@ -2,6 +2,7 @@ require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane_core/ui/ui'
 require 'open3'
+require 'timeout'
 require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
@@ -37,7 +38,14 @@ module Fastlane
         PROMPT
 
         command = [params[:claude_binary], '-p', '--model', params[:model]]
-        stdout, stderr, status = Open3.capture3(*command, stdin_data: prompt)
+        timeout = params[:timeout]
+        begin
+          stdout, stderr, status = Timeout.timeout(timeout) do
+            Open3.capture3(*command, stdin_data: prompt)
+          end
+        rescue Timeout::Error
+          UI.user_error!("Generating release notes with '#{command.join(' ')}' timed out after #{timeout} seconds")
+        end
         UI.user_error!("Generating release notes with '#{command.join(' ')}' failed: #{stderr}") unless status.success?
 
         release_notes = stdout.strip
@@ -78,7 +86,12 @@ module Fastlane
                                        description: "Model to use for generation",
                                        optional: true,
                                        default_value: "claude-sonnet-4-6",
-                                       type: String)
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :timeout,
+                                       description: "Maximum number of seconds to wait for the Claude CLI before failing",
+                                       optional: true,
+                                       default_value: 120,
+                                       type: Integer)
         ]
       end
 

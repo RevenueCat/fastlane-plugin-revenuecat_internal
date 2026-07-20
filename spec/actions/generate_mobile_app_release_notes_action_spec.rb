@@ -64,6 +64,17 @@ describe Fastlane::Actions::GenerateMobileAppReleaseNotesAction do
       end.to raise_exception(FastlaneCore::Interface::FastlaneError, /failed: boom/)
     end
 
+    it 'fails when the claude cli times out' do
+      allow(Open3).to receive(:capture3).and_raise(Timeout::Error)
+      expect do
+        Fastlane::Actions::GenerateMobileAppReleaseNotesAction.run(
+          changes: changes,
+          platform: 'ios',
+          timeout: 5
+        )
+      end.to raise_exception(FastlaneCore::Interface::FastlaneError, /timed out after 5 seconds/)
+    end
+
     it 'fails when the output is empty' do
       allow(Open3).to receive(:capture3).and_return(["\n", '', success_status])
       expect do
