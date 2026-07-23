@@ -434,6 +434,34 @@ describe Fastlane::Helper::AppReleaseTrainHelper do
         described_class.find_candidate_commit(repo_name, github_token, skip_label: "upload:skip", lookback: 30)
       end.to raise_error(FastlaneCore::Interface::FastlaneError, /No candidate build found in the last 30 commits/)
     end
+
+    context 'with allow_unbuilt: true' do
+      it 'walks past untagged commits without fetching labels and warns how many were skipped' do
+        stub_rev_list([sha_a, sha_b])
+        allow(described_class).to receive(:builds_tags_at).with(sha_a).and_return([])
+        allow(described_class).to receive(:builds_tags_at).with(sha_b).and_return(["builds/1.2.3-455"])
+        expect(described_class).not_to receive(:pr_labels_for)
+        expect(FastlaneCore::UI).to receive(:important).with(/1 newer commit\(s\) have no candidate build/)
+        result = described_class.find_candidate_commit(repo_name, github_token, skip_label: "upload:skip", lookback: 30, allow_unbuilt: true)
+        expect(result).to eq(sha_b)
+      end
+
+      it 'does not warn when the newest commit has a candidate' do
+        stub_rev_list([sha_a])
+        allow(described_class).to receive(:builds_tags_at).with(sha_a).and_return(["builds/1.2.3-456"])
+        expect(FastlaneCore::UI).not_to receive(:important)
+        result = described_class.find_candidate_commit(repo_name, github_token, skip_label: "upload:skip", lookback: 30, allow_unbuilt: true)
+        expect(result).to eq(sha_a)
+      end
+
+      it 'fails when no candidate exists within the lookback window' do
+        stub_rev_list([sha_a, sha_b])
+        allow(described_class).to receive(:builds_tags_at).and_return([])
+        expect do
+          described_class.find_candidate_commit(repo_name, github_token, skip_label: "upload:skip", lookback: 30, allow_unbuilt: true)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /No candidate build found in the last 30 commits/)
+      end
+    end
   end
 
   describe '.release_fork_point' do

@@ -200,28 +200,45 @@ module Fastlane
                .split("\n").map(&:strip).select { |tag| tag.start_with?("builds/") }
       end
 
-      # Newest main commit with an uploaded candidate. Skip-labeled merges never
-      # upload, so the walk passes over them; an untagged commit that should have
-      # uploaded fails the cut rather than being silently dropped from the release.
-      def self.find_candidate_commit(repo_name, github_token, skip_label:, lookback:)
+      # Newest main commit with an uploaded candidate.
+      #
+      # With allow_unbuilt: false (per-merge uploads), an untagged commit is only
+      # expected when its merged PR carries the skip label; anything else fails the
+      # cut rather than being silently dropped from the release.
+      # With allow_unbuilt: true (scheduled uploads), untagged commits are the
+      # normal state between builds; the walk passes over them and reports how
+      # many will not be in the release.
+      # rubocop:disable Metrics/PerceivedComplexity
+      def self.find_candidate_commit(repo_name, github_token, skip_label:, lookback:, allow_unbuilt: false)
         ensure_full_git_history
         Actions.sh("git", "fetch", "--tags", "--force", log: false)
         shas = Actions.sh("git", "rev-list", "--first-parent", "-n", lookback.to_s, "HEAD", log: false)
                       .split("\n").map(&:strip).reject(&:empty?)
+        walked = 0
         shas.each do |sha|
-          return sha if builds_tags_at(sha).any?
-
-          subject = Actions.sh("git", "log", "-1", "--pretty=format:%s", sha, log: false).strip
-          pr_number = pr_number_from_subject(subject)
-          labels = pr_number ? pr_labels_for(pr_number, repo_name, github_token) : []
-          unless labels.include?(skip_label)
-            UI.user_error!("#{sha[0, 8]} (#{subject}) has no candidate build and is not #{skip_label}. " \
-                           "Its upload may still be running or may have failed — wait for it or re-run the upload on it, then re-cut.")
+          if builds_tags_at(sha).any?
+            if walked > 0 && allow_unbuilt
+              UI.important("#{walked} newer commit(s) have no candidate build yet and will not be in this release. " \
+                           "To include them, trigger an upload and re-cut.")
+            end
+            return sha
           end
-          UI.message("Walking past #{sha[0, 8]} (#{skip_label} — no candidate expected)")
+
+          unless allow_unbuilt
+            subject = Actions.sh("git", "log", "-1", "--pretty=format:%s", sha, log: false).strip
+            pr_number = pr_number_from_subject(subject)
+            labels = pr_number ? pr_labels_for(pr_number, repo_name, github_token) : []
+            unless labels.include?(skip_label)
+              UI.user_error!("#{sha[0, 8]} (#{subject}) has no candidate build and is not #{skip_label}. " \
+                             "Its upload may still be running or may have failed — wait for it or re-run the upload on it, then re-cut.")
+            end
+            UI.message("Walking past #{sha[0, 8]} (#{skip_label} — no candidate expected)")
+          end
+          walked += 1
         end
         UI.user_error!("No candidate build found in the last #{lookback} commits.")
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       # The commit on the main branch this release branch was cut from.
       def self.release_fork_point(main_branch)
