@@ -17,8 +17,8 @@ module Fastlane
   BUMP_PER_LABEL = {
     major: %w[pr:breaking].to_set,
     minor: %w[pr:feat pr:force_minor].to_set,
-    patch: %w[pr:fix pr:dependencies pr:phc_dependencies pr:force_patch].to_set,
-    skip: %w[pr:other pr:next_release].to_set
+    patch: %w[pr:fix pr:phc_dependencies pr:force_patch].to_set,
+    skip: %w[pr:other pr:next_release pr:dependencies].to_set
   }
 
   module Helper
