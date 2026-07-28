@@ -1049,6 +1049,12 @@ describe Fastlane::Helper::VersioningHelper do
     let(:get_changelog_ignore_and_other_label_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/changelog_ignore_and_other_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
+    let(:get_dependencies_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/dependencies_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
+    let(:get_dependencies_and_force_patch_label_commit_response) do
+      { body: File.read("#{File.dirname(__FILE__)}/../test_files/dependencies_and_force_patch_get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
+    end
     let(:get_ci_commit_response) do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_819dc620db5608fb952c852038a3560554161707.json") }
     end
@@ -1240,6 +1246,46 @@ describe Fastlane::Helper::VersioningHelper do
       )
       expect(next_version).to eq("1.11.0")
       expect(type_of_bump).to eq(:skip)
+    end
+
+    it 'skips version bump if only labeled as dependencies' do
+      # Renovate PRs inherit pr:dependencies from the shared preset. On their own they should
+      # not trigger a release; only native SDK bumps (which also carry pr:force_patch/pr:force_minor) do.
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_dependencies_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil
+      )
+      expect(next_version).to eq("1.11.0")
+      expect(type_of_bump).to eq(:skip)
+    end
+
+    it 'determines next version as patch if labeled as both dependencies and force_patch' do
+      # Native dependency bumps carry both pr:dependencies (for changelog categorization) and
+      # pr:force_patch, which is what actually forces the patch release.
+      hashes_to_responses.each_key do |key|
+        hashes_to_responses[key] = get_dependencies_and_force_patch_label_commit_response
+      end
+      setup_commit_search_stubs(hashes_to_responses)
+      mock_commits_since_last_release('6d37c766b6da55dcab67c201c93ba3d4ca538e55', get_commits_response_patch)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil
+      )
+      expect(next_version).to eq("1.11.1")
+      expect(type_of_bump).to eq(:patch)
     end
 
     it 'skips next version if no release is needed' do
