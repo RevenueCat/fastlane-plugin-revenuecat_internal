@@ -256,16 +256,18 @@ describe Fastlane::Helper::GitHubHelper do
         expect(items.first['number']).to eq(897)
       end
 
-      it 'ignores associated PRs that merely contain the commit' do
-        # The endpoint also lists PRs whose head contained the commit. Only the PR
-        # GitHub merged as this exact commit describes the change being released.
-        containing_pr = stacked_pr.merge(
+      it 'ignores associated PRs whose own merge commit is not this commit' do
+        # A PR merged into someone's feature branch is also associated with the
+        # commits of that branch, but its merge commit lives on the feature branch
+        # and gets squashed away when the outer PR merges. Only the PR GitHub merged
+        # as this exact commit belongs in the changelog.
+        pr_merged_into_a_feature_branch = stacked_pr.merge(
           'number' => 898,
           'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
         )
         allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
           .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
-          .and_return({ body: [containing_pr, stacked_pr].to_json })
+          .and_return({ body: [pr_merged_into_a_feature_branch, stacked_pr].to_json })
 
         items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
           hash, github_token, 0, 'mock-repo-name', 'main'
