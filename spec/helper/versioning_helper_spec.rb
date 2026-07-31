@@ -922,10 +922,8 @@ describe Fastlane::Helper::VersioningHelper do
         changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
           'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil
         )
-        # The commit body is dropped: for a squashed commit it holds the entire PR
-        # description, which has no place in a changelog entry.
         expect(changelog).to eq("### 🔄 Other Changes\n" \
-                                "* Fix flaky race condition (#42) via Antonio Pallares")
+                                "* Fix flaky race condition (#42)\n\n* inner commit details via Antonio Pallares")
       end
 
       it 'does not hit the direct PR endpoint when enabled but commit subject has no PR reference' do
