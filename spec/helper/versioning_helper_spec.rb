@@ -12,6 +12,11 @@ AppendPhcVersionIfNecessaryParams = Struct.new(
 describe Fastlane::Helper::VersioningHelper do
   before(:each) do
     allow(Fastlane::Actions).to receive(:git_branch).and_return('main')
+    # Commits with no associated PR are the default; the specs that exercise the
+    # commit-association lookup override this stub.
+    allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+      .with(hash_including(path: %r{/commits/[0-9a-f]+/pulls\z}))
+      .and_return({ body: '[]' })
   end
 
   let(:all_existing_tags) { ['0.1.0', '0.1.1', '1.11.0', '1.1.1.1', '1.1.1-alpha.1', '1.10.1'] }
@@ -917,8 +922,10 @@ describe Fastlane::Helper::VersioningHelper do
         changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
           'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil
         )
+        # The commit body is dropped: for a squashed commit it holds the entire PR
+        # description, which has no place in a changelog entry.
         expect(changelog).to eq("### 🔄 Other Changes\n" \
-                                "* Fix flaky race condition (#42)\n\n* inner commit details via Antonio Pallares")
+                                "* Fix flaky race condition (#42) via Antonio Pallares")
       end
 
       it 'does not hit the direct PR endpoint when enabled but commit subject has no PR reference' do
@@ -952,6 +959,70 @@ describe Fastlane::Helper::VersioningHelper do
         )
         expect(changelog).to eq("### 🔄 Other Changes\n" \
                                 "* Direct push without PR reference via Antonio Pallares")
+      end
+    end
+
+    context 'when a commit came from a stacked PR' do
+      let(:stacked_sha) { 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }
+      let(:commits_response) do
+        {
+          body: JSON.generate(
+            'commits' => [
+              {
+                'sha' => stacked_sha,
+                'commit' => {
+                  'author' => { 'name' => 'Antonio Pallares' },
+                  'message' => "Add maestro E2E test for purchase through paywall (#837)\n\n" \
+                               "## Summary\nA long PR description that must not reach the changelog."
+                }
+              }
+            ]
+          )
+        }
+      end
+      let(:associated_prs_response) do
+        {
+          body: JSON.generate(
+            [{
+              'number' => 837,
+              'title' => 'Add maestro E2E test for purchase through paywall',
+              'user' => { 'login' => 'ajpallares' },
+              'labels' => [{ 'name' => 'pr:feat' }],
+              'merged_at' => '2026-07-31T11:28:16Z',
+              'merge_commit_sha' => stacked_sha,
+              'base' => { 'ref' => 'e2e-tests-app' }
+            }]
+          )
+        }
+      end
+
+      before do
+        setup_tag_stubs
+        mock_commits_since_last_release(stacked_sha, commits_response)
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{stacked_sha}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return({ body: JSON.generate('items' => []) })
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/repos/RevenueCat/mock-repo-name/commits/#{stacked_sha}/pulls",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return(associated_prs_response)
+      end
+
+      it 'classifies and attributes it like any other PR, without opting in' do
+        changelog = Fastlane::Helper::VersioningHelper.auto_generate_changelog(
+          'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil
+        )
+        expect(changelog).to eq("## RevenueCat SDK\n" \
+                                "### ✨ New Features\n" \
+                                "* Add maestro E2E test for purchase through paywall (#837) " \
+                                "via Antonio Pallares (@ajpallares)")
       end
     end
 
@@ -1593,6 +1664,65 @@ describe Fastlane::Helper::VersioningHelper do
         )
         expect(type_of_bump).to eq(:skip)
         expect(next_version).to eq("1.11.0")
+      end
+    end
+
+    context 'when a commit came from a stacked PR' do
+      let(:stacked_sha) { 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }
+      let(:commits_response) do
+        {
+          body: JSON.generate(
+            'commits' => [
+              {
+                'sha' => stacked_sha,
+                'commit' => {
+                  'author' => { 'name' => 'Antonio Pallares' },
+                  'message' => 'Add maestro E2E test for purchase through paywall (#837)'
+                }
+              }
+            ]
+          )
+        }
+      end
+
+      before do
+        setup_tag_stubs
+        mock_commits_since_last_release(stacked_sha, commits_response)
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/search/issues?q=repo:RevenueCat/mock-repo-name+is:pr+base:main+SHA:#{stacked_sha}",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return({ body: JSON.generate('items' => []) })
+      end
+
+      it 'uses the PR labels to determine the bump, without opting in' do
+        allow(Fastlane::Actions::GithubApiAction).to receive(:run)
+          .with(server_url: server_url,
+                path: "/repos/RevenueCat/mock-repo-name/commits/#{stacked_sha}/pulls",
+                http_method: http_method,
+                body: {},
+                api_token: 'mock-github-token')
+          .and_return({
+                        body: JSON.generate(
+                          [{
+                            'number' => 837,
+                            'title' => 'Add maestro E2E test for purchase through paywall',
+                            'user' => { 'login' => 'ajpallares' },
+                            'labels' => [{ 'name' => 'pr:feat' }],
+                            'merged_at' => '2026-07-31T11:28:16Z',
+                            'merge_commit_sha' => stacked_sha,
+                            'base' => { 'ref' => 'e2e-tests-app' }
+                          }]
+                        )
+                      })
+
+        next_version, type_of_bump = Fastlane::Helper::VersioningHelper.determine_next_version_using_labels(
+          'mock-repo-name', 'mock-github-token', 0, false, nil
+        )
+        expect(type_of_bump).to eq(:minor)
+        expect(next_version).to eq("1.12.0")
       end
     end
   end

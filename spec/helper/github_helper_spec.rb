@@ -9,6 +9,14 @@ describe Fastlane::Helper::GitHubHelper do
       { body: File.read("#{File.dirname(__FILE__)}/../test_files/get_commit_sha_a72c0435ecf71248f311900475e881cc07ac2eaf.json") }
     end
 
+    before do
+      # Commits with no associated PR are the default; the specs that exercise the
+      # commit-association lookup override this stub.
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: %r{/commits/[0-9a-f]+/pulls\z}))
+        .and_return({ body: '[]' })
+    end
+
     it 'returns items from response' do
       allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(server_url: server_url,
@@ -194,6 +202,114 @@ describe Fastlane::Helper::GitHubHelper do
         )
 
         expect(items).to eq([])
+      end
+    end
+
+    # A stacked PR targets the branch below it in the stack, so a search scoped to
+    # `base:main` never sees it even though merging the stack lands its squashed
+    # commit on main.
+    context 'when the commit came from a PR that targeted another branch' do
+      let(:empty_search_response) { { body: '{"items": []}' } }
+      let(:stacked_pr) do
+        {
+          'number' => 897,
+          'title' => 'Skip test cases list in maestro tests using launch arguments',
+          'user' => { 'login' => 'ajpallares' },
+          'labels' => [{ 'name' => 'pr:other' }],
+          'merged_at' => '2026-07-31T11:28:17Z',
+          'merge_commit_sha' => hash,
+          'base' => { 'ref' => 'add-maestro-e2e-test-ci-job' }
+        }
+      end
+
+      before do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{search/issues}))
+          .and_return(empty_search_response)
+      end
+
+      it 'attributes the commit to the PR whose merge commit it is' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_return({ body: [stacked_pr].to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(897)
+      end
+
+      it 'does not need a fallback_commit_message' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_return({ body: [stacked_pr].to_json })
+
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
+          .with(hash_including(path: %r{/pulls/\d+\z}))
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.first['number']).to eq(897)
+      end
+
+      it 'ignores associated PRs that merely contain the commit' do
+        # The endpoint also lists PRs whose head contained the commit. Only the PR
+        # GitHub merged as this exact commit describes the change being released.
+        containing_pr = stacked_pr.merge(
+          'number' => 898,
+          'merge_commit_sha' => 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+        )
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_return({ body: [containing_pr, stacked_pr].to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items.length).to eq(1)
+        expect(items.first['number']).to eq(897)
+      end
+
+      it 'ignores associated PRs that were never merged' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_return({ body: [stacked_pr.merge('merged_at' => nil)].to_json })
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'returns empty when the lookup fails' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_raise(StandardError.new('502 Bad Gateway'))
+
+        items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 0, 'mock-repo-name', 'main'
+        )
+
+        expect(items).to eq([])
+      end
+
+      it 'sleeps before the lookup when rate limit sleep is set' do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+          .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+          .and_return({ body: [stacked_pr].to_json })
+
+        # Once before the search, once before the commit-association lookup.
+        expect_any_instance_of(Object).to receive(:sleep).with(2).exactly(2).times
+
+        Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(
+          hash, github_token, 2, 'mock-repo-name', 'main'
+        )
       end
     end
 

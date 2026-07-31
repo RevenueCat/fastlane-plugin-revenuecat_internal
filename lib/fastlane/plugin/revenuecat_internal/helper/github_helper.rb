@@ -36,10 +36,14 @@ module Fastlane
         end
       end
 
-      # When +fallback_commit_message+ is nil, the search API result is returned as-is.
-      # When it is a non-nil string, and the search API returns no items, the helper
-      # attempts a fallback lookup by extracting the PR number from the commit message
-      # and fetching the PR directly via the REST API. Pass nil to disable the fallback.
+      # Resolves the pull request that put +sha+ on +base_branch+, in three steps:
+      #
+      #   1. The search API, scoped to PRs targeting +base_branch+. When it returns
+      #      several candidates they are narrowed down by `merge_commit_sha`.
+      #   2. The commit's associated PRs, which also covers PRs that targeted another
+      #      branch, such as the ones in a stack.
+      #   3. Only when +fallback_commit_message+ is a non-nil string: the PR number
+      #      parsed out of that message, fetched directly. Pass nil to opt out.
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil)
         if github_token.nil? || github_token.empty?
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
@@ -67,7 +71,57 @@ module Fastlane
         return items if items.size == 1
         return disambiguate_pr_items_by_merge_commit_sha(items, sha, github_token, rate_limit_sleep, repo_name) if items.size > 1
 
+        associated_items = lookup_pr_by_commit_association(sha, github_token, rate_limit_sleep, repo_name)
+        return associated_items unless associated_items.empty?
+
         attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
+      end
+
+      # The `base:` qualifier in the search above only finds PRs opened directly
+      # against +base_branch+. Stacked pull requests target the branch below them in
+      # the stack, so merging a stack lands one squashed commit per PR on the base
+      # branch while none of those PRs are visible to a `base:`-scoped search.
+      #
+      # `GET /repos/{owner}/{repo}/commits/{sha}/pulls` lists PRs associated with a
+      # commit no matter what they targeted. Keeping only merged PRs whose
+      # `merge_commit_sha` is the commit itself preserves the guarantee the `base:`
+      # filter provided: the commit reached the released branch because that PR merged.
+      private_class_method def self.lookup_pr_by_commit_association(sha, github_token, rate_limit_sleep, repo_name)
+        prs = fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name)
+        # The endpoint also lists PRs that merely contain the commit, so keep only
+        # the PR GitHub merged as this exact commit.
+        matches = prs.select { |pr| pr["merged_at"] && pr["merge_commit_sha"] == sha }
+
+        if matches.size == 1
+          matched_pr = matches.first
+          UI.message("Attributed #{sha} to PR ##{matched_pr['number']} (merged into #{matched_pr.dig('base', 'ref')}).")
+          return matches
+        end
+
+        unless matches.empty?
+          pr_numbers = matches.map { |pr| "##{pr['number']}" }.join(', ')
+          UI.important("#{matches.size} merged PRs (#{pr_numbers}) claim #{sha} as their merge commit; cannot attribute it.")
+        end
+        []
+      end
+
+      private_class_method def self.fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name)
+        if rate_limit_sleep > 0
+          sleep(rate_limit_sleep)
+        end
+
+        UI.message("Search API found no PR for #{sha}. Looking up PRs associated with the commit.")
+
+        resp = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                          path: "/repos/RevenueCat/#{repo_name}/commits/#{sha}/pulls",
+                                          http_method: 'GET',
+                                          body: {},
+                                          api_token: github_token)
+        prs = JSON.parse(resp[:body])
+        prs.kind_of?(Array) ? prs : []
+      rescue StandardError => e
+        UI.important("Failed to look up PRs associated with #{sha}: #{e.message}")
+        []
       end
 
       # Fallback: extract PR number from commit message and fetch directly.

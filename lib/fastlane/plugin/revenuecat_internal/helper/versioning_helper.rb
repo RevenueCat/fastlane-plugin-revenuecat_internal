@@ -126,7 +126,9 @@ module Fastlane
           when 0
             unless filter_labels
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-              message = commit["commit"]["message"]
+              # Only the subject line: a squashed commit body holds the whole PR
+              # description, which would otherwise land in the changelog verbatim.
+              message = commit["commit"]["message"].to_s.split("\n").first.to_s.strip
               name = commit["commit"]["author"]["name"]
               line = "* #{message} via #{name}"
               changelog_sections[:other].push(line)
