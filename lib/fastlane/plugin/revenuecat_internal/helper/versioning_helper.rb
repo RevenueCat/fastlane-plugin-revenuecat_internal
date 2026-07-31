@@ -126,8 +126,9 @@ module Fastlane
           when 0
             unless filter_labels
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-              # Only the subject line: a squashed commit body holds the whole PR
-              # description, which would otherwise land in the changelog verbatim.
+              # Most repos squash with squash_merge_commit_message=PR_BODY, making a
+              # squashed commit body the entire PR description. Keep the subject so
+              # that losing attribution cannot also mean pasting a description here.
               message = commit["commit"]["message"].to_s.split("\n").first.to_s.strip
               name = commit["commit"]["author"]["name"]
               line = "* #{message} via #{name}"
