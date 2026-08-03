@@ -70,6 +70,11 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
       end
     end
 
+    it 'logs the diff breakdown' do
+      expect(Fastlane::UI).to receive(:message).with('Snapshot diff vs baseline: 1 changed, 1 added, 1 unchanged, 0 removed')
+      helper.select_changed_snapshots(export_dir, app_id, cli, 'main')
+    end
+
     it 'stages changed and added images with their sidecars' do
       upload_dir, all_names_file = helper.select_changed_snapshots(export_dir, app_id, cli, 'main')
 

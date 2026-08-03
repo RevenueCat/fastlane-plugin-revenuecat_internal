@@ -71,6 +71,7 @@ module Fastlane
 
         diff_json = Actions.sh(sentry_cli, "snapshots", "diff", base_dir, export_dir, log: false)
         results = JSON.parse(diff_json[/\{.*\}/m])
+        log_diff_summary(results["summary"])
         # The diff reports one entry per image with a status; there are no
         # top-level changed/added arrays.
         changed = (results["images"] || [])
@@ -106,6 +107,13 @@ module Fastlane
             FileUtils.cp(source, destination)
           end
         end
+      end
+
+      def self.log_diff_summary(summary)
+        return if summary.nil?
+
+        UI.message("Snapshot diff vs baseline: #{summary['changed']} changed, #{summary['added']} added, " \
+                   "#{summary['unchanged']} unchanged, #{summary['removed']} removed")
       end
 
       def self.download_baseline(base_dir, app_id, sentry_cli, main_branch)
