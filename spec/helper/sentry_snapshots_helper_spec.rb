@@ -15,15 +15,16 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
         "base_dir": "base",
         "head_dir": "head",
         "threshold": 0.01,
-        "summary": { "total": 3, "changed": 1, "unchanged": 1, "added": 1, "removed": 0 },
+        "summary": { "total": 4, "changed": 2, "unchanged": 1, "added": 1, "removed": 0 },
         "images": [
           { "name": "images/unchanged.png", "status": "unchanged" },
           { "name": "images/changed.png", "status": "changed", "diff_percentage": 12.3 },
+          { "name": "images/layout.png", "status": "layout_changed", "diff_percentage": 40.0 },
           { "name": "images/added.png", "status": "added" }
         ]
       }
 
-      Summary: 3 total, 1 changed, 1 unchanged, 1 added, 0 removed
+      Summary: 4 total, 2 changed, 1 unchanged, 1 added, 0 removed
     JSON
   end
 
@@ -54,6 +55,7 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
     before do
       create_export_image('images/unchanged.png', sidecar: true)
       create_export_image('images/changed.png', sidecar: true)
+      create_export_image('images/layout.png', sidecar: true)
       create_export_image('images/added.png', sidecar: true)
 
       allow(Fastlane::Actions).to receive(:sh) do |*args, **_kwargs|
@@ -71,11 +73,11 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
     end
 
     it 'logs the diff breakdown' do
-      expect(Fastlane::UI).to receive(:message).with('Snapshot diff vs baseline: 1 changed, 1 added, 1 unchanged, 0 removed')
+      expect(Fastlane::UI).to receive(:message).with('Snapshot diff vs baseline: 2 changed, 1 added, 1 unchanged, 0 removed')
       helper.select_changed_snapshots(export_dir, app_id, cli, 'main')
     end
 
-    it 'stages changed and added images with their sidecars' do
+    it 'stages changed, layout-changed, and added images with their sidecars' do
       upload_dir, all_names_file = helper.select_changed_snapshots(export_dir, app_id, cli, 'main')
 
       staged = Dir.glob("#{upload_dir}/**/*").select { |f| File.file?(f) }.map { |f| f.delete_prefix("#{upload_dir}/") }
@@ -83,11 +85,14 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
                                   'images/added.json',
                                   'images/added.png',
                                   'images/changed.json',
-                                  'images/changed.png'
+                                  'images/changed.png',
+                                  'images/layout.json',
+                                  'images/layout.png'
                                 ])
       expect(File.read(all_names_file).split("\n").sort).to eq([
                                                                  'images/added.png',
                                                                  'images/changed.png',
+                                                                 'images/layout.png',
                                                                  'images/unchanged.png'
                                                                ])
     end
@@ -152,6 +157,33 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
         export_dir: export_dir, app_id: app_id, sentry_cli: cli,
         min_count: 1, main_branch: 'main', current_branch: 'feature'
       )
+    end
+
+    # sentry-cli no-ops on an empty upload dir, so a zero-change selective upload
+    # would produce no snapshot at all; the lane skips it instead.
+    it 'skips the upload when nothing changed vs the baseline' do
+      create_export_image('images/a.png', sidecar: true)
+      upload_called = false
+      allow(Fastlane::Actions).to receive(:sh) do |*args, **_kwargs|
+        upload_called = true if args.include?('upload')
+        if args.include?('download')
+          base_dir = args[args.index('--output') + 1]
+          FileUtils.mkdir_p(File.join(base_dir, 'images'))
+          File.write(File.join(base_dir, 'images', 'a.png'), 'png')
+          ''
+        elsif args.include?('diff')
+          '{ "summary": { "total": 1, "changed": 0, "unchanged": 1, "added": 0, "removed": 0 }, ' \
+            '"images": [ { "name": "images/a.png", "status": "unchanged" } ] }'
+        else
+          ''
+        end
+      end
+
+      helper.upload_snapshots(
+        export_dir: export_dir, app_id: app_id, sentry_cli: cli,
+        min_count: 1, main_branch: 'main', current_branch: 'feature'
+      )
+      expect(upload_called).to be(false)
     end
   end
 end

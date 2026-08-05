@@ -13,7 +13,9 @@ module Fastlane
     # that changed vs that baseline (Sentry bills per image), and falls back
     # to a full upload when no baseline exists or the diff fails.
     class SentrySnapshotsHelper
-      CHANGED_STATUSES = %w[changed added].freeze
+      # layout_changed is sentry-cli's status for an odiff dimension change; it is
+      # a real change and must be uploaded like changed/added, not skipped.
+      CHANGED_STATUSES = %w[changed layout_changed added].freeze
       def self.upload_snapshots(export_dir:, app_id:, sentry_cli:, min_count:, main_branch:, current_branch:)
         ensure_min_count!(export_dir, min_count)
         ensure_no_partial_run!(export_dir, app_id, sentry_cli, main_branch) if current_branch == main_branch
@@ -21,6 +23,16 @@ module Fastlane
         upload_dir, all_names_file = select_changed_snapshots(export_dir, app_id, sentry_cli, main_branch)
         if upload_dir
           changed = png_count(upload_dir)
+          # sentry-cli's `snapshots upload` early-returns on an empty directory
+          # without creating a snapshot (and never reads --all-image-file-names-file),
+          # so a zero-change selective upload would leave the PR with no snapshot at
+          # all. Nothing changed vs the baseline, so there is nothing to diff: skip.
+          # TODO: drop this skip once sentry-cli can record an all-unchanged snapshot
+          # from a full name list (https://github.com/getsentry/sentry-cli/issues/3391).
+          if changed.zero?
+            UI.success("No snapshots changed vs the #{main_branch} baseline; skipping upload (nothing to diff).")
+            return
+          end
           UI.success("Selective upload: #{changed} changed images (of #{png_count(export_dir)})")
           Actions.sh(sentry_cli, "snapshots", "upload", "--app-id", app_id,
                      "--selective", "--all-image-file-names-file", all_names_file, upload_dir)
