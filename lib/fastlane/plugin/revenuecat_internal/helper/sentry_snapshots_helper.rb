@@ -28,7 +28,7 @@ module Fastlane
           # so a zero-change selective upload would leave the PR with no snapshot at
           # all. Nothing changed vs the baseline, so there is nothing to diff: skip.
           # TODO: drop this skip once sentry-cli can record an all-unchanged snapshot
-          # from a full name list (upstream issue pending).
+          # from a full name list (https://github.com/getsentry/sentry-cli/issues/3391).
           if changed.zero?
             UI.success("No snapshots changed vs the #{main_branch} baseline; skipping upload (nothing to diff).")
             return
