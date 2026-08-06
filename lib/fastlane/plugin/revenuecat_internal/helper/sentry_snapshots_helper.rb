@@ -16,7 +16,11 @@ module Fastlane
       # layout_changed is sentry-cli's status for an odiff dimension change; it is
       # a real change and must be uploaded like changed/added, not skipped.
       CHANGED_STATUSES = %w[changed layout_changed added].freeze
+      # 3.5.x resolves the baseline but 404s downloading it (fixed in 3.6.0), which
+      # silently degrades every run to a full upload. Require the fixed line.
+      MIN_SENTRY_CLI_VERSION = "3.6.0".freeze
       def self.upload_snapshots(export_dir:, app_id:, sentry_cli:, min_count:, main_branch:, current_branch:)
+        ensure_sentry_cli_version!(sentry_cli)
         ensure_min_count!(export_dir, min_count)
         ensure_no_partial_run!(export_dir, app_id, sentry_cli, main_branch) if current_branch == main_branch
 
@@ -39,6 +43,17 @@ module Fastlane
         else
           Actions.sh(sentry_cli, "snapshots", "upload", "--app-id", app_id, export_dir)
         end
+      end
+
+      # Fail loudly on an old sentry-cli instead of silently falling back to a
+      # full upload (which is how a 3.5.x download 404 hid itself for weeks).
+      def self.ensure_sentry_cli_version!(sentry_cli)
+        version = Actions.sh(sentry_cli, "--version", log: false)[/\d+\.\d+\.\d+/]
+        UI.user_error!("Could not read the sentry-cli version from '#{sentry_cli}'.") if version.nil?
+        return if Gem::Version.new(version) >= Gem::Version.new(MIN_SENTRY_CLI_VERSION)
+
+        UI.user_error!("sentry-cli #{version} is too old for snapshots; #{MIN_SENTRY_CLI_VERSION}+ is required " \
+                       "(3.5.x returns 404 from `snapshots download`). Bump fastlane-plugin-sentry.")
       end
 
       def self.ensure_min_count!(export_dir, min_count)
@@ -130,7 +145,9 @@ module Fastlane
 
       def self.download_baseline(base_dir, app_id, sentry_cli, main_branch)
         FileUtils.rm_rf(base_dir)
-        Actions.sh(sentry_cli, "snapshots", "download", "--app-id", app_id, "--branch", main_branch, "--output", base_dir, log: false)
+        # No log: false here on purpose: if the download fails, its output (e.g. a
+        # 404) must reach the CI log instead of being swallowed behind a bare exit code.
+        Actions.sh(sentry_cli, "snapshots", "download", "--app-id", app_id, "--branch", main_branch, "--output", base_dir)
       end
 
       def self.png_count(dir)
