@@ -150,6 +150,7 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
   describe '.upload_snapshots' do
     it 'full-uploads on a branch with no baseline' do
       create_export_image('images/a.png')
+      allow(helper).to receive(:ensure_sentry_cli_version!)
       allow(Fastlane::Actions).to receive(:sh).and_return('')
       expect(Fastlane::Actions).to receive(:sh).with(cli, 'snapshots', 'upload', '--app-id', app_id, export_dir)
 
@@ -163,6 +164,7 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
     # would produce no snapshot at all; the lane skips it instead.
     it 'skips the upload when nothing changed vs the baseline' do
       create_export_image('images/a.png', sidecar: true)
+      allow(helper).to receive(:ensure_sentry_cli_version!)
       upload_called = false
       allow(Fastlane::Actions).to receive(:sh) do |*args, **_kwargs|
         upload_called = true if args.include?('upload')
@@ -184,6 +186,20 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
         min_count: 1, main_branch: 'main', current_branch: 'feature'
       )
       expect(upload_called).to be(false)
+    end
+  end
+
+  describe '.ensure_sentry_cli_version!' do
+    it 'passes on 3.6.0 or newer' do
+      allow(Fastlane::Actions).to receive(:sh).and_return('sentry-cli 3.6.2')
+      expect { helper.ensure_sentry_cli_version!(cli) }.not_to raise_error
+    end
+
+    it 'fails loudly on 3.5.x (the version that 404s on download)' do
+      allow(Fastlane::Actions).to receive(:sh).and_return('sentry-cli 3.5.0')
+      expect do
+        helper.ensure_sentry_cli_version!(cli)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /too old/)
     end
   end
 end
