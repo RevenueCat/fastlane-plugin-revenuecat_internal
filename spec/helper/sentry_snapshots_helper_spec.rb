@@ -147,6 +147,24 @@ describe Fastlane::Helper::SentrySnapshotsHelper do
     end
   end
 
+  describe '.download_baseline' do
+    it 'forces Content-Length:0 on Linux to dodge the sentry-cli 411' do
+      allow(helper).to receive(:linux?).and_return(true)
+      expect(Fastlane::Actions).to receive(:sh).with(
+        cli, 'snapshots', 'download', '--app-id', app_id, '--branch', 'main', '--output', 'base', '--header', 'Content-Length:0', log: false
+      )
+      helper.download_baseline('base', app_id, cli, 'main')
+    end
+
+    it 'omits the header off Linux' do
+      allow(helper).to receive(:linux?).and_return(false)
+      expect(Fastlane::Actions).to receive(:sh).with(
+        cli, 'snapshots', 'download', '--app-id', app_id, '--branch', 'main', '--output', 'base', log: false
+      )
+      helper.download_baseline('base', app_id, cli, 'main')
+    end
+  end
+
   describe '.upload_snapshots' do
     it 'full-uploads on a branch with no baseline' do
       create_export_image('images/a.png')
