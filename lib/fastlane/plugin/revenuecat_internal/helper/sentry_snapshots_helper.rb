@@ -2,6 +2,7 @@ require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fileutils'
 require 'json'
+require 'rbconfig'
 require 'tmpdir'
 
 module Fastlane
@@ -130,7 +131,16 @@ module Fastlane
 
       def self.download_baseline(base_dir, app_id, sentry_cli, main_branch)
         FileUtils.rm_rf(base_dir)
-        Actions.sh(sentry_cli, "snapshots", "download", "--app-id", app_id, "--branch", main_branch, "--output", base_dir, log: false)
+        args = [sentry_cli, "snapshots", "download", "--app-id", app_id, "--branch", main_branch, "--output", base_dir]
+        # sentry-cli's Linux build omits Content-Length on the download request and
+        # Sentry rejects it with HTTP 411; forcing the header restores the download.
+        # macOS sends it already, so scope the workaround to Linux.
+        args += ["--header", "Content-Length:0"] if linux?
+        Actions.sh(*args, log: false)
+      end
+
+      def self.linux?
+        RbConfig::CONFIG["host_os"].to_s.include?("linux")
       end
 
       def self.png_count(dir)
