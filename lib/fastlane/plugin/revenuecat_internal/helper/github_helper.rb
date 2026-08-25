@@ -15,6 +15,9 @@ module Fastlane
       # Collaborator permission levels that let someone authorize a release.
       WRITE_PERMISSIONS = %w[admin maintain write].to_set
 
+      # Stands in for the permission level of a collaborator that GitHub refused to report.
+      UNKNOWN_PERMISSION = 'unknown'
+
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
         retries = 0
 
@@ -282,6 +285,7 @@ module Fastlane
       #     approver:, permission:,          # only set when approved
       #     reviews:,                        # [{ username:, state:, permission: }], permission only for approvals
       #     approvers_without_write_access:, # approved, but can't authorize a release
+      #     approvers_with_unknown_access:,  # approved, but GitHub wouldn't tell us their permission
       #     changes_requested_by:,
       #     dismissed_reviews_by:
       #   }
@@ -305,6 +309,7 @@ module Fastlane
           permission: approver && approver[:permission],
           reviews: reviews,
           approvers_without_write_access: approvers_without_write_access(reviews),
+          approvers_with_unknown_access: approvers_with_unknown_access(reviews),
           changes_requested_by: usernames_with_state(reviews, 'CHANGES_REQUESTED'),
           dismissed_reviews_by: usernames_with_state(reviews, 'DISMISSED')
         }
@@ -326,8 +331,16 @@ module Fastlane
       end
 
       private_class_method def self.approvers_without_write_access(reviews)
-        approvals = reviews.select { |review| review[:state] == 'APPROVED' }
-        approvals.reject { |review| WRITE_PERMISSIONS.include?(review[:permission]) }.map { |review| review[:username] }
+        approvals = usernames_with_state(reviews, 'APPROVED')
+        approvals - approvers_with_write_access(reviews) - approvers_with_unknown_access(reviews)
+      end
+
+      private_class_method def self.approvers_with_write_access(reviews)
+        reviews.select { |review| WRITE_PERMISSIONS.include?(review[:permission]) }.map { |review| review[:username] }
+      end
+
+      private_class_method def self.approvers_with_unknown_access(reviews)
+        reviews.select { |review| review[:permission] == UNKNOWN_PERMISSION }.map { |review| review[:username] }
       end
 
       private_class_method def self.usernames_with_state(reviews, state)
@@ -372,8 +385,12 @@ module Fastlane
         )
         JSON.parse(response[:body])
       rescue StandardError => e
-        UI.message("Could not determine permissions for #{username}: #{e.message}")
-        { 'permission' => 'none' }
+        UI.important("Could not determine permissions for #{username}: #{e.message}")
+
+        # A 404 is GitHub's way of saying the user isn't a collaborator, which is an
+        # answer. Any other failure leaves us without one, and callers shouldn't claim
+        # the user lacks access when we simply couldn't ask.
+        { 'permission' => e.message.include?('404') ? 'none' : UNKNOWN_PERMISSION }
       end
 
       def self.get_commits_since_old_version(github_token, old_version, repo_name)

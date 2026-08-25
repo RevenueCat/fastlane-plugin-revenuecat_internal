@@ -947,6 +947,36 @@ describe Fastlane::Helper::GitHubHelper do
       expect(status).to include(approved: true, approver: 'writer1', approvers_without_write_access: ['reader1'])
     end
 
+    it 'reports an approver as lacking write access when GitHub says they are not a collaborator' do
+      stub_reviews([{ 'user' => { 'login' => 'outsider1' }, 'state' => 'APPROVED' }])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/purchases-ios/collaborators/outsider1/permission"))
+        .and_raise(StandardError.new("404 Not Found"))
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(
+        approved: false,
+        approvers_without_write_access: ['outsider1'],
+        approvers_with_unknown_access: []
+      )
+    end
+
+    it 'reports an approver as unknown when the permission lookup fails for any other reason' do
+      stub_reviews([{ 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' }])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/purchases-ios/collaborators/dev1/permission"))
+        .and_raise(StandardError.new("503 Service Unavailable"))
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(
+        approved: false,
+        approvers_with_unknown_access: ['dev1'],
+        approvers_without_write_access: []
+      )
+    end
+
     it 'reports who requested changes' do
       stub_reviews([{ 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' }])
 

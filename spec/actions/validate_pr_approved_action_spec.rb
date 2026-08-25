@@ -10,6 +10,7 @@ describe Fastlane::Actions::ValidatePrApprovedAction do
       permission: nil,
       reviews: [],
       approvers_without_write_access: [],
+      approvers_with_unknown_access: [],
       changes_requested_by: [],
       dismissed_reviews_by: []
     }.merge(overrides)
@@ -65,6 +66,17 @@ describe Fastlane::Actions::ValidatePrApprovedAction do
       end.to raise_error(FastlaneCore::Interface::FastlaneError)
     end
 
+    it 'lists approvals whose permission level GitHub did not report' do
+      reviews = [{ username: 'dev1', state: 'APPROVED', permission: 'unknown' }]
+
+      expect(Fastlane::UI).to receive(:message).with("Reviews found on this PR:")
+      expect(Fastlane::UI).to receive(:message).with("  - dev1 approved it, but GitHub didn't report their permission level")
+
+      expect do
+        run_with_status(approval_status(reviews: reviews, approvers_with_unknown_access: ['dev1']))
+      end.to raise_error(FastlaneCore::Interface::FastlaneError)
+    end
+
     it 'names the approvers that lack write access' do
       expect do
         run_with_status(approval_status(approvers_without_write_access: ['reader1']))
@@ -95,12 +107,21 @@ describe Fastlane::Actions::ValidatePrApprovedAction do
       end.to raise_error(FastlaneCore::Interface::FastlaneError, /review on the release PR by dev1 was dismissed/)
     end
 
-    it 'links the PR and clarifies that the CircleCI hold job is a different approval' do
+    it 'does not blame the approver when GitHub did not report their permission level' do
+      expect do
+        run_with_status(approval_status(approvers_with_unknown_access: ['dev1'], approvers_without_write_access: []))
+      end.to raise_error(
+        FastlaneCore::Interface::FastlaneError,
+        /approved by dev1, but GitHub didn't report their permission level/
+      )
+    end
+
+    it 'links the PR and points at reviews as the only source of approvals' do
       expect do
         run_with_status(approval_status({}))
       end.to raise_error(FastlaneCore::Interface::FastlaneError) { |error|
         expect(error.message).to include(pr_url)
-        expect(error.message).to include("approving the hold step in CircleCI is not the same thing")
+        expect(error.message).to include("Only approving reviews on the GitHub PR count for this check")
       }
     end
   end

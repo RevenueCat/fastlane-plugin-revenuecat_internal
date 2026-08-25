@@ -33,7 +33,11 @@ module Fastlane
       private_class_method def self.describe_review(review)
         case review[:state]
         when 'APPROVED'
-          "#{review[:username]} approved it with '#{review[:permission]}' permission"
+          if review[:permission] == Helper::GitHubHelper::UNKNOWN_PERMISSION
+            "#{review[:username]} approved it, but GitHub didn't report their permission level"
+          else
+            "#{review[:username]} approved it with '#{review[:permission]}' permission"
+          end
         when 'CHANGES_REQUESTED'
           "#{review[:username]} requested changes"
         else
@@ -45,21 +49,22 @@ module Fastlane
         <<~ERROR
           #{missing_approval_reason(status)}
 
-          The release can't be tagged until the release PR is approved on GitHub. Open it, review the
-          changes and submit an "Approve" review, then re-run this job:
+          Only approving reviews on the GitHub PR count for this check:
           #{pr_url}
-
-          Note that approving the hold step in CircleCI is not the same thing: this check only looks
-          at reviews on the GitHub PR.
         ERROR
       end
 
       private_class_method def self.missing_approval_reason(status)
+        unknown_access = status[:approvers_with_unknown_access]
         approvers_without_write_access = status[:approvers_without_write_access]
         changes_requested_by = status[:changes_requested_by]
         dismissed_reviews_by = status[:dismissed_reviews_by]
 
-        if !approvers_without_write_access.empty?
+        if !unknown_access.empty?
+          "The release PR is approved by #{join_names(unknown_access)}, but GitHub didn't report " \
+            "#{unknown_access.size == 1 ? 'their permission level' : 'their permission levels'} on #{status[:repo]}, " \
+            "so the approval couldn't be validated. See the errors above."
+        elsif !approvers_without_write_access.empty?
           lacks_access = approvers_without_write_access.size == 1 ? "that account doesn't" : "none of those accounts"
           "The release PR is approved by #{join_names(approvers_without_write_access)}, but #{lacks_access} " \
             "have write access to #{status[:repo]}, so the approval doesn't authorize a release."
