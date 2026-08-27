@@ -26,6 +26,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `update_hybrids_versions_file`: This action is meant for hybrid sdks only. It will update the `VERSIONS.md` file given with a new entry including the new version if the SDK and the iOS, Android and hybrid common sdk versions.
 - `validate_version_not_in_maven_central`: This action checks if a specific version of Maven artifacts already exists in Maven Central before deployment. It prevents accidental re-releases by failing if any of the specified artifacts are already published.
 - `generate_mobile_app_release_notes`: This action generates customer-facing release notes for the RevenueCat mobile app in the on-brand voice using the Claude CLI. It takes the list of changes and the target store (`ios` or `android`, which enforces Google Play's 500 character limit) and returns the generated notes as a String.
+- `wait_for_pods_in_cocoapods_cdn`: This action waits until the given pod versions are available on the CocoaPods CDN. A pod pushed to trunk isn't immediately resolvable by `pod install`, so gate iOS CI jobs on this action to keep them from starting expensive work against a pod that hasn't propagated yet. Takes either an explicit `pods` hash or `podspec_paths` to read the pinned versions from.
 
 ## Example
 
