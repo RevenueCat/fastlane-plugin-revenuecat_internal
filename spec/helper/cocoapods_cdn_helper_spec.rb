@@ -86,6 +86,8 @@ describe Fastlane::Helper::CocoapodsCdnHelper do
   end
 
   describe '#wait_for_pod' do
+    let(:deadline) { Time.now + 600 }
+
     before do
       allow(described_class).to receive(:sleep)
     end
@@ -95,22 +97,28 @@ describe Fastlane::Helper::CocoapodsCdnHelper do
 
       expect(FastlaneCore::UI).to receive(:success).with("#{pod_name} 18.33.1 is available on the CocoaPods CDN")
       expect(described_class).not_to receive(:sleep)
-      expect(described_class.wait_for_pod(pod_name, '18.33.1', 600, 60)).to be(true)
+      expect(described_class.wait_for_pod(pod_name, '18.33.1', deadline, 60)).to be(true)
     end
 
     it 'polls until the version shows up' do
       allow(described_class).to receive(:published_versions).with(pod_name).and_return([], [], ['18.33.1'])
 
       expect(described_class).to receive(:sleep).with(60).twice
-      expect(described_class.wait_for_pod(pod_name, '18.33.1', 600, 60)).to be(true)
+      expect(described_class.wait_for_pod(pod_name, '18.33.1', deadline, 60)).to be(true)
     end
 
-    it 'returns false once the timeout has elapsed' do
+    it 'returns false once the deadline has passed' do
       allow(described_class).to receive(:published_versions).with(pod_name).and_return([])
-      # First check is immediate, then the clock jumps past the timeout.
-      allow(Time).to receive(:now).and_return(Time.at(0), Time.at(0), Time.at(601))
 
-      expect(described_class.wait_for_pod(pod_name, '18.33.1', 600, 60)).to be(false)
+      expect(described_class.wait_for_pod(pod_name, '18.33.1', Time.now - 1, 60)).to be(false)
+    end
+
+    it 'never sleeps past the deadline' do
+      allow(described_class).to receive(:published_versions).with(pod_name).and_return([], ['18.33.1'])
+
+      # 10s left but a 60s poll interval: sleep the remainder, not the interval.
+      expect(described_class).to receive(:sleep).once { |seconds| expect(seconds).to be <= 10 }
+      expect(described_class.wait_for_pod(pod_name, '18.33.1', Time.now + 10, 60)).to be(true)
     end
   end
 
@@ -120,12 +128,26 @@ describe Fastlane::Helper::CocoapodsCdnHelper do
     end
 
     it 'waits for every pod' do
-      expect(described_class).to receive(:wait_for_pod).with('PurchasesHybridCommon', '18.33.1', 600, 60).and_return(true)
-      expect(described_class).to receive(:wait_for_pod).with('PurchasesHybridCommonUI', '18.33.1', 600, 60).and_return(true)
+      expect(described_class).to receive(:wait_for_pod).with('PurchasesHybridCommon', '18.33.1', anything, 60).and_return(true)
+      expect(described_class).to receive(:wait_for_pod).with('PurchasesHybridCommonUI', '18.33.1', anything, 60).and_return(true)
 
       described_class.wait_for_pods(
         { 'PurchasesHybridCommon' => '18.33.1', 'PurchasesHybridCommonUI' => '18.33.1' }, 600, 60, false
       )
+    end
+
+    it 'shares one deadline across every pod so the total wait stays bounded' do
+      deadlines = []
+      allow(described_class).to receive(:wait_for_pod) do |_pod_name, _version, deadline, _poll|
+        deadlines << deadline
+        true
+      end
+
+      described_class.wait_for_pods(
+        { 'PurchasesHybridCommon' => '18.33.1', 'PurchasesHybridCommonUI' => '18.33.1' }, 600, 60, false
+      )
+
+      expect(deadlines.uniq.size).to eq(1)
     end
 
     it 'fails when a pod never shows up' do
