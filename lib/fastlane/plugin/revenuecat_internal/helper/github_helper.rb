@@ -12,6 +12,12 @@ module Fastlane
     class GitHubHelper # rubocop:disable Metrics/ClassLength
       SUPPORTED_PR_LABELS = (%w[breaking build ci docs feat fix perf revenuecatui refactor style test next_release dependencies phc_dependencies force_minor force_patch revenuecatui changelog_ignore].map { |label| "pr:#{label}" }).to_set
 
+      # Collaborator permission levels that let someone authorize a release.
+      WRITE_PERMISSIONS = %w[admin maintain write].to_set
+
+      # Stands in for the permission level of a collaborator that GitHub refused to report.
+      UNKNOWN_PERMISSION = 'unknown'
+
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
         retries = 0
 
@@ -267,6 +273,23 @@ module Fastlane
       end
 
       def self.pr_approved_by_org_member_with_write_permissions?(pr_url, github_token)
+        pr_approval_status(pr_url, github_token)[:approved]
+      end
+
+      # Reports the review state of +pr_url+ in enough detail for callers to tell
+      # the reader why the PR doesn't count as approved:
+      #
+      #   {
+      #     approved:,                       # true when a collaborator with write access approved
+      #     repo:,                           # "owner/repo"
+      #     approver:, permission:,          # only set when approved
+      #     reviews:,                        # [{ username:, state:, permission: }], permission only for approvals
+      #     approvers_without_write_access:, # approved, but can't authorize a release
+      #     approvers_with_unknown_access:,  # approved, but GitHub wouldn't tell us their permission
+      #     changes_requested_by:,
+      #     dismissed_reviews_by:
+      #   }
+      def self.pr_approval_status(pr_url, github_token)
         match = pr_url.match(%r{github\.com/([^/]+)/([^/]+)/pull/(\d+)})
         UI.user_error!("Could not parse PR URL: #{pr_url}") unless match
 
@@ -274,38 +297,70 @@ module Fastlane
         repo = match[2]
         pr_number = match[3]
 
-        reviews = get_pr_reviews(owner, repo, pr_number, github_token)
+        reviews = decisive_reviews(owner, repo, pr_number, github_token)
+        approver = approver_with_write_access(reviews)
 
-        # Build the latest decisive review state per user.
-        # COMMENTED reviews don't change the approval/rejection state,
-        # so only APPROVED, CHANGES_REQUESTED, and DISMISSED are considered.
+        UI.success("PR approved by #{approver[:username]} who has '#{approver[:permission]}' permission") if approver
+
+        {
+          approved: !approver.nil?,
+          repo: "#{owner}/#{repo}",
+          approver: approver && approver[:username],
+          permission: approver && approver[:permission],
+          reviews: reviews,
+          approvers_without_write_access: approvers_without_write_access(reviews),
+          approvers_with_unknown_access: approvers_with_unknown_access(reviews),
+          changes_requested_by: usernames_with_state(reviews, 'CHANGES_REQUESTED'),
+          dismissed_reviews_by: usernames_with_state(reviews, 'DISMISSED')
+        }
+      end
+
+      # The last decisive review of each reviewer, resolving the permission level
+      # of the ones that approved.
+      private_class_method def self.decisive_reviews(owner, repo, pr_number, github_token)
+        latest_decisive_review_states(get_pr_reviews(owner, repo, pr_number, github_token)).map do |username, state|
+          permission = nil
+          permission = get_collaborator_permission(owner, repo, username, github_token)['permission'] if state == 'APPROVED'
+
+          { username: username, state: state, permission: permission }
+        end
+      end
+
+      private_class_method def self.approver_with_write_access(reviews)
+        reviews.find { |review| review[:state] == 'APPROVED' && WRITE_PERMISSIONS.include?(review[:permission]) }
+      end
+
+      private_class_method def self.approvers_without_write_access(reviews)
+        approvals = usernames_with_state(reviews, 'APPROVED')
+        approvals - approvers_with_write_access(reviews) - approvers_with_unknown_access(reviews)
+      end
+
+      private_class_method def self.approvers_with_write_access(reviews)
+        reviews.select { |review| WRITE_PERMISSIONS.include?(review[:permission]) }.map { |review| review[:username] }
+      end
+
+      private_class_method def self.approvers_with_unknown_access(reviews)
+        reviews.select { |review| review[:permission] == UNKNOWN_PERMISSION }.map { |review| review[:username] }
+      end
+
+      private_class_method def self.usernames_with_state(reviews, state)
+        reviews.select { |review| review[:state] == state }.map { |review| review[:username] }
+      end
+
+      # Maps each reviewer to the state of their last decisive review. COMMENTED
+      # reviews don't change the approval/rejection state, so only APPROVED,
+      # CHANGES_REQUESTED and DISMISSED are considered.
+      private_class_method def self.latest_decisive_review_states(reviews)
         decisive_states = %w[APPROVED CHANGES_REQUESTED DISMISSED].to_set
-        write_permissions = %w[admin maintain write].to_set
 
-        latest_reviews = {}
-        reviews.each do |review|
+        reviews.each_with_object({}) do |review, states|
           username = review.dig('user', 'login')
           state = review['state']
           next if username.nil?
           next unless decisive_states.include?(state)
 
-          latest_reviews[username] = review
+          states[username] = state
         end
-
-        latest_reviews.each do |username, review|
-          next unless review['state'] == 'APPROVED'
-
-          permission_resp = get_collaborator_permission(owner, repo, username, github_token)
-          permission = permission_resp['permission']
-
-          if write_permissions.include?(permission)
-            UI.success("PR approved by #{username} who has '#{permission}' permission")
-            return true
-          end
-        end
-
-        UI.important("No approval found from an organization member with write permissions")
-        false
       end
 
       # Fetches up to 100 reviews (the GitHub API maximum per page).
@@ -330,8 +385,12 @@ module Fastlane
         )
         JSON.parse(response[:body])
       rescue StandardError => e
-        UI.message("Could not determine permissions for #{username}: #{e.message}")
-        { 'permission' => 'none' }
+        UI.important("Could not determine permissions for #{username}: #{e.message}")
+
+        # A 404 is GitHub's way of saying the user isn't a collaborator, which is an
+        # answer. Any other failure leaves us without one, and callers shouldn't claim
+        # the user lacks access when we simply couldn't ask.
+        { 'permission' => e.message.include?('404') ? 'none' : UNKNOWN_PERMISSION }
       end
 
       def self.get_commits_since_old_version(github_token, old_version, repo_name)

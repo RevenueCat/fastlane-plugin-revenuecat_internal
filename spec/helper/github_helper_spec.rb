@@ -866,6 +866,137 @@ describe Fastlane::Helper::GitHubHelper do
     end
   end
 
+  describe '.pr_approval_status' do
+    let(:github_token) { 'mock-github-token' }
+    let(:pr_url) { 'https://github.com/RevenueCat/purchases-ios/pull/42' }
+
+    def stub_reviews(reviews)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_reviews)
+        .with('RevenueCat', 'purchases-ios', '42', github_token)
+        .and_return(reviews)
+    end
+
+    def stub_permission(username, permission)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_collaborator_permission)
+        .with('RevenueCat', 'purchases-ios', username, github_token)
+        .and_return({ 'permission' => permission })
+    end
+
+    it 'reports the approver and their permission when approved' do
+      stub_reviews([{ 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' }])
+      stub_permission('dev1', 'maintain')
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(approved: true, repo: 'RevenueCat/purchases-ios', approver: 'dev1', permission: 'maintain')
+    end
+
+    it 'reports an empty status when the PR has no reviews' do
+      stub_reviews([])
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(
+        approved: false,
+        reviews: [],
+        approvers_without_write_access: [],
+        changes_requested_by: [],
+        dismissed_reviews_by: []
+      )
+    end
+
+    it 'reports every decisive review with the permission of its author' do
+      stub_reviews([
+                     { 'user' => { 'login' => 'writer1' }, 'state' => 'APPROVED' },
+                     { 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' },
+                     { 'user' => { 'login' => 'dev2' }, 'state' => 'COMMENTED' }
+                   ])
+      stub_permission('writer1', 'write')
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status[:reviews]).to eq([
+                                       { username: 'writer1', state: 'APPROVED', permission: 'write' },
+                                       { username: 'dev1', state: 'CHANGES_REQUESTED', permission: nil }
+                                     ])
+    end
+
+    it 'reports approvers without write access' do
+      stub_reviews([
+                     { 'user' => { 'login' => 'reader1' }, 'state' => 'APPROVED' },
+                     { 'user' => { 'login' => 'reader2' }, 'state' => 'APPROVED' }
+                   ])
+      stub_permission('reader1', 'read')
+      stub_permission('reader2', 'none')
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(approved: false, approvers_without_write_access: %w[reader1 reader2])
+    end
+
+    it 'picks the approver with write access, and only reports the others as lacking it' do
+      stub_reviews([
+                     { 'user' => { 'login' => 'reader1' }, 'state' => 'APPROVED' },
+                     { 'user' => { 'login' => 'writer1' }, 'state' => 'APPROVED' }
+                   ])
+      stub_permission('reader1', 'read')
+      stub_permission('writer1', 'write')
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(approved: true, approver: 'writer1', approvers_without_write_access: ['reader1'])
+    end
+
+    it 'reports an approver as lacking write access when GitHub says they are not a collaborator' do
+      stub_reviews([{ 'user' => { 'login' => 'outsider1' }, 'state' => 'APPROVED' }])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/purchases-ios/collaborators/outsider1/permission"))
+        .and_raise(StandardError.new("404 Not Found"))
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(
+        approved: false,
+        approvers_without_write_access: ['outsider1'],
+        approvers_with_unknown_access: []
+      )
+    end
+
+    it 'reports an approver as unknown when the permission lookup fails for any other reason' do
+      stub_reviews([{ 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' }])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/purchases-ios/collaborators/dev1/permission"))
+        .and_raise(StandardError.new("503 Service Unavailable"))
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(
+        approved: false,
+        approvers_with_unknown_access: ['dev1'],
+        approvers_without_write_access: []
+      )
+    end
+
+    it 'reports who requested changes' do
+      stub_reviews([{ 'user' => { 'login' => 'dev1' }, 'state' => 'CHANGES_REQUESTED' }])
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(approved: false, changes_requested_by: ['dev1'], dismissed_reviews_by: [])
+    end
+
+    it 'reports whose review was dismissed' do
+      stub_reviews([
+                     { 'user' => { 'login' => 'dev1' }, 'state' => 'APPROVED' },
+                     { 'user' => { 'login' => 'dev1' }, 'state' => 'DISMISSED' }
+                   ])
+
+      status = Fastlane::Helper::GitHubHelper.pr_approval_status(pr_url, github_token)
+
+      expect(status).to include(approved: false, dismissed_reviews_by: ['dev1'], approvers_without_write_access: [])
+    end
+  end
+
   describe '.github_api_call_with_retry' do
     let(:api_params) do
       {
