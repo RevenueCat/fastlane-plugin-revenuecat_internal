@@ -27,6 +27,8 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       # Backup and clear CIRCLE_PULL_REQUEST as it will be set on CI which prevents this action from running.
       @backup_circle_pull_request = ENV.fetch('CIRCLE_PULL_REQUEST', nil)
       ENV.delete('CIRCLE_PULL_REQUEST')
+      @backup_circle_branch = ENV.fetch('CIRCLE_BRANCH', nil)
+      ENV.delete('CIRCLE_BRANCH')
 
       allow(Fastlane::Actions).to receive(:sh)
         .with("git rev-parse --abbrev-ref HEAD")
@@ -44,6 +46,7 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV.delete('CIRCLE_BUILD_NUM')
       ENV.delete('CIRCLE_PROJECT_USERNAME')
       ENV['CIRCLE_PULL_REQUEST'] = @backup_circle_pull_request if @backup_circle_pull_request
+      ENV['CIRCLE_BRANCH'] = @backup_circle_branch if @backup_circle_branch
     end
 
     # Returns the headline text rendered in the top-level section block, which is where the
@@ -611,6 +614,35 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
       expect(status(build_num: nil)).to eq(:unknown)
     end
+
+    it 'reports unknown without calling CircleCI when the current build number is blank' do
+      expect(action_instance).not_to receive(:fetch_recent_builds)
+
+      expect(status(build_num: '')).to eq(:unknown)
+    end
+
+    it 'accepts the build number as the string CircleCI puts in the environment' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return([
+                                                                           build_entry(job: circle_job, build_num: 250, status: 'failed'),
+                                                                           build_entry(job: circle_job, build_num: 150, status: 'success')
+                                                                         ])
+
+      expect(status(build_num: '200')).to eq(:success)
+    end
+
+    it 'treats an infrastructure failure as a failure' do
+      allow(action_instance).to receive(:fetch_recent_builds)
+        .and_return([build_entry(job: circle_job, build_num: 150, status: 'infrastructure_fail')])
+
+      expect(status).to eq(:failed)
+    end
+
+    it 'treats a fixed run as a success' do
+      allow(action_instance).to receive(:fetch_recent_builds)
+        .and_return([build_entry(job: circle_job, build_num: 150, status: 'fixed')])
+
+      expect(status).to eq(:success)
+    end
   end
 
   describe '#recent_builds_url' do
@@ -637,11 +669,116 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
 
       expect(action_instance.recent_builds_url(branch: 'main', offset: 0)).to be_nil
     end
+
+    it 'asks for one completed page at the requested offset' do
+      url = action_instance.recent_builds_url(branch: 'main', offset: 100)
+
+      expect(url).to eq(
+        'https://circleci.com/api/v1.1/project/github/RevenueCat/purchases-ios/tree/main' \
+        '?filter=completed&shallow=true&limit=100&offset=100'
+      )
+    end
+
+    it 'is nil when the repository is unknown' do
+      ENV.delete('CIRCLE_PROJECT_REPONAME')
+
+      expect(action_instance.recent_builds_url(branch: 'main', offset: 0)).to be_nil
+    end
+  end
+
+  describe '#current_branch' do
+    let(:action_instance) { Fastlane::Actions::SlackBackendIntegrationTestResultsAction }
+
+    before(:each) do
+      @backup_circle_branch = ENV.fetch('CIRCLE_BRANCH', nil)
+      ENV.delete('CIRCLE_BRANCH')
+    end
+
+    after(:each) do
+      ENV['CIRCLE_BRANCH'] = @backup_circle_branch if @backup_circle_branch
+    end
+
+    it 'uses the branch CircleCI reports' do
+      ENV['CIRCLE_BRANCH'] = 'facu/some-branch'
+      expect(Fastlane::Actions).not_to receive(:sh)
+
+      expect(action_instance.current_branch).to eq('facu/some-branch')
+    end
+
+    # A detached checkout resolves to the literal "HEAD", which would read the wrong history.
+    it 'falls back to the checkout when CircleCI reports no branch' do
+      allow(Fastlane::Actions).to receive(:sh)
+        .with('git rev-parse --abbrev-ref HEAD')
+        .and_return("main\n")
+
+      expect(action_instance.current_branch).to eq('main')
+    end
+  end
+
+  describe '#fetch_recent_builds' do
+    let(:action_instance) { Fastlane::Actions::SlackBackendIntegrationTestResultsAction }
+    let(:url) { action_instance.recent_builds_url(branch: 'main', offset: 0) }
+
+    before(:each) do
+      ENV['CIRCLE_PROJECT_USERNAME'] = 'RevenueCat'
+      ENV['CIRCLE_PROJECT_REPONAME'] = 'purchases-ios'
+    end
+
+    after(:each) do
+      ENV.delete('CIRCLE_PROJECT_USERNAME')
+      ENV.delete('CIRCLE_PROJECT_REPONAME')
+    end
+
+    it 'returns the builds CircleCI reports' do
+      stub_request(:get, url).to_return(status: 200, body: [build_entry(job: 'a-job', build_num: 1, status: 'success')].to_json)
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0))
+        .to eq([build_entry(job: 'a-job', build_num: 1, status: 'success')])
+    end
+
+    # Every unreadable answer has to look the same to the caller, which resolves it to :unknown and posts.
+    it 'returns nil when CircleCI answers with an error' do
+      stub_request(:get, url).to_return(status: 401, body: 'nope')
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0)).to be_nil
+    end
+
+    it 'returns nil when the answer is not JSON' do
+      stub_request(:get, url).to_return(status: 200, body: 'not json')
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0)).to be_nil
+    end
+
+    it 'returns nil when the answer is not a list of builds' do
+      stub_request(:get, url).to_return(status: 200, body: { message: 'Project not found' }.to_json)
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0)).to be_nil
+    end
+
+    it 'returns nil when the request cannot be made' do
+      stub_request(:get, url).to_raise(SocketError)
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0)).to be_nil
+    end
+
+    it 'returns nil without a request when the project is unknown' do
+      ENV.delete('CIRCLE_PROJECT_USERNAME')
+
+      expect(action_instance.fetch_recent_builds(branch: 'main', offset: 0)).to be_nil
+    end
   end
 
   describe '#available_options' do
     it 'has correct number of options' do
       expect(Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options.size).to eq(6)
+    end
+
+    # Existing callers must keep every success notification until they opt in.
+    it 'leaves recovery-only notifications off by default' do
+      option = Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options
+                                                                          .find { |item| item.key == :notify_success_only_on_recovery }
+
+      expect(option.default_value).to eq(false)
     end
   end
 end

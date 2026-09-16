@@ -30,7 +30,7 @@ module Fastlane
         major_version = resolve_version(params).split('.')[0]
         platform = resolve_platform(params, repo_name)
 
-        git_branch = Actions.sh("git rev-parse --abbrev-ref HEAD").strip
+        git_branch = current_branch
 
         message_feed =
           if success
@@ -76,11 +76,18 @@ module Fastlane
 
       # Returns nil when a success is not worth announcing. A green run following a green run says
       # nothing new, so only failures and recoveries reach the channel.
+      def self.current_branch
+        circle_branch = ENV.fetch("CIRCLE_BRANCH", nil)
+        return circle_branch unless circle_branch.to_s.empty?
+
+        Actions.sh("git rev-parse --abbrev-ref HEAD").strip
+      end
+
       def self.success_message(params, platform, branch)
         finished_successfully = "#{platform} backend integration tests finished successfully."
         return finished_successfully unless params[:notify_success_only_on_recovery]
 
-        case previous_job_status(job: ENV.fetch("CIRCLE_JOB", nil), branch: branch, build_num: ENV["CIRCLE_BUILD_NUM"]&.to_i)
+        case previous_job_status(job: ENV.fetch("CIRCLE_JOB", nil), branch: branch, build_num: ENV.fetch("CIRCLE_BUILD_NUM", nil))
         when :failed then "#{platform} backend integration tests recovered."
         when :unknown then finished_successfully
         end
@@ -90,7 +97,9 @@ module Fastlane
       # of our own. Returns :failed, :success, :none when the branch has no earlier run of the job, or
       # :unknown when the history cannot be read far enough back to tell.
       def self.previous_job_status(job:, branch:, build_num:)
-        return :unknown if job.to_s.empty? || branch.to_s.empty? || build_num.nil?
+        return :unknown if job.to_s.empty? || branch.to_s.empty? || build_num.to_s.empty?
+
+        build_num = build_num.to_i
 
         CIRCLE_API_MAX_PAGES.times do |page|
           builds = fetch_recent_builds(branch: branch, offset: page * CIRCLE_API_PAGE_SIZE)
