@@ -1,4 +1,8 @@
 describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
+  # Mirrors the shape of a CircleCI v1.1 build entry, which is where the job name and status live.
+  def build_entry(job:, build_num:, status:)
+    { 'build_num' => build_num, 'status' => status, 'workflows' => { 'job_name' => job } }
+  end
   describe '#run' do
     let(:environment) { 'production' }
     let(:version) { '8.0.0' }
@@ -18,6 +22,8 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV['CIRCLE_PROJECT_REPONAME'] = repo_name
       ENV['SLACK_URL_BACKEND_INTEGRATION_TESTS'] = slack_url_feed
       ENV['SLACK_URL_BINARY_SOLO'] = slack_url_binary_solo
+      ENV['CIRCLE_BUILD_NUM'] = '200'
+      ENV['CIRCLE_PROJECT_USERNAME'] = 'RevenueCat'
       # Backup and clear CIRCLE_PULL_REQUEST as it will be set on CI which prevents this action from running.
       @backup_circle_pull_request = ENV.fetch('CIRCLE_PULL_REQUEST', nil)
       ENV.delete('CIRCLE_PULL_REQUEST')
@@ -35,6 +41,8 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       ENV.delete('CIRCLE_PROJECT_REPONAME')
       ENV.delete('SLACK_URL_BACKEND_INTEGRATION_TESTS')
       ENV.delete('SLACK_URL_BINARY_SOLO')
+      ENV.delete('CIRCLE_BUILD_NUM')
+      ENV.delete('CIRCLE_PROJECT_USERNAME')
       ENV['CIRCLE_PULL_REQUEST'] = @backup_circle_pull_request if @backup_circle_pull_request
     end
 
@@ -420,6 +428,81 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       end
     end
 
+    describe 'recovery notifications' do
+      def run_with_recovery_notifications(success:)
+        action_instance.run(
+          environment: environment,
+          success: success,
+          version: version,
+          platform: platform,
+          notify_success_only_on_recovery: true
+        )
+      end
+
+      it 'posts a recovery message when the previous run of the job on the branch failed' do
+        allow(action_instance).to receive(:fetch_recent_builds)
+          .and_return([build_entry(job: circle_job, build_num: 90, status: 'failed')])
+
+        expect(action_instance).to receive(:post_to_slack).once do |url, payload|
+          expect(url).to eq(slack_url_feed)
+          expect(payload[:text]).to eq("#{platform} backend integration tests recovered.")
+          expect(headline_text(payload)).to eq("#{platform} backend integration tests recovered.")
+          expect(attachment(payload)[:color]).to eq('#36A64F')
+        end
+
+        run_with_recovery_notifications(success: true)
+      end
+
+      it 'posts nothing when the previous run of the job on the branch succeeded' do
+        allow(action_instance).to receive(:fetch_recent_builds)
+          .and_return([build_entry(job: circle_job, build_num: 90, status: 'success')])
+
+        expect(action_instance).not_to receive(:post_to_slack)
+
+        run_with_recovery_notifications(success: true)
+      end
+
+      it 'posts nothing when the branch has no previous run of the job' do
+        allow(action_instance).to receive(:fetch_recent_builds)
+          .and_return([build_entry(job: 'some-other-job', build_num: 90, status: 'failed')])
+
+        expect(action_instance).not_to receive(:post_to_slack)
+
+        run_with_recovery_notifications(success: true)
+      end
+
+      it 'posts the success message when the previous status cannot be determined' do
+        allow(action_instance).to receive(:fetch_recent_builds).and_return(nil)
+
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(payload[:text]).to eq("#{platform} backend integration tests finished successfully.")
+        end
+
+        run_with_recovery_notifications(success: true)
+      end
+
+      it 'posts the failure message without looking up the previous status' do
+        expect(action_instance).not_to receive(:fetch_recent_builds)
+        expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
+          expect(payload[:text]).to eq("<!subteam^S0939BTV0SY|oncall-sdk> #{platform} backend integration tests failed.")
+        end
+
+        run_with_recovery_notifications(success: false)
+      end
+
+      it 'posts every success when the option is not enabled' do
+        expect(action_instance).not_to receive(:fetch_recent_builds)
+        expect(action_instance).to receive(:post_to_slack).once
+
+        action_instance.run(
+          environment: environment,
+          success: true,
+          version: version,
+          platform: platform
+        )
+      end
+    end
+
     describe 'major version extraction' do
       it 'extracts major version from semantic version' do
         expect(action_instance).to receive(:post_to_slack).once do |_url, payload|
@@ -436,9 +519,129 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
     end
   end
 
+  describe '#previous_job_status' do
+    let(:action_instance) { Fastlane::Actions::SlackBackendIntegrationTestResultsAction }
+    let(:circle_job) { 'integration-tests-all' }
+    let(:git_branch) { 'main' }
+
+    def status(build_num: 200)
+      action_instance.previous_job_status(job: circle_job, branch: git_branch, build_num: build_num)
+    end
+
+    def page_of(entries, size: 100)
+      entries + Array.new(size - entries.size) do |index|
+        build_entry(job: 'filler-job', build_num: index, status: 'success')
+      end
+    end
+
+    it 'reports the status of the most recent earlier run of the same job' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return([
+                                                                           build_entry(job: circle_job, build_num: 150, status: 'failed'),
+                                                                           build_entry(job: circle_job, build_num: 100, status: 'success')
+                                                                         ])
+
+      expect(status).to eq(:failed)
+    end
+
+    it 'ignores runs of other jobs' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return([
+                                                                           build_entry(job: 'some-other-job', build_num: 150, status: 'failed'),
+                                                                           build_entry(job: circle_job, build_num: 100, status: 'success')
+                                                                         ])
+
+      expect(status).to eq(:success)
+    end
+
+    it 'ignores the current build and anything newer' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return([
+                                                                           build_entry(job: circle_job, build_num: 250, status: 'failed'),
+                                                                           build_entry(job: circle_job, build_num: 200, status: 'failed'),
+                                                                           build_entry(job: circle_job, build_num: 150, status: 'success')
+                                                                         ])
+
+      expect(status).to eq(:success)
+    end
+
+    it 'looks further back when the most recent earlier run was canceled' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return([
+                                                                           build_entry(job: circle_job, build_num: 150, status: 'canceled'),
+                                                                           build_entry(job: circle_job, build_num: 100, status: 'failed')
+                                                                         ])
+
+      expect(status).to eq(:failed)
+    end
+
+    it 'treats a timed out run as a failure' do
+      allow(action_instance).to receive(:fetch_recent_builds)
+        .and_return([build_entry(job: circle_job, build_num: 150, status: 'timedout')])
+
+      expect(status).to eq(:failed)
+    end
+
+    it 'reports none when the branch history holds no earlier run of the job' do
+      allow(action_instance).to receive(:fetch_recent_builds)
+        .and_return([build_entry(job: 'some-other-job', build_num: 150, status: 'failed')])
+
+      expect(status).to eq(:none)
+    end
+
+    it 'keeps paging while every page is full' do
+      allow(action_instance).to receive(:fetch_recent_builds).with(branch: git_branch, offset: 0)
+                                                             .and_return(page_of([]))
+      allow(action_instance).to receive(:fetch_recent_builds).with(branch: git_branch, offset: 100)
+                                                             .and_return(page_of([build_entry(job: circle_job, build_num: 100, status: 'failed')]))
+
+      expect(status).to eq(:failed)
+    end
+
+    it 'reports unknown when the job is not found before the page limit' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return(page_of([]))
+
+      expect(status).to eq(:unknown)
+    end
+
+    it 'reports unknown when the builds cannot be fetched' do
+      allow(action_instance).to receive(:fetch_recent_builds).and_return(nil)
+
+      expect(status).to eq(:unknown)
+    end
+
+    it 'reports unknown without calling CircleCI when the current build number is missing' do
+      expect(action_instance).not_to receive(:fetch_recent_builds)
+
+      expect(status(build_num: nil)).to eq(:unknown)
+    end
+  end
+
+  describe '#recent_builds_url' do
+    let(:action_instance) { Fastlane::Actions::SlackBackendIntegrationTestResultsAction }
+
+    before(:each) do
+      ENV['CIRCLE_PROJECT_USERNAME'] = 'RevenueCat'
+      ENV['CIRCLE_PROJECT_REPONAME'] = 'purchases-ios'
+    end
+
+    after(:each) do
+      ENV.delete('CIRCLE_PROJECT_USERNAME')
+      ENV.delete('CIRCLE_PROJECT_REPONAME')
+    end
+
+    it 'escapes the slash in a branch name' do
+      url = action_instance.recent_builds_url(branch: 'facu/some-branch', offset: 0)
+
+      expect(url).to start_with('https://circleci.com/api/v1.1/project/github/RevenueCat/purchases-ios/tree/facu%2Fsome-branch?')
+    end
+
+    it 'is nil when the project is unknown' do
+      ENV.delete('CIRCLE_PROJECT_USERNAME')
+
+      expect(action_instance.recent_builds_url(branch: 'main', offset: 0)).to be_nil
+    end
+  end
+
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options.size).to eq(5)
+      expect(Fastlane::Actions::SlackBackendIntegrationTestResultsAction.available_options.size).to eq(6)
     end
   end
 end
