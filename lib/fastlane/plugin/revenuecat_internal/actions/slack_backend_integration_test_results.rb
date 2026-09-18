@@ -13,6 +13,12 @@ module Fastlane
       SUCCESS_COLOR = "#36A64F"
       FAILURE_COLOR = "#D00000"
 
+      CIRCLE_API_PAGE_SIZE = 100
+      CIRCLE_API_MAX_PAGES = 3
+
+      PREVIOUS_RUN_SUCCESS_STATUSES = %w[success fixed].freeze
+      PREVIOUS_RUN_FAILURE_STATUSES = %w[failed timedout infrastructure_fail].freeze
+
       def self.run(params)
         return unless should_send_notification?
 
@@ -24,19 +30,24 @@ module Fastlane
         major_version = resolve_version(params).split('.')[0]
         platform = resolve_platform(params, repo_name)
 
-        failure_message = "#{ON_CALL_SDK_MENTION} #{platform} backend integration tests failed."
+        git_branch = current_branch
 
         message_feed =
           if success
-            "#{platform} backend integration tests finished successfully."
+            success_message(params, platform, git_branch)
           else
-            failure_message
+            "#{ON_CALL_SDK_MENTION} #{platform} backend integration tests failed."
           end
+
+        if message_feed.nil?
+          UI.message("The previous run of this job on #{git_branch} did not fail, skipping Slack notification.")
+          return
+        end
 
         detail_fields = [
           { title: "SDK", value: repo_name },
           { title: "SDK version", value: major_version },
-          { title: "Git branch", value: Actions.sh("git rev-parse --abbrev-ref HEAD").strip },
+          { title: "Git branch", value: git_branch },
           { title: "Environment", value: environment },
           { title: "Test suite", value: ENV.fetch("CIRCLE_JOB", nil) }
         ]
@@ -61,6 +72,88 @@ module Fastlane
         slack_url_feed = ENV.fetch("SLACK_URL_BACKEND_INTEGRATION_TESTS") { UI.user_error!("Missing required SLACK_URL_BACKEND_INTEGRATION_TESTS environment variable. Make sure to provide the slack-secrets CircleCI context.") }
 
         post_to_slack(slack_url_feed, build_payload(feed_message, success, fields, build_url))
+      end
+
+      # Returns nil when a success is not worth announcing. A green run following a green run says
+      # nothing new, so only failures and recoveries reach the channel.
+      def self.current_branch
+        circle_branch = ENV.fetch("CIRCLE_BRANCH", nil)
+        return circle_branch unless circle_branch.to_s.empty?
+
+        Actions.sh("git rev-parse --abbrev-ref HEAD").strip
+      end
+
+      def self.success_message(params, platform, branch)
+        finished_successfully = "#{platform} backend integration tests finished successfully."
+        return finished_successfully unless params[:notify_success_only_on_recovery]
+
+        case previous_job_status(job: ENV.fetch("CIRCLE_JOB", nil), branch: branch, build_num: ENV.fetch("CIRCLE_BUILD_NUM", nil))
+        when :failed then "#{platform} backend integration tests recovered."
+        when :unknown then finished_successfully
+        end
+      end
+
+      # CircleCI already keeps the history this needs, so recoveries do not require storing any state
+      # of our own. Returns :failed, :success, :none when the branch has no earlier run of the job, or
+      # :unknown when the history cannot be read far enough back to tell.
+      def self.previous_job_status(job:, branch:, build_num:)
+        return :unknown if job.to_s.empty? || branch.to_s.empty? || build_num.to_s.empty?
+
+        build_num = build_num.to_i
+
+        CIRCLE_API_MAX_PAGES.times do |page|
+          builds = fetch_recent_builds(branch: branch, offset: page * CIRCLE_API_PAGE_SIZE)
+          return :unknown if builds.nil?
+
+          status = status_of_earlier_run(builds, job: job, build_num: build_num)
+          return status unless status.nil?
+          return :none if builds.size < CIRCLE_API_PAGE_SIZE
+        end
+
+        :unknown
+      end
+
+      # nil when this page of the history holds no conclusive earlier run of the job.
+      def self.status_of_earlier_run(builds, job:, build_num:)
+        earlier_runs = builds.select do |build|
+          build.dig("workflows", "job_name") == job && build["build_num"].to_i < build_num
+        end
+
+        earlier_runs.each do |build|
+          status = build["status"].to_s
+          return :failed if PREVIOUS_RUN_FAILURE_STATUSES.include?(status)
+          return :success if PREVIOUS_RUN_SUCCESS_STATUSES.include?(status)
+          # Canceled and never-started runs carry no result, so keep looking further back.
+        end
+
+        nil
+      end
+
+      def self.fetch_recent_builds(branch:, offset:)
+        url = recent_builds_url(branch: branch, offset: offset)
+        return nil if url.nil?
+
+        response = Net::HTTP.get_response(URI.parse(url))
+        unless response.kind_of?(Net::HTTPSuccess)
+          UI.important("Could not read the CircleCI build history: #{response.code}")
+          return nil
+        end
+
+        builds = JSON.parse(response.body)
+        builds.kind_of?(Array) ? builds : nil
+      rescue StandardError => e
+        UI.important("Could not read the CircleCI build history: #{e.message}")
+        nil
+      end
+
+      def self.recent_builds_url(branch:, offset:)
+        org = ENV.fetch("CIRCLE_PROJECT_USERNAME", nil)
+        repo = ENV.fetch("CIRCLE_PROJECT_REPONAME", nil)
+        return nil if org.to_s.empty? || repo.to_s.empty?
+
+        escaped_branch = URI.encode_www_form_component(branch)
+        "https://circleci.com/api/v1.1/project/github/#{org}/#{repo}/tree/#{escaped_branch}" \
+          "?filter=completed&shallow=true&limit=#{CIRCLE_API_PAGE_SIZE}&offset=#{offset}"
       end
 
       def self.should_send_notification?
@@ -178,6 +271,11 @@ module Fastlane
                                        description: "Platform being tested (Android or iOS). If not provided, will be inferred from CIRCLE_PROJECT_REPONAME",
                                        optional: true,
                                        type: String),
+          FastlaneCore::ConfigItem.new(key: :notify_success_only_on_recovery,
+                                       description: "Whether a success should only be announced when it follows a failure of the same job on the same branch",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false),
           FastlaneCore::ConfigItem.new(key: :message_binary_solo_on_failure,
                                        description: "Whether to also notify binary-solo when tests fail. On-call is always pinged in the backend integration tests feed channel on failure",
                                        optional: true,
