@@ -14,7 +14,11 @@ module Fastlane
       FAILURE_COLOR = "#D00000"
 
       CIRCLE_API_PAGE_SIZE = 100
-      CIRCLE_API_MAX_PAGES = 3
+      # The notifying jobs run once a day while main takes roughly four hundred builds a day, so the
+      # previous run of one of them sits several pages back. Measured at position 457 on 2026-09-18.
+      # Paging stops as soon as the job is found or the branch history runs out, so this is a ceiling
+      # rather than a cost, and giving up early would silently mean "post every success".
+      CIRCLE_API_MAX_PAGES = 12
 
       PREVIOUS_RUN_SUCCESS_STATUSES = %w[success fixed].freeze
       PREVIOUS_RUN_FAILURE_STATUSES = %w[failed timedout infrastructure_fail].freeze

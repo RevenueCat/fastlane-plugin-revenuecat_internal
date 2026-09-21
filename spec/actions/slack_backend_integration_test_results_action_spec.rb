@@ -597,6 +597,19 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
       expect(status).to eq(:failed)
     end
 
+    # These jobs run once a day while main takes roughly four hundred builds a day, so the previous
+    # run of one of them sits several pages back. Measured at position 457 on 2026-09-18.
+    it 'reaches a job whose previous run is a day of main traffic back' do
+      5.times do |page|
+        allow(action_instance).to receive(:fetch_recent_builds).with(branch: git_branch, offset: page * 100)
+                                                               .and_return(page_of([]))
+      end
+      allow(action_instance).to receive(:fetch_recent_builds).with(branch: git_branch, offset: 500)
+                                                             .and_return(page_of([build_entry(job: circle_job, build_num: 100, status: 'failed')]))
+
+      expect(status).to eq(:failed)
+    end
+
     it 'reports unknown when the job is not found before the page limit' do
       allow(action_instance).to receive(:fetch_recent_builds).and_return(page_of([]))
 
