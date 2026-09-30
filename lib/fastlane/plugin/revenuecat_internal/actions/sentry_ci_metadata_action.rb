@@ -5,7 +5,7 @@ require_relative '../helper/github_helper'
 module Fastlane
   module Actions
     class SentryCiMetadataAction < Action
-      MERGE_QUEUE_BRANCH = %r{^gh-readonly-queue/[^/]+/pr-(\d+)-[0-9a-f]+$}.freeze
+      MERGE_QUEUE_BRANCH = %r{\Agh-readonly-queue/(?<base_ref>.+)/pr-(?<pr_number>\d+)-(?<base_sha>[0-9a-f]+)\z}.freeze
 
       def self.run(params)
         repo_name = params[:repo_name]
@@ -25,17 +25,20 @@ module Fastlane
           head_ref: head_ref == 'HEAD' ? nil : head_ref
         }
 
-        pr_number = pull_request_number(head_ref)
-        add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name) if pr_number
+        merge_queue = head_ref.to_s.match(MERGE_QUEUE_BRANCH)
+        if merge_queue
+          metadata[:pr_number] = merge_queue[:pr_number]
+          metadata[:base_ref] = merge_queue[:base_ref]
+          metadata[:base_sha] = merge_queue[:base_sha]
+        elsif (pr_number = pull_request_number)
+          add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name)
+        end
         metadata.compact
       end
 
-      def self.pull_request_number(branch)
+      def self.pull_request_number
         pull_request_url = ENV['CIRCLE_PULL_REQUEST'].to_s
         return pull_request_url.split('/').last if pull_request_url.include?('/')
-
-        match = branch.match(MERGE_QUEUE_BRANCH)
-        match && match[1]
       end
 
       def self.add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name)

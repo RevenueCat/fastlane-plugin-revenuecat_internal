@@ -103,14 +103,16 @@ describe Fastlane::Actions::SentryCiMetadataAction do
     expect(action.run(params)).to include(pr_number: '123')
   end
 
-  it 'detects pull requests from merge-queue branch names' do
+  it 'uses the base metadata encoded in merge-queue branch names without calling GitHub' do
     allow(Fastlane::Actions).to receive(:git_branch)
-      .and_return('gh-readonly-queue/main/pr-456-abcdef1234')
-    params[:github_token] = 'token'
-    expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-      .and_return(json: { 'base' => { 'sha' => 'base-sha', 'ref' => 'main' } })
+      .and_return('gh-readonly-queue/release/9.x/pr-456-abcdef1234')
+    expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry)
 
-    expect(action.run(params)).to include(pr_number: '456', base_sha: 'base-sha', base_ref: 'main')
+    expect(action.run(params)).to include(
+      pr_number: '456',
+      base_sha: 'abcdef1234',
+      base_ref: 'release/9.x'
+    )
   end
 
   it 'requires a GitHub token for pull-request uploads' do
