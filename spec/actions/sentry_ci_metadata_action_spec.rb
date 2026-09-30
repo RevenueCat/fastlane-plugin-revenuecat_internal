@@ -12,8 +12,9 @@ describe Fastlane::Actions::SentryCiMetadataAction do
 
   before do
     allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:fetch).and_call_original
     allow(ENV).to receive(:[]).with('CIRCLE_SHA1').and_return('head-sha')
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return(nil)
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return(nil)
     allow(ENV).to receive(:[]).with('DANGER_GITHUB_API_TOKEN').and_return(nil)
     allow(ENV).to receive(:[]).with('GITHUB_TOKEN').and_return(nil)
     allow(Fastlane::Actions).to receive(:git_branch).and_return('feature/sentry')
@@ -42,7 +43,7 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'adds pull-request and fork repository metadata from CIRCLE_PULL_REQUEST' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
     params[:github_token] = 'token'
     expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
       .with(
@@ -72,7 +73,7 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'falls back to DANGER_GITHUB_API_TOKEN for pull-request metadata' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
     allow(ENV).to receive(:[]).with('DANGER_GITHUB_API_TOKEN').and_return('danger-token')
     expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
       .with(hash_including(api_token: 'danger-token'))
@@ -82,7 +83,7 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'falls back to GITHUB_TOKEN when the Danger token is unavailable' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
     allow(ENV).to receive(:[]).with('GITHUB_TOKEN').and_return('github-token')
     expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
       .with(hash_including(api_token: 'github-token'))
@@ -92,7 +93,7 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'prefers an explicit GitHub token over environment tokens' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
     allow(ENV).to receive(:[]).with('DANGER_GITHUB_API_TOKEN').and_return('danger-token')
     allow(ENV).to receive(:[]).with('GITHUB_TOKEN').and_return('github-token')
     params[:github_token] = 'explicit-token'
@@ -116,14 +117,14 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'requires a GitHub token for pull-request uploads' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
 
     expect { action.run(params) }
       .to raise_error(FastlaneCore::Interface::FastlaneError, /GITHUB_TOKEN is required/)
   end
 
   it 'fails when GitHub does not return a PR base SHA' do
-    allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return('https://github.com/RevenueCat/purchases-android/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', nil).and_return('https://github.com/RevenueCat/purchases-android/pull/123')
     params[:github_token] = 'token'
     allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry).and_return(json: {})
 
