@@ -1,12 +1,11 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
+require_relative 'ci_pull_request_context_action'
 require_relative '../helper/github_helper'
 
 module Fastlane
   module Actions
     class SentryCiMetadataAction < Action
-      MERGE_QUEUE_BRANCH = %r{\Agh-readonly-queue/(?<base_ref>.+)/pr-(?<pr_number>\d+)-(?<base_sha>[0-9a-f]+)\z}.freeze
-
       def self.run(params)
         repo_name = params[:repo_name]
         repo_owner = params[:repo_owner]
@@ -25,20 +24,16 @@ module Fastlane
           head_ref: head_ref == 'HEAD' ? nil : head_ref
         }
 
-        merge_queue = head_ref.to_s.match(MERGE_QUEUE_BRANCH)
-        if merge_queue
-          metadata[:pr_number] = merge_queue[:pr_number]
-          metadata[:base_ref] = merge_queue[:base_ref]
-          metadata[:base_sha] = merge_queue[:base_sha]
-        elsif (pr_number = pull_request_number)
-          add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name)
+        pull_request_context = CiPullRequestContextAction.run(
+          pull_request_url: ENV.fetch('CIRCLE_PULL_REQUEST', nil),
+          branch: head_ref
+        )
+        if pull_request_context[:base_sha]
+          metadata.merge!(pull_request_context)
+        elsif pull_request_context[:pr_number]
+          add_pull_request_metadata(metadata, pull_request_context[:pr_number], params, repo_owner, repo_name)
         end
         metadata.compact
-      end
-
-      def self.pull_request_number
-        pull_request_url = ENV['CIRCLE_PULL_REQUEST'].to_s
-        return pull_request_url.split('/').last if pull_request_url.include?('/')
       end
 
       def self.add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name)
