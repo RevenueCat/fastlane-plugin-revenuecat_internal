@@ -13,10 +13,10 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   before do
     allow(ENV).to receive(:[]).and_call_original
     allow(ENV).to receive(:[]).with('CIRCLE_SHA1').and_return('head-sha')
-    allow(ENV).to receive(:[]).with('CIRCLE_BRANCH').and_return('feature/sentry')
     allow(ENV).to receive(:[]).with('CIRCLE_PULL_REQUEST').and_return(nil)
     allow(ENV).to receive(:[]).with('DANGER_GITHUB_API_TOKEN').and_return(nil)
     allow(ENV).to receive(:[]).with('GITHUB_TOKEN').and_return(nil)
+    allow(Fastlane::Actions).to receive(:git_branch).and_return('feature/sentry')
   end
 
   it 'returns common Sentry metadata for a branch build' do
@@ -32,13 +32,10 @@ describe Fastlane::Actions::SentryCiMetadataAction do
     )
   end
 
-  it 'falls back to git metadata outside CircleCI and omits a detached HEAD ref' do
+  it 'falls back to the git SHA outside CircleCI and omits a detached HEAD ref' do
     allow(ENV).to receive(:[]).with('CIRCLE_SHA1').and_return(nil)
-    allow(ENV).to receive(:[]).with('CIRCLE_BRANCH').and_return(nil)
     allow(Fastlane::Actions).to receive(:sh).with('git', 'rev-parse', 'HEAD', log: false).and_return("local-sha\n")
-    allow(Fastlane::Actions).to receive(:sh)
-      .with('git', 'rev-parse', '--abbrev-ref', 'HEAD', log: false)
-      .and_return("HEAD\n")
+    allow(Fastlane::Actions).to receive(:git_branch).and_return('HEAD')
 
     expect(action.run(params)).to include(head_sha: 'local-sha')
     expect(action.run(params)).not_to have_key(:head_ref)
@@ -107,7 +104,8 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   it 'detects pull requests from merge-queue branch names' do
-    allow(ENV).to receive(:[]).with('CIRCLE_BRANCH').and_return('gh-readonly-queue/main/pr-456-abcdef1234')
+    allow(Fastlane::Actions).to receive(:git_branch)
+      .and_return('gh-readonly-queue/main/pr-456-abcdef1234')
     params[:github_token] = 'token'
     expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
       .and_return(json: { 'base' => { 'sha' => 'base-sha', 'ref' => 'main' } })
