@@ -97,7 +97,6 @@ end
 
 lane :sample_sentry_ci_metadata_action do
   sentry_ci_metadata(
-    repo_name: 'repo-name',
     org_slug: 'sentry-org-slug',
     project_slug: 'sentry-project-slug'
   )
