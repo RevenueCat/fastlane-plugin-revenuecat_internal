@@ -13,7 +13,7 @@ module Fastlane
         head_sha = ENV['CIRCLE_SHA1'].to_s.strip
         head_sha = Actions.sh('git', 'rev-parse', 'HEAD', log: false).strip if head_sha.empty?
 
-        head_ref = current_branch
+        head_ref = Actions.git_branch
         metadata = {
           org_slug: params[:org_slug],
           project_slug: params[:project_slug],
@@ -28,12 +28,6 @@ module Fastlane
         pr_number = pull_request_number(head_ref)
         add_pull_request_metadata(metadata, pr_number, params, repo_owner, repo_name) if pr_number
         metadata.compact
-      end
-
-      def self.current_branch
-        branch = ENV['CIRCLE_BRANCH'].to_s.strip
-        branch = Actions.sh('git', 'rev-parse', '--abbrev-ref', 'HEAD', log: false).strip if branch.empty?
-        branch
       end
 
       def self.pull_request_number(branch)
