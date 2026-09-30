@@ -14,11 +14,11 @@ module Fastlane
         return {} unless pull_request_match || merge_queue_match
 
         context = {
-          pr_number: pull_request_match ? pull_request_match[:pr_number] : merge_queue_match[:pr_number],
+          pr_number: merge_queue_match ? merge_queue_match[:pr_number] : pull_request_match[:pr_number],
           head_sha: resolve_head_sha(params),
           head_ref: head_ref == 'HEAD' ? nil : head_ref
         }
-        context.merge!(merge_queue_base_metadata(merge_queue_match)) unless pull_request_match
+        context.merge!(merge_queue_base_metadata(merge_queue_match)) if merge_queue_match
         context.compact
       end
 

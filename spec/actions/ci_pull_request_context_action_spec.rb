@@ -15,7 +15,7 @@ describe Fastlane::Actions::CiPullRequestContextAction do
     )
   end
 
-  it 'prefers the pull-request URL over a merge-queue branch' do
+  it 'prefers merge-queue metadata when a pull-request URL is also present' do
     expect(
       action.run(
         pull_request_url: 'https://github.com/RevenueCat/purchases-ios/pull/123',
@@ -23,9 +23,11 @@ describe Fastlane::Actions::CiPullRequestContextAction do
         head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234'
       )
     ).to eq(
-      pr_number: '123',
+      pr_number: '456',
       head_sha: 'head-sha',
-      head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234'
+      head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234',
+      base_ref: 'main',
+      base_sha: 'abcdef1234'
     )
   end
 
