@@ -57,11 +57,12 @@ describe Fastlane::Actions::SentryCiMetadataAction do
   end
 
   describe '.available_options' do
-    it 'requires only the Sentry organization and project' do
+    it 'requires only the Sentry organization and project while accepting the legacy repository name' do
       options = action.available_options.to_h { |option| [option.key, option] }
 
-      expect(options.keys).to contain_exactly(:org_slug, :project_slug)
-      expect(options.values).to all(satisfy { |option| !option.optional })
+      expect(options.keys).to contain_exactly(:repo_name, :org_slug, :project_slug)
+      expect(options[:repo_name].optional).to be(true)
+      expect(options.values_at(:org_slug, :project_slug)).to all(satisfy { |option| !option.optional })
     end
   end
 end
