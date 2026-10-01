@@ -95,6 +95,13 @@ lane :sample_ci_pull_request_context_action do
   UI.message("Pull request: #{context[:pr_number] || 'none'}")
 end
 
+lane :sample_sentry_ci_metadata_action do
+  sentry_ci_metadata(
+    org_slug: 'sentry-org-slug',
+    project_slug: 'sentry-project-slug'
+  )
+end
+
 lane :sample_flaky_test do
   test_artifact_path = File.absolute_path('./test_output/xctest/ios')
 
