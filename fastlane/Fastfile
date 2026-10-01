@@ -90,6 +90,11 @@ lane :sample_validate_version_not_in_maven_central_action do |options|
   )
 end
 
+lane :sample_ci_pull_request_context_action do
+  context = ci_pull_request_context
+  UI.message("Pull request: #{context[:pr_number] || 'none'}")
+end
+
 lane :sample_flaky_test do
   test_artifact_path = File.absolute_path('./test_output/xctest/ios')
 
