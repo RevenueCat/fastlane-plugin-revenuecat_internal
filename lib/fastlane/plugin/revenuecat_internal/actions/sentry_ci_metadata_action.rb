@@ -33,10 +33,6 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :repo_name,
-                                       description: 'Repository name retained for compatibility; Sentry infers it from Git',
-                                       optional: true,
-                                       type: String),
           FastlaneCore::ConfigItem.new(key: :org_slug,
                                        description: 'Sentry organization slug',
                                        optional: false,
