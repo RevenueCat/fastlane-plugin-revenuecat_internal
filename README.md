@@ -28,7 +28,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `generate_mobile_app_release_notes`: This action generates customer-facing release notes for the RevenueCat mobile app in the on-brand voice using the Claude CLI. It takes the list of changes and the target store (`ios` or `android`, which enforces Google Play's 500 character limit) and returns the generated notes as a String.
 - `wait_for_pods_in_cocoapods_cdn`: This action waits until the given pod versions are available on the CocoaPods CDN. A pod pushed to trunk isn't immediately resolvable by `pod install`, so gate iOS CI jobs on this action to keep them from starting expensive work against a pod that hasn't propagated yet. Takes either an explicit `pods` hash or `podspec_paths` to read the pinned versions from.
 - `ci_pull_request_context`: This action returns the current CircleCI pull-request number, head commit and branch and, for merge-queue builds, the target branch and actual base SHA encoded in the queue branch. CircleCI values take precedence over Git fallbacks. It returns an empty hash outside a pull request.
-- `sentry_ci_metadata`: This action combines the Sentry organization and project with normalized CircleCI pull-request context. Sentry infers ordinary Git metadata; merge-queue builds provide their encoded base branch and SHA explicitly. The optional `repo_name` input remains accepted for compatibility with existing callers.
+- `sentry_ci_metadata`: This action combines the Sentry organization and project with normalized CircleCI pull-request context. Sentry infers ordinary Git metadata; merge-queue builds provide their encoded base branch and SHA explicitly.
 
 ## Example
 
