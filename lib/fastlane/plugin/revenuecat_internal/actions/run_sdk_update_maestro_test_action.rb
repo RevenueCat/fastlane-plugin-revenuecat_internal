@@ -2,6 +2,7 @@ require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane_core/ui/ui'
 require 'fileutils'
+require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions

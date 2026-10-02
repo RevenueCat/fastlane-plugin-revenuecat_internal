@@ -52,13 +52,14 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
     it 'runs the before update flow on the release app, then the after update flow on the local app' do
       expect(run_action).to be true
 
-      expect(commands.reject { |command| command.first == "git" }).to eq([
+      expected_commands = [
         ["xcrun", "simctl", "uninstall", "booted", "com.revenuecat.SDKUpdateTester"],
         ["xcrun", "simctl", "install", "booted", release_app_path],
         maestro_commands[0],
         ["xcrun", "simctl", "install", "booted", local_app_path],
         maestro_commands[1]
-      ])
+      ]
+      expect(commands.reject { |command| command.first == "git" }).to eq(expected_commands)
       expect(maestro_commands[0].last).to eq("#{flows_dir}/1_before_update.yaml")
       expect(maestro_commands[1].last).to eq("#{flows_dir}/2_after_update.yaml")
     end

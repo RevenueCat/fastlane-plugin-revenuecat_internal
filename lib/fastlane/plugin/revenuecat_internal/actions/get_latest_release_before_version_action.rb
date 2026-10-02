@@ -1,6 +1,7 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane_core/ui/ui'
+require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
   module Actions
@@ -13,7 +14,7 @@ module Fastlane
         tags = Actions.sh("git", "ls-remote", "--tags", "--refs", "https://github.com/RevenueCat/#{repo_name}.git", log: false)
         releases = tags.lines
                        .map { |line| line.split("refs/tags/").last.strip }
-                       .select { |tag| tag.match?(/\A\d+\.\d+\.\d+\z/) }
+                       .grep(/\A\d+\.\d+\.\d+\z/)
                        .map { |tag| Gem::Version.new(tag) }
                        .select { |release| release < current }
         UI.user_error!("No release of #{repo_name} found before #{version}") if releases.empty?
