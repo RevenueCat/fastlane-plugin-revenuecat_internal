@@ -113,7 +113,9 @@ module Fastlane
           "The whole sequence is retried from a clean install on failure. " \
           "Flows receive the `SCREENSHOTS_DIR` (shared by both flows of an attempt, to compare screenshots across the update), " \
           "`EXPECTED_SDK_VERSION` (SDK version of the installed app) and `APP_USER_ID` (unique per attempt) environment variables. " \
-          "The JUnit reports of the last attempt are copied to `<output_dir>/junit`."
+          "The JUnit reports of the last attempt are copied to `<output_dir>/junit`. " \
+          "On Android, both APKs must be signed with the same key for the update to install, e.g. by building them " \
+          "on the same machine with its default debug keystore."
       end
 
       def self.available_options
