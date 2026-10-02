@@ -7,26 +7,28 @@ require_relative '../helper/revenuecat_internal_helper'
 module Fastlane
   module Actions
     class RunSdkUpdateMaestroTestAction < Action
-      BEFORE_UPDATE_FLOW = "1_before_update".freeze
-      AFTER_UPDATE_FLOW = "2_after_update".freeze
       PLATFORMS = %w[ios android].freeze
+      STEP_KEYS = %i[app_path sdk_version flow].freeze
 
       def self.run(params)
         fastlane_dir = FastlaneCore::FastlaneFolder.path
         platform = params[:platform]
         app_id = params[:app_id]
-        flows_dir = File.expand_path(params[:flows_dir], fastlane_dir)
         output_dir = File.expand_path(params[:output_dir], fastlane_dir)
         max_attempts = params[:max_attempts]
-        apps = [
-          { flow: BEFORE_UPDATE_FLOW, path: File.expand_path(params[:release_app_path], fastlane_dir), sdk_version: params[:release_sdk_version] },
-          { flow: AFTER_UPDATE_FLOW, path: File.expand_path(params[:local_app_path], fastlane_dir), sdk_version: params[:local_sdk_version] }
-        ]
+        steps = params[:steps].each_with_index.map do |step, index|
+          flow = File.expand_path(step[:flow], fastlane_dir)
+          {
+            name: "#{index + 1}_#{File.basename(flow, '.*')}",
+            app_path: File.expand_path(step[:app_path], fastlane_dir),
+            sdk_version: step[:sdk_version],
+            flow: flow
+          }
+        end
 
-        apps.each do |app|
-          flow_path = "#{flows_dir}/#{app[:flow]}.yaml"
-          UI.user_error!("Flow not found: #{flow_path}") unless File.exist?(flow_path)
-          UI.user_error!("App not found: #{app[:path]}") unless File.exist?(app[:path])
+        steps.each do |step|
+          UI.user_error!("Flow not found: #{step[:flow]}") unless File.exist?(step[:flow])
+          UI.user_error!("App not found: #{step[:app_path]}") unless File.exist?(step[:app_path])
         end
         commit = Actions.sh("git", "rev-parse", "--short", "HEAD", log: false).strip
 
@@ -39,21 +41,23 @@ module Fastlane
           app_user_id = "sdk-update-test-#{commit}-#{Time.now.to_i}-#{attempt}"
 
           begin
-            UI.message("SDK update test '#{File.basename(flows_dir)}', attempt #{attempt}/#{max_attempts}")
-            uninstall_app(platform, app_id)
+            UI.message("SDK update test, attempt #{attempt}/#{max_attempts}")
+            # Cleaning up before rather than after, so that each attempt starts from a clean state regardless of how
+            # previous runs ended, and the final state is kept for debugging.
+            reset_device_state(platform, app_id)
 
-            apps.each do |app|
-              UI.message("Installing app built against SDK #{app[:sdk_version]}: #{app[:path]}")
-              install_app(platform, app[:path])
+            steps.each do |step|
+              UI.message("Installing app built against SDK #{step[:sdk_version]}: #{step[:app_path]}")
+              install_app(platform, step[:app_path])
               Actions.sh(
                 "maestro", "test",
                 "--format", "junit",
-                "--output", "#{attempt_dir}/#{app[:flow]}/report.xml",
-                "--test-output-dir", "#{attempt_dir}/#{app[:flow]}",
+                "--output", "#{attempt_dir}/#{step[:name]}/report.xml",
+                "--test-output-dir", "#{attempt_dir}/#{step[:name]}",
                 "-e", "SCREENSHOTS_DIR=#{screenshots_dir}",
-                "-e", "EXPECTED_SDK_VERSION=#{app[:sdk_version]}",
+                "-e", "EXPECTED_SDK_VERSION=#{step[:sdk_version]}",
                 "-e", "APP_USER_ID=#{app_user_id}",
-                "#{flows_dir}/#{app[:flow]}.yaml"
+                step[:flow]
               )
             end
 
@@ -71,10 +75,12 @@ module Fastlane
         true
       end
 
-      def self.uninstall_app(platform, app_id)
+      def self.reset_device_state(platform, app_id)
         case platform
         when "ios"
           Actions.sh("xcrun", "simctl", "uninstall", "booted", app_id)
+          # Keychain items survive uninstalling apps on simulators.
+          Actions.sh("xcrun", "simctl", "keychain", "booted", "reset")
         when "android"
           # Fails when the app isn't installed, which is fine.
           Actions.sh("adb", "uninstall", app_id, error_callback: ->(_) {})
@@ -104,17 +110,18 @@ module Fastlane
       #####################################################
 
       def self.description
-        "Runs a Maestro SDK update test: runs a flow on an app built against a released SDK, updates the app to one built against the local SDK, and runs another flow"
+        "Runs a Maestro SDK update test: installs apps built against different SDK versions over each other, like app updates, running a flow after each install"
       end
 
       def self.details
-        "Installs the release app on a clean booted simulator/emulator and runs `1_before_update.yaml` from `flows_dir`. " \
-          "Then installs the local app over it, keeping its data like an app update, and runs `2_after_update.yaml`. " \
-          "The whole sequence is retried from a clean install on failure. " \
-          "Flows receive the `SCREENSHOTS_DIR` (shared by both flows of an attempt, to compare screenshots across the update), " \
-          "`EXPECTED_SDK_VERSION` (SDK version of the installed app) and `APP_USER_ID` (unique per attempt) environment variables. " \
-          "The JUnit reports of the last attempt are copied to `<output_dir>/junit`. " \
-          "On Android, both APKs must be signed with the same key for the update to install, e.g. by building them " \
+        "Each step installs its app over the previous one, keeping its data like an app update, and runs its flow. " \
+          "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
+          "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
+          "per test case. " \
+          "Flows receive the `SCREENSHOTS_DIR` (shared by all steps of an attempt, to compare screenshots across updates), " \
+          "`EXPECTED_SDK_VERSION` (SDK version of the step's app) and `APP_USER_ID` (unique per attempt) environment variables. " \
+          "The JUnit reports of the last attempt are copied to `<output_dir>/junit`, named `<step number>_<flow name>.xml`. " \
+          "On Android, all APKs must be signed with the same key for the updates to install, e.g. by building them " \
           "on the same machine with its default debug keystore."
       end
 
@@ -131,26 +138,19 @@ module Fastlane
                                        description: "Bundle identifier (iOS) or package name (Android) of the apps",
                                        type: String,
                                        optional: false),
-          FastlaneCore::ConfigItem.new(key: :release_app_path,
-                                       description: "Path to the app (.app or .apk) built against the released SDK",
-                                       type: String,
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :release_sdk_version,
-                                       description: "SDK version the release app was built against",
-                                       type: String,
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :local_app_path,
-                                       description: "Path to the app (.app or .apk) built against the local SDK",
-                                       type: String,
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :local_sdk_version,
-                                       description: "SDK version the local app was built against",
-                                       type: String,
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :flows_dir,
-                                       description: "Directory containing the test case's #{BEFORE_UPDATE_FLOW}.yaml and #{AFTER_UPDATE_FLOW}.yaml flows",
-                                       type: String,
-                                       optional: false),
+          FastlaneCore::ConfigItem.new(key: :steps,
+                                       description: "Steps of the update sequence, in order. Each one is a Hash with the " \
+                                                    "`app_path` (.app or .apk) to install, the `sdk_version` it was built against " \
+                                                    "and the Maestro `flow` file to run",
+                                       type: Array,
+                                       optional: false,
+                                       verify_block: proc do |value|
+                                         UI.user_error!("steps must contain at least 2 steps") if value.size < 2
+                                         value.each do |step|
+                                           missing_keys = step.kind_of?(Hash) ? STEP_KEYS.reject { |key| step[key] } : STEP_KEYS
+                                           UI.user_error!("Each step needs #{STEP_KEYS.join(', ')}. Invalid step: #{step}") unless missing_keys.empty?
+                                         end
+                                       end),
           FastlaneCore::ConfigItem.new(key: :output_dir,
                                        description: "Directory to store the test output and JUnit reports in. Cleared before running",
                                        type: String,
@@ -179,11 +179,10 @@ module Fastlane
           'run_sdk_update_maestro_test(
             platform: "ios",
             app_id: "com.revenuecat.SDKUpdateTester",
-            release_app_path: "build/release/SDKUpdateTester.app",
-            release_sdk_version: "5.92.0",
-            local_app_path: "build/local/SDKUpdateTester.app",
-            local_sdk_version: "5.93.0-SNAPSHOT",
-            flows_dir: "maestro/anonymous_user",
+            steps: [
+              { app_path: "build/release/SDKUpdateTester.app", sdk_version: "5.92.0", flow: "maestro/anonymous_user/before_update.yaml" },
+              { app_path: "build/local/SDKUpdateTester.app", sdk_version: "5.93.0-SNAPSHOT", flow: "maestro/anonymous_user/after_update.yaml" }
+            ],
             output_dir: "test_output/sdk_update_tests/anonymous_user",
             max_attempts: 3
           )'
