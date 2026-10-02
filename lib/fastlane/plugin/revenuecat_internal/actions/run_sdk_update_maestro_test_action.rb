@@ -16,20 +16,7 @@ module Fastlane
         app_id = params[:app_id]
         output_dir = File.expand_path(params[:output_dir], fastlane_dir)
         max_attempts = params[:max_attempts]
-        steps = params[:steps].each_with_index.map do |step, index|
-          flow = File.expand_path(step[:flow], fastlane_dir)
-          {
-            name: "#{index + 1}_#{File.basename(flow, '.*')}",
-            app_path: File.expand_path(step[:app_path], fastlane_dir),
-            sdk_version: step[:sdk_version],
-            flow: flow
-          }
-        end
-
-        steps.each do |step|
-          UI.user_error!("Flow not found: #{step[:flow]}") unless File.exist?(step[:flow])
-          UI.user_error!("App not found: #{step[:app_path]}") unless File.exist?(step[:app_path])
-        end
+        steps = resolve_steps(params[:steps], fastlane_dir)
         commit = Actions.sh("git", "rev-parse", "--short", "HEAD", log: false).strip
 
         FileUtils.rm_rf(output_dir)
@@ -73,6 +60,22 @@ module Fastlane
         end
 
         true
+      end
+
+      def self.resolve_steps(steps, fastlane_dir)
+        steps.each_with_index.map do |step, index|
+          flow = File.expand_path(step[:flow], fastlane_dir)
+          app_path = File.expand_path(step[:app_path], fastlane_dir)
+          UI.user_error!("Flow not found: #{flow}") unless File.exist?(flow)
+          UI.user_error!("App not found: #{app_path}") unless File.exist?(app_path)
+
+          {
+            name: "#{index + 1}_#{File.basename(flow, '.*')}",
+            app_path: app_path,
+            sdk_version: step[:sdk_version],
+            flow: flow
+          }
+        end
       end
 
       def self.reset_device_state(platform, app_id)
