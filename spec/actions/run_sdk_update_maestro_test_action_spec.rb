@@ -176,6 +176,21 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       expect { option(:platform).verify!("android") }.not_to raise_error
     end
 
+    it 'rejects zero max attempts' do
+      expect { option(:max_attempts).verify!(0) }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, "max_attempts must be greater than 0")
+    end
+
+    it 'rejects negative max attempts' do
+      expect { option(:max_attempts).verify!(-1) }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, "max_attempts must be greater than 0")
+    end
+
+    it 'accepts positive max attempts' do
+      expect { option(:max_attempts).verify!(1) }.not_to raise_error
+      expect { option(:max_attempts).verify!(3) }.not_to raise_error
+    end
+
     it 'requires at least two complete steps' do
       step = { app_path: "app", sdk_version: "1.0.0", flow: "flow.yaml" }
 

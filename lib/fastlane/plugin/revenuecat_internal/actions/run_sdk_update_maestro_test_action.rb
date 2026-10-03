@@ -161,7 +161,10 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :max_attempts,
                                        description: "Maximum number of attempts of the whole sequence",
                                        type: Integer,
-                                       optional: false)
+                                       optional: false,
+                                       verify_block: proc do |value|
+                                         UI.user_error!("max_attempts must be greater than 0") unless value.positive?
+                                       end)
         ]
       end
 
