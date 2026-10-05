@@ -129,10 +129,10 @@ module Fastlane
       end
 
       def self.details
-        "Each step sends the app to the Home screen, installs its app over the previous one keeping its data " \
+        "Each step backgrounds the app, installs its app over the previous one keeping its data " \
           "like an app update, and runs its flow. " \
           "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
-          "Only later steps wait three seconds after going Home for the background transition. " \
+          "Only later steps wait three seconds after backgrounding the app for the background transition. " \
           "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
           "per test case. " \
           "Flows receive the `SCREENSHOTS_DIR` (shared by all steps of an attempt, to compare screenshots across updates), " \
