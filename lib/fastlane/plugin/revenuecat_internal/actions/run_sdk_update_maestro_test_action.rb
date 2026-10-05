@@ -34,8 +34,10 @@ module Fastlane
             # previous runs ended, and the final state is kept for debugging.
             reset_device_state(platform, app_id)
 
-            steps.each do |step|
+            steps.each_with_index do |step, index|
               UI.message("Installing app built against SDK #{step[:sdk_version]}: #{step[:app_path]}")
+              background_app(platform)
+              sleep(3) if index.positive?
               install_app(platform, step[:app_path])
               Actions.sh(
                 "maestro", "test",
@@ -101,6 +103,15 @@ module Fastlane
         end
       end
 
+      def self.background_app(platform)
+        case platform
+        when "ios"
+          Actions.sh("xcrun", "simctl", "launch", "booted", "com.apple.springboard")
+        when "android"
+          Actions.sh("adb", "shell", "input", "keyevent", "KEYCODE_HOME")
+        end
+      end
+
       def self.copy_junit_reports(attempt_dir, junit_dir)
         FileUtils.rm_rf(junit_dir)
         Dir.glob("#{attempt_dir}/*/report.xml").each do |report|
@@ -118,8 +129,10 @@ module Fastlane
       end
 
       def self.details
-        "Each step installs its app over the previous one, keeping its data like an app update, and runs its flow. " \
+        "Each step backgrounds the app, installs its app over the previous one keeping its data " \
+          "like an app update, and runs its flow. " \
           "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
+          "Only later steps wait three seconds after backgrounding the app for the background transition. " \
           "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
           "per test case. " \
           "Flows receive the `SCREENSHOTS_DIR` (shared by all steps of an attempt, to compare screenshots across updates), " \
