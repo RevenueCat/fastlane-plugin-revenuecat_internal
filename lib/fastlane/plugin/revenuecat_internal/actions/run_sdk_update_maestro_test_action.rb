@@ -93,11 +93,21 @@ module Fastlane
 
       # Installs over any existing installation keeping its data, like an app update.
       def self.install_app(platform, app_path)
+        background_app(platform)
         case platform
         when "ios"
           Actions.sh("xcrun", "simctl", "install", "booted", app_path)
         when "android"
           Actions.sh("adb", "install", "-r", app_path)
+        end
+      end
+
+      def self.background_app(platform)
+        case platform
+        when "ios"
+          Actions.sh("xcrun", "simctl", "launch", "booted", "com.apple.springboard")
+        when "android"
+          Actions.sh("adb", "shell", "input", "keyevent", "KEYCODE_HOME")
         end
       end
 
@@ -118,7 +128,8 @@ module Fastlane
       end
 
       def self.details
-        "Each step installs its app over the previous one, keeping its data like an app update, and runs its flow. " \
+        "Each step sends the app to the Home screen, installs its app over the previous one keeping its data " \
+          "like an app update, and runs its flow. " \
           "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
           "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
           "per test case. " \

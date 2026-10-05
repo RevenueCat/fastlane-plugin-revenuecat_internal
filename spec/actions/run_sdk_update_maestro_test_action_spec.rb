@@ -53,14 +53,16 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       commands.select { |command| command.first == "maestro" }
     end
 
-    it 'resets the simulator, then installs each app over the previous one and runs its flow' do
+    it 'resets the simulator, then goes Home before each installation and runs its flow' do
       expect(run_action).to be true
 
       expected_commands = [
         ["xcrun", "simctl", "uninstall", "booted", "com.revenuecat.SDKUpdateTester"],
         ["xcrun", "simctl", "keychain", "booted", "reset"],
+        ["xcrun", "simctl", "launch", "booted", "com.apple.springboard"],
         ["xcrun", "simctl", "install", "booted", release_app_path],
         maestro_commands[0],
+        ["xcrun", "simctl", "launch", "booted", "com.apple.springboard"],
         ["xcrun", "simctl", "install", "booted", local_app_path],
         maestro_commands[1]
       ]
@@ -99,6 +101,7 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
 
       installed_apps = commands.select { |command| command.include?("install") }.map(&:last)
       expect(installed_apps).to eq([older_app_path, release_app_path, local_app_path])
+      expect(commands.count { |command| command.last == "com.apple.springboard" }).to eq(3)
       expect(maestro_commands.map(&:last)).to eq([before_update_flow, before_update_flow, after_update_flow])
       expect(Dir.children("#{output_dir}/junit"))
         .to contain_exactly("1_before_update.xml", "2_before_update.xml", "3_after_update.xml")
@@ -119,6 +122,7 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
 
       expect(commands.count { |command| command.include?("uninstall") }).to eq(2)
       expect(commands.count { |command| command.include?("keychain") }).to eq(2)
+      expect(commands.count { |command| command.last == "com.apple.springboard" }).to eq(4)
       expect(maestro_commands.size).to eq(4)
       expect(maestro_commands[2]).to include("APP_USER_ID=sdk-update-test-abc1234-2-1a2b3c4d")
       expect(maestro_commands[2]).to include("SCREENSHOTS_DIR=#{output_dir}/attempt_2/reference_screenshots")
@@ -143,12 +147,27 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
     it 'uses adb on android, without resetting any keychain' do
       run_action(platform: "android")
 
-      expect(commands).to include(
+      expected_commands = [
         ["adb", "uninstall", "com.revenuecat.SDKUpdateTester"],
+        ["adb", "shell", "input", "keyevent", "KEYCODE_HOME"],
         ["adb", "install", "-r", release_app_path],
-        ["adb", "install", "-r", local_app_path]
-      )
+        maestro_commands[0],
+        ["adb", "shell", "input", "keyevent", "KEYCODE_HOME"],
+        ["adb", "install", "-r", local_app_path],
+        maestro_commands[1]
+      ]
+      expect(commands.reject { |command| command.first == "git" }).to eq(expected_commands)
       expect(commands.none? { |command| command.include?("keychain") }).to be true
+    end
+
+    it 'does not install or run a flow when going Home fails' do
+      allow(Fastlane::Actions).to receive(:sh)
+        .with("xcrun", "simctl", "launch", "booted", "com.apple.springboard")
+        .and_raise(StandardError, "Home failed")
+
+      expect { run_action(max_attempts: 1) }.to raise_error(StandardError, "Home failed")
+      expect(commands.none? { |command| command.include?("install") }).to be true
+      expect(maestro_commands).to be_empty
     end
 
     it 'fails when a flow is missing' do
