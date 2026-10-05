@@ -94,6 +94,7 @@ module Fastlane
       # Installs over any existing installation keeping its data, like an app update.
       def self.install_app(platform, app_path)
         background_app(platform)
+        sleep(3)
         case platform
         when "ios"
           Actions.sh("xcrun", "simctl", "install", "booted", app_path)
@@ -128,8 +129,8 @@ module Fastlane
       end
 
       def self.details
-        "Each step sends the app to the Home screen, installs its app over the previous one keeping its data " \
-          "like an app update, and runs its flow. " \
+        "Each step sends the app to the Home screen, waits three seconds for the background transition, " \
+          "installs its app over the previous one keeping its data like an app update, and runs its flow. " \
           "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
           "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
           "per test case. " \
