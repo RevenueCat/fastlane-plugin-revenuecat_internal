@@ -34,8 +34,10 @@ module Fastlane
             # previous runs ended, and the final state is kept for debugging.
             reset_device_state(platform, app_id)
 
-            steps.each do |step|
+            steps.each_with_index do |step, index|
               UI.message("Installing app built against SDK #{step[:sdk_version]}: #{step[:app_path]}")
+              background_app(platform)
+              sleep(3) if index.positive?
               install_app(platform, step[:app_path])
               Actions.sh(
                 "maestro", "test",
@@ -93,8 +95,6 @@ module Fastlane
 
       # Installs over any existing installation keeping its data, like an app update.
       def self.install_app(platform, app_path)
-        background_app(platform)
-        sleep(3)
         case platform
         when "ios"
           Actions.sh("xcrun", "simctl", "install", "booted", app_path)
@@ -129,9 +129,10 @@ module Fastlane
       end
 
       def self.details
-        "Each step sends the app to the Home screen, waits three seconds for the background transition, " \
-          "installs its app over the previous one keeping its data like an app update, and runs its flow. " \
+        "Each step sends the app to the Home screen, installs its app over the previous one keeping its data " \
+          "like an app update, and runs its flow. " \
           "The first step starts from a clean state: the app is uninstalled and, on iOS, the simulator's keychain is reset. " \
+          "Only later steps wait three seconds after going Home for the background transition. " \
           "The whole sequence is retried from a clean state on failure. To run several test cases, call this action once " \
           "per test case. " \
           "Flows receive the `SCREENSHOTS_DIR` (shared by all steps of an attempt, to compare screenshots across updates), " \
