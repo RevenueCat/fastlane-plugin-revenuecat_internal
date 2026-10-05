@@ -1,68 +1,35 @@
 describe Fastlane::Actions::CiPullRequestContextAction do
   let(:action) { described_class }
 
-  it 'returns pull-request head metadata from CircleCI values' do
-    expect(
-      action.run(
-        pull_request_url: 'https://github.com/RevenueCat/purchases-ios/pull/123',
-        head_sha: 'head-sha',
-        head_ref: 'feature/sentry'
-      )
-    ).to eq(
+  it 'delegates to the CI helper' do
+    params = {
+      pull_request_url: 'https://github.com/RevenueCat/purchases-ios/pull/123',
+      head_sha: 'head-sha',
+      head_ref: 'feature/sentry'
+    }
+    context = {
+      pr_number: '123',
+      head_sha: 'head-sha',
+      head_ref: 'feature/sentry'
+    }
+
+    expect(Fastlane::Helper::CiHelper).to receive(:pull_request_context)
+      .with(**params)
+      .and_return(context)
+
+    expect(action.run(params)).to eq(context)
+  end
+
+  it 'supports direct Ruby calls using CircleCI environment variables' do
+    allow(ENV).to receive(:fetch).with('CIRCLE_PULL_REQUEST', '').and_return('https://github.com/RevenueCat/purchases-ios/pull/123')
+    allow(ENV).to receive(:fetch).with('CIRCLE_SHA1', '').and_return('head-sha')
+    allow(ENV).to receive(:fetch).with('CIRCLE_BRANCH', '').and_return('feature/sentry')
+
+    expect(action.run({})).to eq(
       pr_number: '123',
       head_sha: 'head-sha',
       head_ref: 'feature/sentry'
     )
-  end
-
-  it 'prefers merge-queue metadata when a pull-request URL is also present' do
-    expect(
-      action.run(
-        pull_request_url: 'https://github.com/RevenueCat/purchases-ios/pull/123',
-        head_sha: 'head-sha',
-        head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234'
-      )
-    ).to eq(
-      pr_number: '456',
-      head_sha: 'head-sha',
-      head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234',
-      base_ref: 'main',
-      base_sha: 'abcdef1234'
-    )
-  end
-
-  it 'returns merge-queue metadata and supports base branches containing slashes' do
-    expect(
-      action.run(
-        head_sha: 'head-sha',
-        head_ref: 'gh-readonly-queue/release/9.x/pr-456-abcdef1234'
-      )
-    ).to eq(
-      pr_number: '456',
-      head_sha: 'head-sha',
-      head_ref: 'gh-readonly-queue/release/9.x/pr-456-abcdef1234',
-      base_ref: 'release/9.x',
-      base_sha: 'abcdef1234'
-    )
-  end
-
-  it 'falls back to the current Git commit and branch' do
-    allow(Fastlane::Actions).to receive(:last_git_commit_hash)
-      .with(false)
-      .and_return('head-sha')
-    allow(Fastlane::Actions).to receive(:git_branch_name_using_HEAD)
-      .and_return('gh-readonly-queue/main/pr-456-abcdef1234')
-
-    expect(action.run({})).to include(
-      pr_number: '456',
-      head_sha: 'head-sha',
-      head_ref: 'gh-readonly-queue/main/pr-456-abcdef1234',
-      base_ref: 'main'
-    )
-  end
-
-  it 'returns an empty context outside a pull request' do
-    expect(action.run(head_ref: 'main')).to eq({})
   end
 
   describe '.available_options' do
