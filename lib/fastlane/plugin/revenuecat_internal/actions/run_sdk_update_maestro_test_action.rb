@@ -2,6 +2,7 @@ require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
 require 'fastlane_core/ui/ui'
 require 'fileutils'
+require 'securerandom'
 require_relative '../helper/revenuecat_internal_helper'
 
 module Fastlane
@@ -25,7 +26,7 @@ module Fastlane
           screenshots_dir = "#{attempt_dir}/reference_screenshots"
           FileUtils.mkdir_p(screenshots_dir)
           # Unique per attempt, so that retries don't start with a user that already purchased.
-          app_user_id = "sdk-update-test-#{commit}-#{Time.now.to_i}-#{attempt}"
+          app_user_id = "sdk-update-test-#{commit}-#{attempt}-#{SecureRandom.hex(4)}"
 
           begin
             UI.message("SDK update test, attempt #{attempt}/#{max_attempts}")

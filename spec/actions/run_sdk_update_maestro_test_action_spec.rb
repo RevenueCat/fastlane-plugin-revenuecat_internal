@@ -20,7 +20,7 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       FileUtils.mkdir_p([flows_dir, release_app_path, local_app_path, "#{tmp_dir}/fastlane"])
       FileUtils.touch([before_update_flow, after_update_flow])
       allow(FastlaneCore::FastlaneFolder).to receive(:path).and_return("#{tmp_dir}/fastlane")
-      allow(Time).to receive(:now).and_return(Time.at(1_700_000_000))
+      allow(SecureRandom).to receive(:hex).with(4).and_return("1a2b3c4d")
       allow(Fastlane::UI).to receive(:message)
       allow(Fastlane::UI).to receive(:error)
       allow(Fastlane::UI).to receive(:success)
@@ -75,12 +75,12 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       expect(maestro_commands[0]).to include(
         "SCREENSHOTS_DIR=#{output_dir}/attempt_1/reference_screenshots",
         "EXPECTED_SDK_VERSION=5.92.0",
-        "APP_USER_ID=sdk-update-test-abc1234-1700000000-1"
+        "APP_USER_ID=sdk-update-test-abc1234-1-1a2b3c4d"
       )
       expect(maestro_commands[1]).to include(
         "SCREENSHOTS_DIR=#{output_dir}/attempt_1/reference_screenshots",
         "EXPECTED_SDK_VERSION=5.93.0-SNAPSHOT",
-        "APP_USER_ID=sdk-update-test-abc1234-1700000000-1"
+        "APP_USER_ID=sdk-update-test-abc1234-1-1a2b3c4d"
       )
     end
 
@@ -120,7 +120,7 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       expect(commands.count { |command| command.include?("uninstall") }).to eq(2)
       expect(commands.count { |command| command.include?("keychain") }).to eq(2)
       expect(maestro_commands.size).to eq(4)
-      expect(maestro_commands[2]).to include("APP_USER_ID=sdk-update-test-abc1234-1700000000-2")
+      expect(maestro_commands[2]).to include("APP_USER_ID=sdk-update-test-abc1234-2-1a2b3c4d")
       expect(maestro_commands[2]).to include("SCREENSHOTS_DIR=#{output_dir}/attempt_2/reference_screenshots")
     end
 
