@@ -65,7 +65,7 @@ module Fastlane
         end
         range = tag ? "#{tag}..HEAD" : "HEAD"
         subjects = Actions.sh("git", "log", range, "--pretty=format:%s", log: false).split("\n")
-        pr_numbers = subjects.map { |subject| pr_number_from_subject(subject) }.compact.uniq
+        pr_numbers = subjects.filter_map { |subject| pr_number_from_subject(subject) }.uniq
         # The changelog-ignore label excludes the whole PR from version calculation.
         labels = pr_numbers.map { |pr_number| pr_labels_for(pr_number, repo_name, github_token, strict: true) }
                            .reject { |pr_labels| pr_labels.include?(changelog_ignore_label) }
@@ -255,7 +255,7 @@ module Fastlane
         fork_point = release_fork_point(main_branch)
         Actions.sh("git", "fetch", "--tags", "--force", log: false)
         tags = Actions.sh("git", "tag", "--points-at", fork_point, log: false).split("\n").map(&:strip)
-        matches = tags.map { |tag| tag.match(%r{\Abuilds/#{Regexp.escape(version)}-([1-9]\d*)\z}) }.compact
+        matches = tags.filter_map { |tag| tag.match(%r{\Abuilds/#{Regexp.escape(version)}-([1-9]\d*)\z}) }
         if matches.empty?
           UI.user_error!("No builds/#{version}-* tag points at #{fork_point[0, 8]}, the #{main_branch} commit this release was cut from. " \
                          "If that commit never uploaded (a skipped merge or a failed job), re-run the upload on it or re-cut from current #{main_branch}. " \
@@ -271,8 +271,8 @@ module Fastlane
       # surfaces only after the release notes and smoke test are already done.
       def self.ensure_candidate_version_matches!(sha, version)
         versions = builds_tags_at(sha)
-                   .map { |tag| tag.match(%r{\Abuilds/(\d+\.\d+\.\d+)-[1-9]\d*\z})&.captures&.first }
-                   .compact.uniq
+                   .filter_map { |tag| tag.match(%r{\Abuilds/(\d+\.\d+\.\d+)-[1-9]\d*\z})&.captures&.first }
+                   .uniq
         return if versions.include?(version)
 
         UI.user_error!("The candidate at #{sha[0, 8]} was uploaded as #{versions.join(', ')}, but the cut computes #{version} " \

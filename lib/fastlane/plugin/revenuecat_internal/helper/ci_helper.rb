@@ -3,8 +3,8 @@ require 'fastlane/action'
 module Fastlane
   module Helper
     class CiHelper
-      PULL_REQUEST_URL = %r{/pull/(?<pr_number>\d+)/?\z}.freeze
-      MERGE_QUEUE_BRANCH = %r{\Agh-readonly-queue/(?<base_ref>.+)/pr-(?<pr_number>\d+)-(?<base_sha>[0-9a-f]+)\z}.freeze
+      PULL_REQUEST_URL = %r{/pull/(?<pr_number>\d+)/?\z}
+      MERGE_QUEUE_BRANCH = %r{\Agh-readonly-queue/(?<base_ref>.+)/pr-(?<pr_number>\d+)-(?<base_sha>[0-9a-f]+)\z}
 
       def self.pull_request_context(pull_request_url: nil, head_sha: nil, head_ref: nil)
         pull_request_url = circleci_value(pull_request_url, 'CIRCLE_PULL_REQUEST')
