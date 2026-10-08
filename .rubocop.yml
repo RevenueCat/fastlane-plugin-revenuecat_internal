@@ -3,7 +3,8 @@ require:
 - rubocop/require_tools
 - rubocop-performance
 AllCops:
-  TargetRubyVersion: 2.6
+  # rubocop 1.31.1 doesn't know about 3.3 yet, so this is the closest it supports.
+  TargetRubyVersion: 3.2
   NewCops: enable
   Include:
   - "**/*.rb"
@@ -18,6 +19,11 @@ AllCops:
   - "**/lib/assets/MatchfileTemplate"
   - "**/spec/fixtures/broken_files/broken_file.rb"
   - "**/*.provisionprofile"
+Style/HashSyntax:
+  EnforcedShorthandSyntax: either
+# The gemspec requires >= 3.3, which is newer than the TargetRubyVersion above.
+Gemspec/RequiredRubyVersion:
+  Enabled: false
 Style/MultipleComparison:
   Enabled: false
 Style/PercentLiteralDelimiters:

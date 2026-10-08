@@ -516,7 +516,7 @@ module Fastlane
         if base_branch
           UI.important("Found #{prs.size} open PRs from #{branch} into #{base_branch}, using the most recent one")
         else
-          targets = prs.map { |pr| pr.dig('base', 'ref') }.compact.join(', ')
+          targets = prs.filter_map { |pr| pr.dig('base', 'ref') }.join(', ')
           UI.user_error!(
             "Found #{prs.size} open PRs from #{branch} (targeting: #{targets}). " \
             "Specify base_branch to disambiguate."

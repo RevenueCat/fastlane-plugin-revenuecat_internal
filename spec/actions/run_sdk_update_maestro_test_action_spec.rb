@@ -221,7 +221,7 @@ describe Fastlane::Actions::RunSdkUpdateMaestroTestAction do
       step = { app_path: "app", sdk_version: "1.0.0", flow: "flow.yaml" }
 
       expect { option(:steps).verify!([step]) }.to raise_error(FastlaneCore::Interface::FastlaneError, /at least 2 steps/)
-      expect { option(:steps).verify!([step, step.reject { |key, _| key == :flow }]) }
+      expect { option(:steps).verify!([step, step.except(:flow)]) }
         .to raise_error(FastlaneCore::Interface::FastlaneError, /Each step needs app_path, sdk_version, flow/)
       expect { option(:steps).verify!([step, "not a step"]) }
         .to raise_error(FastlaneCore::Interface::FastlaneError, /Each step needs/)
