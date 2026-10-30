@@ -187,10 +187,8 @@ module Fastlane
         options[:team_reviewers] = team_reviewers unless team_reviewers.empty?
 
         pr_url = Actions::CreatePullRequestAction.run(**options)
-
-        return unless enable_auto_merge
-
-        try_enable_auto_merge(pr_url, repo_name, title, github_pr_token, slack_url)
+        try_enable_auto_merge(pr_url, repo_name, title, github_pr_token, slack_url) if enable_auto_merge
+        pr_url
       end
 
       def self.try_enable_auto_merge(pr_url, repo_name, title, github_pr_token, slack_url)
