@@ -64,23 +64,7 @@ module Fastlane
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        changelog_sections = {
-          revenuecat_sdk: {
-            breaking_changes: [],
-            new_features: [],
-            fixes: [],
-            dependency_updates: [],
-            functionalities: {}
-          },
-          revenuecatui_sdk: {
-            breaking_changes: [],
-            new_features: [],
-            fixes: [],
-            dependency_updates: [],
-            functionalities: {}
-          },
-          other: []
-        }
+        changelog_sections = empty_changelog_sections
 
         last_phc_dep_line = nil
 
@@ -95,33 +79,15 @@ module Fastlane
           when 1
             item = items.first
 
-            message = "#{item['title']} (#{cross_repo_pr_reference}##{item['number']})"
-            username = item["user"]["login"]
             all_labels = item["labels"].map { |label_info| label_info["name"].downcase }.to_set
             next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
             next if exclude_labels && !(all_labels & exclude_labels.map(&:downcase).to_set).empty?
 
-            types_of_change = get_type_of_change_from_pr_info(item)
-            next if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
+            line = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference)
+            next if line.nil?
 
-            section = get_section_depending_on_types_of_change(types_of_change)
-            line = "* #{message} via #{name} (@#{username})"
-            if types_of_change.include?("pr:phc_dependencies") && last_phc_dep_line.nil?
+            if all_labels.include?("pr:phc_dependencies") && last_phc_dep_line.nil?
               last_phc_dep_line = line
-            end
-
-            if section.kind_of?(Array) && section.first == :functionalities
-              functionality_name = section[1]
-              subsection = section[2]
-              sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
-              changelog_sections[sdk_section][:functionalities][functionality_name] ||= {}
-              changelog_sections[sdk_section][:functionalities][functionality_name][subsection] ||= []
-              changelog_sections[sdk_section][:functionalities][functionality_name][subsection].push(line)
-            elsif section == :other
-              changelog_sections[:other].push(line)
-            else
-              sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
-              changelog_sections[sdk_section][section].push(line) if changelog_sections[sdk_section].key?(section)
             end
           when 0
             unless filter_labels
@@ -144,6 +110,12 @@ module Fastlane
         build_changelog_sections(changelog_sections)
       end
       # rubocop:enable Metrics/PerceivedComplexity
+
+      def self.changelog_for_pull_request(pull_request, author_name)
+        changelog_sections = empty_changelog_sections
+        add_pull_request_to_changelog_sections(changelog_sections, pull_request, author_name, '')
+        build_changelog_sections(changelog_sections)
+      end
 
       def self.platform_changelogs(releases, platform)
         platform_changelogs = []
@@ -327,6 +299,49 @@ module Fastlane
           version, = tag.split(DELIMITER_BUILD_METADATA)
           Gem::Version.new(version)
         end
+      end
+
+      private_class_method def self.empty_changelog_sections
+        {
+          revenuecat_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            functionalities: {}
+          },
+          revenuecatui_sdk: {
+            breaking_changes: [],
+            new_features: [],
+            fixes: [],
+            dependency_updates: [],
+            functionalities: {}
+          },
+          other: []
+        }
+      end
+
+      private_class_method def self.add_pull_request_to_changelog_sections(changelog_sections, item, author_name, cross_repo_pr_reference)
+        types_of_change = get_type_of_change_from_pr_info(item)
+        return nil if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
+
+        message = "#{item['title']} (#{cross_repo_pr_reference}##{item['number']})"
+        line = "* #{message} via #{author_name} (@#{item['user']['login']})"
+        section = get_section_depending_on_types_of_change(types_of_change)
+        sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
+
+        if section.kind_of?(Array) && section.first == :functionalities
+          functionality_name = section[1]
+          subsection = section[2]
+          changelog_sections[sdk_section][:functionalities][functionality_name] ||= {}
+          changelog_sections[sdk_section][:functionalities][functionality_name][subsection] ||= []
+          changelog_sections[sdk_section][:functionalities][functionality_name][subsection].push(line)
+        elsif section == :other
+          changelog_sections[:other].push(line)
+        elsif changelog_sections[sdk_section].key?(section)
+          changelog_sections[sdk_section][section].push(line)
+        end
+        line
       end
 
       private_class_method def self.build_changelog_sections(changelog_sections)
