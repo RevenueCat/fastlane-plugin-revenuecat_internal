@@ -9,6 +9,8 @@ module Fastlane
 
   module Helper
     class MavenCentralHelper
+      REPO1_BASE_URL = 'https://repo1.maven.org/maven2'.freeze
+
       def self.check_version_not_published(version, group_id, artifact_ids, auth_token)
         if auth_token.nil? || auth_token.empty?
           UI.user_error!("FETCH_PUBLICATIONS_USER_TOKEN_MAVEN_CENTRAL environment variable is not set. Please provide a valid token to check Maven Central publications.")
@@ -56,6 +58,49 @@ module Fastlane
         end
 
         true
+      end
+
+      # Gradle's mavenCentral() resolves a dependency by fetching its POM from repo1.
+      def self.pom_url(group_id, artifact_id, version)
+        "#{REPO1_BASE_URL}/#{group_id.tr('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+      end
+
+      def self.artifact_available?(group_id, artifact_id, version)
+        RestClient.head(pom_url(group_id, artifact_id, version), { 'Cache-Control' => 'no-cache' })
+        true
+      rescue RestClient::NotFound
+        false
+      rescue StandardError => e
+        UI.important("Couldn't check #{group_id}:#{artifact_id}:#{version} on Maven Central: #{e.message}")
+        false
+      end
+
+      def self.wait_for_artifacts(group_id, artifact_ids, version, timeout_seconds, poll_interval_seconds, soft_fail)
+        deadline = Time.now + timeout_seconds
+
+        artifact_ids.each do |artifact_id|
+          next if wait_for_artifact(group_id, artifact_id, version, deadline, poll_interval_seconds)
+
+          message = "#{group_id}:#{artifact_id}:#{version} still isn't on Maven Central after #{timeout_seconds / 60}m."
+          UI.user_error!("#{message} Giving up.") unless soft_fail
+          UI.important("#{message} Continuing anyway.")
+        end
+      end
+
+      def self.wait_for_artifact(group_id, artifact_id, version, deadline, poll_interval_seconds)
+        loop do
+          if artifact_available?(group_id, artifact_id, version)
+            UI.success("#{group_id}:#{artifact_id}:#{version} is available on Maven Central")
+            return true
+          end
+
+          remaining = deadline - Time.now
+          return false if remaining <= 0
+
+          UI.message("Waiting for #{group_id}:#{artifact_id}:#{version} on Maven Central " \
+                     "(#{(remaining / 60).ceil}m remaining)...")
+          sleep([poll_interval_seconds, remaining].min)
+        end
       end
     end
   end
