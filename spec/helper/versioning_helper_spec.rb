@@ -1066,6 +1066,47 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
+  describe '.changelog_for_pull_request' do
+    def pull_request(labels)
+      {
+        'number' => 1751,
+        'title' => 'Fix replace version without prerelease modifiers',
+        'user' => { 'login' => 'jane-doe' },
+        'labels' => labels.map { |label| { 'name' => label } }
+      }
+    end
+
+    it 'puts a fix in the Bugfixes section' do
+      changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request(['pr:fix']), 'Jane Doe')
+
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Jane Doe (@jane-doe)")
+    end
+
+    it 'puts a RevenueCatUI fix with a feature label in its functionality section' do
+      changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request(['pr:fix', 'pr:RevenueCatUI', 'feat:Paywalls']), 'Jane Doe')
+
+      expect(changelog).to eq("## RevenueCatUI SDK\n" \
+                              "### Paywalls\n" \
+                              "#### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Jane Doe (@jane-doe)")
+    end
+
+    it 'puts an unlabeled pull request in Other Changes' do
+      changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request([]), 'Jane Doe')
+
+      expect(changelog).to eq("### 🔄 Other Changes\n" \
+                              "* Fix replace version without prerelease modifiers (#1751) via Jane Doe (@jane-doe)")
+    end
+
+    it 'returns an empty changelog for a pull request excluded from changelogs' do
+      changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request(['pr:fix', 'pr:changelog_ignore']), 'Jane Doe')
+
+      expect(changelog).to eq('')
+    end
+  end
+
   describe '.determine_next_version_using_labels' do
     let(:repo_name) { 'purchases-ios' }
     let(:server_url) { 'https://api.github.com' }

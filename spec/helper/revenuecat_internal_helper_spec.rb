@@ -863,6 +863,15 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
       Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token', labels: ['label_1', 'label_2'])
     end
 
+    it 'returns the created PR URL' do
+      allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
+        .and_return('https://github.com/RevenueCat/fake-repo-name/pull/123')
+
+      pr_url = Fastlane::Helper::RevenuecatInternalHelper.create_pr('fake-title', 'fake-changelog', 'fake-repo-name', 'main', 'fake-branch', 'fake-github-pr-token')
+
+      expect(pr_url).to eq('https://github.com/RevenueCat/fake-repo-name/pull/123')
+    end
+
     it 'does not enable auto-merge by default' do
       allow(Fastlane::Actions::CreatePullRequestAction).to receive(:run)
       expect(Fastlane::Helper::GitHubHelper).not_to receive(:enable_auto_merge)
