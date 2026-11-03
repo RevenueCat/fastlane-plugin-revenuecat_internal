@@ -3,6 +3,7 @@ require 'fastlane/action'
 require 'rest-client'
 require 'json'
 require 'uri'
+require_relative 'polling_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -76,31 +77,10 @@ module Fastlane
       end
 
       def self.wait_for_artifacts(group_id, artifact_ids, version, timeout_seconds, poll_interval_seconds, soft_fail)
-        deadline = Time.now + timeout_seconds
-
-        artifact_ids.each do |artifact_id|
-          next if wait_for_artifact(group_id, artifact_id, version, deadline, poll_interval_seconds)
-
-          message = "#{group_id}:#{artifact_id}:#{version} still isn't on Maven Central after #{timeout_seconds / 60}m."
-          UI.user_error!("#{message} Giving up.") unless soft_fail
-          UI.important("#{message} Continuing anyway.")
+        checks = artifact_ids.to_h do |artifact_id|
+          ["#{group_id}:#{artifact_id}:#{version}", -> { artifact_available?(group_id, artifact_id, version) }]
         end
-      end
-
-      def self.wait_for_artifact(group_id, artifact_id, version, deadline, poll_interval_seconds)
-        loop do
-          if artifact_available?(group_id, artifact_id, version)
-            UI.success("#{group_id}:#{artifact_id}:#{version} is available on Maven Central")
-            return true
-          end
-
-          remaining = deadline - Time.now
-          return false if remaining <= 0
-
-          UI.message("Waiting for #{group_id}:#{artifact_id}:#{version} on Maven Central " \
-                     "(#{(remaining / 60).ceil}m remaining)...")
-          sleep([poll_interval_seconds, remaining].min)
-        end
+        PollingHelper.wait_for_all(checks, 'Maven Central', timeout_seconds, poll_interval_seconds, soft_fail)
       end
     end
   end

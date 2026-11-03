@@ -1,6 +1,7 @@
 require 'digest'
 require 'fastlane_core/ui/ui'
 require 'rest-client'
+require_relative 'polling_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
@@ -43,36 +44,10 @@ module Fastlane
       end
 
       def self.wait_for_pods(pods, timeout_seconds, poll_interval_seconds, soft_fail)
-        # One deadline for the whole set rather than one per pod, so the total wait
-        # stays bounded by :timeout however many pods are listed. Pods published
-        # together propagate together, so a per-pod clock would just multiply the
-        # worst case by the number of pods.
-        deadline = Time.now + timeout_seconds
-
-        pods.each do |pod_name, version|
-          next if wait_for_pod(pod_name, version, deadline, poll_interval_seconds)
-
-          message = "#{pod_name} #{version} still isn't on the CocoaPods CDN after #{timeout_seconds / 60}m."
-          UI.user_error!("#{message} Giving up.") unless soft_fail
-          UI.important("#{message} Continuing anyway.")
+        checks = pods.to_h do |pod_name, version|
+          ["#{pod_name} #{version}", -> { published_versions(pod_name).include?(version) }]
         end
-      end
-
-      def self.wait_for_pod(pod_name, version, deadline, poll_interval_seconds)
-        loop do
-          if published_versions(pod_name).include?(version)
-            UI.success("#{pod_name} #{version} is available on the CocoaPods CDN")
-            return true
-          end
-
-          remaining = deadline - Time.now
-          return false if remaining <= 0
-
-          # Logged on every poll so CI sees output and doesn't hit an inactivity timeout.
-          UI.message("Waiting for #{pod_name} #{version} on the CocoaPods CDN " \
-                     "(#{(remaining / 60).ceil}m remaining)...")
-          sleep([poll_interval_seconds, remaining].min)
-        end
+        PollingHelper.wait_for_all(checks, 'the CocoaPods CDN', timeout_seconds, poll_interval_seconds, soft_fail)
       end
     end
   end

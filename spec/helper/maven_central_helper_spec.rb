@@ -33,75 +33,36 @@ describe Fastlane::Helper::MavenCentralHelper do
     end
   end
 
-  describe '#wait_for_artifact' do
-    let(:deadline) { Time.now + 600 }
-
-    before do
-      allow(described_class).to receive(:sleep)
-    end
-
-    it 'returns true immediately when the artifact is already available' do
-      allow(described_class).to receive(:artifact_available?).and_return(true)
-
-      expect(described_class).not_to receive(:sleep)
-      expect(described_class.wait_for_artifact(group_id, artifact_id, '20.4.0', deadline, 60)).to be(true)
-    end
-
-    it 'polls until the artifact shows up' do
-      allow(described_class).to receive(:artifact_available?).and_return(false, false, true)
-
-      expect(described_class).to receive(:sleep).with(60).twice
-      expect(described_class.wait_for_artifact(group_id, artifact_id, '20.4.0', deadline, 60)).to be(true)
-    end
-
-    it 'returns false once the deadline has passed' do
-      allow(described_class).to receive(:artifact_available?).and_return(false)
-
-      expect(described_class.wait_for_artifact(group_id, artifact_id, '20.4.0', Time.now - 1, 60)).to be(false)
-    end
-
-    it 'never sleeps past the deadline' do
-      allow(described_class).to receive(:artifact_available?).and_return(false, true)
-
-      expect(described_class).to receive(:sleep).once { |seconds| expect(seconds).to be <= 10 }
-      expect(described_class.wait_for_artifact(group_id, artifact_id, '20.4.0', Time.now + 10, 60)).to be(true)
-    end
-  end
-
   describe '#wait_for_artifacts' do
-    it 'waits for every artifact against one shared deadline' do
-      deadlines = []
-      allow(described_class).to receive(:wait_for_artifact) do |_group_id, _artifact_id, _version, deadline, _poll|
-        deadlines << deadline
-        true
-      end
+    before do
+      allow(Fastlane::Helper::PollingHelper).to receive(:sleep)
+    end
 
-      described_class.wait_for_artifacts(group_id, ['purchases-hybrid-common', 'purchases-hybrid-common-ui'], '20.4.0', 600, 60, false)
+    it 'waits for every artifact on Maven Central' do
+      expect(Fastlane::Helper::PollingHelper).to receive(:wait_for_all)
+        .with({ "#{group_id}:purchases-hybrid-common:20.4.0" => anything, "#{group_id}:purchases-hybrid-common-ui:20.4.0" => anything },
+              'Maven Central', 600, 60, true)
 
-      expect(deadlines.size).to eq(2)
-      expect(deadlines.uniq.size).to eq(1)
+      described_class.wait_for_artifacts(group_id, ['purchases-hybrid-common', 'purchases-hybrid-common-ui'], '20.4.0', 600, 60, true)
+    end
+
+    it 'succeeds once the pom resolves' do
+      stub_request(:head, pom_url).to_return({ status: 404 }, { status: 200 })
+
+      expect(FastlaneCore::UI).to receive(:success).with("#{group_id}:#{artifact_id}:20.4.0 is available on Maven Central")
+      described_class.wait_for_artifacts(group_id, [artifact_id], '20.4.0', 600, 60, false)
     end
 
     it 'fails when an artifact never shows up' do
-      allow(described_class).to receive(:wait_for_artifact).and_return(false)
+      stub_request(:head, pom_url).to_return(status: 404)
 
       expect(FastlaneCore::UI).to receive(:user_error!)
-        .with("#{group_id}:#{artifact_id}:20.4.0 still isn't on Maven Central after 10m. Giving up.")
+        .with("#{group_id}:#{artifact_id}:20.4.0 still isn't on Maven Central after 0m. Giving up.")
         .and_raise(StandardError.new('user_error'))
 
       expect do
-        described_class.wait_for_artifacts(group_id, [artifact_id], '20.4.0', 600, 60, false)
+        described_class.wait_for_artifacts(group_id, [artifact_id], '20.4.0', 0, 60, false)
       end.to raise_error(StandardError)
-    end
-
-    it 'only warns when soft_fail is set' do
-      allow(described_class).to receive(:wait_for_artifact).and_return(false)
-
-      expect(FastlaneCore::UI).to receive(:important)
-        .with("#{group_id}:#{artifact_id}:20.4.0 still isn't on Maven Central after 10m. Continuing anyway.")
-      expect(FastlaneCore::UI).not_to receive(:user_error!)
-
-      described_class.wait_for_artifacts(group_id, [artifact_id], '20.4.0', 600, 60, true)
     end
   end
 end
