@@ -40,7 +40,7 @@ module Fastlane
           change_summary = "PR ##{pr_number} (#{pull_request['title']})"
         else
           dependency_releases.each { |dependency_repo, version| ensure_release_exists(dependency_repo, version, github_pr_token) }
-          dependencies = dependency_releases.map { |dependency_repo, version| "#{dependency_repo} #{version}" }.join(', ')
+          dependencies = dependency_releases.sort.map { |dependency_repo, version| "#{dependency_repo} #{version}" }.join(', ')
           change_marker = "(hotfix dependency update: #{dependencies})"
           change_summary = "dependency update to #{dependencies}"
         end
@@ -202,11 +202,13 @@ module Fastlane
       end
 
       private_class_method def self.apply_dependency_update(update_dependencies, next_version, change_marker)
-        changelog_entry = update_dependencies.call(next_version).strip
-        UI.user_error!("update_dependencies changed no files.") if Actions.sh('git', 'status', '--porcelain', '--untracked-files=no', log: false).strip.empty?
+        changelog_entry = update_dependencies.call(next_version).to_s.strip
+        UI.user_error!("update_dependencies must return the changelog entry.") if changelog_entry.empty?
+        UI.user_error!("update_dependencies changed no files.") if Actions.sh('git', 'status', '--porcelain', log: false).strip.empty?
 
         subject, details = changelog_entry.split("\n", 2)
-        Actions.sh('git', 'commit', '-am', [subject, details, change_marker].compact.join("\n\n"))
+        Actions.sh('git', 'add', '--all')
+        Actions.sh('git', 'commit', '-m', [subject, details, change_marker].compact.join("\n\n"))
         changelog_entry
       end
 
@@ -275,7 +277,7 @@ module Fastlane
                                        optional: true,
                                        type: Integer),
           FastlaneCore::ConfigItem.new(key: :update_dependencies,
-                                       description: "Lambda that updates the dependency versions on the release branch. It receives the hotfix version and returns its changelog entry, without the leading `* `. Pass this or pr_number",
+                                       description: "Lambda that updates the dependency versions on the release branch without committing them. It receives the hotfix version and returns its changelog entry, without the leading `* `. Pass this or pr_number",
                                        optional: true,
                                        is_string: false),
           FastlaneCore::ConfigItem.new(key: :dependency_releases,

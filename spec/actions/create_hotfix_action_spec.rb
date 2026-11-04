@@ -76,7 +76,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       release_branch_commits.map { |subject, body| "#{subject}\x1f#{body}\x1e" }.join("\n")
     when ['git', 'rev-parse', '--abbrev-ref', 'HEAD'] then "main\n"
     when ['git', 'diff', '--name-only', '--diff-filter=U'] then unmerged_files
-    when ['git', 'status', '--porcelain', '--untracked-files=no'] then changed_files
+    when ['git', 'status', '--porcelain'] then changed_files
     else
       if command.first(3) == ['git', 'rev-list', '-n']
         "#{tag_commit}\n"
@@ -430,7 +430,8 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(run_dependency_hotfix).to eq(release_pr_url)
 
       expect(update_calls).to eq(['10.2.1'])
-      expect(sh_calls).to include(['git', 'commit', '-am', "iOS 4.5.0 => 4.5.1\n\n#{marker}"])
+      expect(sh_calls).to include(['git', 'add', '--all'])
+      expect(sh_calls).to include(['git', 'commit', '-m', "iOS 4.5.0 => 4.5.1\n\n#{marker}"])
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog).with(expected_changelog, changelog_latest_path)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
         .with('Release/10.2.1', "Hotfix on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
@@ -444,7 +445,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       it 'keeps them in the commit body and the changelog' do
         run_dependency_hotfix
 
-        expect(sh_calls).to include(['git', 'commit', '-am', "Updates purchases-hybrid-common to 19.18.0\n\n  * [Android 10.31.0](https://example.com)\n\n#{marker}"])
+        expect(sh_calls).to include(['git', 'commit', '-m', "Updates purchases-hybrid-common to 19.18.0\n\n  * [Android 10.31.0](https://example.com)\n\n#{marker}"])
         expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
           .with("## RevenueCat SDK\n### 📦 Dependency Updates\n* #{changelog_entry}", changelog_latest_path)
       end
@@ -458,6 +459,26 @@ describe Fastlane::Actions::CreateHotfixAction do
 
         expect(update_calls).to be_empty
         expect(api_calls.map { |params| params[:http_method] }).not_to include('POST')
+      end
+    end
+
+    context 'when the update returns no changelog entry' do
+      let(:changelog_entry) { nil }
+
+      it { expect { run_dependency_hotfix }.to raise_error(FastlaneCore::Interface::FastlaneError, 'update_dependencies must return the changelog entry.') }
+    end
+
+    context 'when resuming with the releases in another order' do
+      let(:published_dependency_releases) { ['purchases-ios/4.5.1', 'purchases-android/10.31.0'] }
+      let(:dependency_releases) { { 'purchases-ios' => '4.5.1', 'purchases-android' => '10.31.0' } }
+      let(:remote_base_branch_sha) { tag_commit }
+      let(:local_release_branch) { '  release/10.2.1' }
+      let(:release_branch_commits) { [['iOS 4.5.0 => 4.5.1', '(hotfix dependency update: purchases-android 10.31.0, purchases-ios 4.5.1)']] }
+
+      it 'recognizes the update commit' do
+        run_dependency_hotfix
+
+        expect(update_calls).to be_empty
       end
     end
 
