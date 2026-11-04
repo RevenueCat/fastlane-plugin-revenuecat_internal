@@ -144,6 +144,7 @@ describe Fastlane::Actions::CreateHotfixAction do
   describe 'a new hotfix' do
     it 'creates the base branch, cherry-picks the fix, bumps the version and opens the release PR' do
       expected_changelog = "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix the bug (#123) via Jane Doe (@jane-doe)"
+      allow(Fastlane::UI).to receive(:success)
 
       expect(run_action).to eq(release_pr_url)
 
@@ -163,7 +164,11 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(sh_calls).to include(['git', 'push', '--set-upstream', 'origin', 'release/10.2.1'])
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
         .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
-      expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}"])
+      next_steps = "Approve #{release_pr_url} but don't merge it: approval tags 10.2.1, then CircleCI deploys it and merges the PR into `hotfix/10.2.0`. " \
+                   "Then delete `hotfix/10.2.0` and add 10.2.1 to `CHANGELOG.md` on main. " \
+                   "RELEASING.md lists any steps specific to this repo."
+      expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}\n\n#{next_steps}"])
+      expect(Fastlane::UI).to have_received(:success).with("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
     end
 
     it 'patches the latest release of a major when given only the major' do

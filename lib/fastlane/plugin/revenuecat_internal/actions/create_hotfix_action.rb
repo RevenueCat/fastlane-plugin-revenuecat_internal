@@ -83,14 +83,20 @@ module Fastlane
         Actions.sh('git', 'push', '--set-upstream', 'origin', release_branch)
 
         release_pr_url = open_pr_url(repo_name, release_branch, base_branch, github_pr_token)
-        if release_pr_url.nil?
+        new_release_pr = release_pr_url.nil?
+        if new_release_pr
           body = "Hotfix of ##{pr_number} on #{tag}.\n\n#{changelog}"
           release_pr_url = Helper::RevenuecatInternalHelper.create_pr("Release/#{next_version}", body, repo_name, base_branch, release_branch, github_pr_token, labels: ['pr:next_release'])
-          github_api('POST', repo_name, "/issues/#{pr_number}/comments", github_pr_token, body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}" })
+        end
+        next_steps = "Approve #{release_pr_url} but don't merge it: approval tags #{next_version}, then CircleCI deploys it and merges the PR into `#{base_branch}`. " \
+                     "Then delete `#{base_branch}` and add #{next_version} to `CHANGELOG.md` on main. " \
+                     "RELEASING.md lists any steps specific to this repo."
+        if new_release_pr
+          github_api('POST', repo_name, "/issues/#{pr_number}/comments", github_pr_token, body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}\n\n#{next_steps}" })
         end
 
         Actions.sh('git', 'checkout', starting_branch) if UI.interactive?
-        UI.success("Hotfix release PR: #{release_pr_url}")
+        UI.success("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
         release_pr_url
       end
       # rubocop:enable Metrics/PerceivedComplexity
