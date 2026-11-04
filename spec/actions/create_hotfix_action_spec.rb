@@ -24,7 +24,7 @@ describe Fastlane::Actions::CreateHotfixAction do
   let(:sh_calls) { [] }
   let(:api_calls) { [] }
   let(:release_pr_url) { 'https://github.com/RevenueCat/purchases-android/pull/456' }
-  let(:published_dependency_releases) { ['purchases-ios/4.5.1', 'purchases-hybrid-common/19.18.0'] }
+  let(:published_dependency_releases) { ['purchases-ios/4.5.1'] }
   let(:changed_files) { " M build.gradle\n" }
 
   let(:pull_request) do
@@ -100,11 +100,8 @@ describe Fastlane::Actions::CreateHotfixAction do
     when ['POST', '/repos/RevenueCat/purchases-android/issues/123/comments']
       { status: 201, json: {} }
     else
-      if (release = path[%r{\A/repos/RevenueCat/([^/]+)/releases/tags/(.+)\z}])
-        return { status: 200, json: {} } if published_dependency_releases.include?("#{Regexp.last_match(1)}/#{Regexp.last_match(2)}")
-
-        params[:error_handlers][404].call(release)
-        { status: 404, json: {} }
+      if (release = path.match(%r{\A/repos/RevenueCat/([^/]+)/releases/tags/(.+)\z}))
+        { status: published_dependency_releases.include?("#{release[1]}/#{release[2]}") ? 200 : 404, json: {} }
       elsif path.start_with?('/repos/RevenueCat/purchases-android/git/ref/heads/hotfix/')
         base_branch_ref_response
       elsif path.start_with?('/repos/RevenueCat/purchases-android/pulls?')

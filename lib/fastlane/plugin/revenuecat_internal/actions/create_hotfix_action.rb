@@ -45,7 +45,7 @@ module Fastlane
           change_summary = "dependency update to #{dependencies}"
         end
 
-        Actions.sh('git', 'fetch', '--tags', '--force', 'origin')
+        Actions.sh('git', 'fetch', '--force', 'origin', 'refs/tags/*:refs/tags/*', *default_branch)
         tags = Actions.sh('git', 'tag', log: false).split("\n")
         tag = resolve_tag(requested_version, tags)
         next_version = next_patch_version(tag)
@@ -108,20 +108,17 @@ module Fastlane
         Actions.sh('git', 'push', '--set-upstream', 'origin', release_branch)
 
         release_pr_url = open_pr_url(repo_name, release_branch, base_branch, github_pr_token)
-        new_release_pr = release_pr_url.nil?
-        if new_release_pr
+        if release_pr_url.nil?
           body = pr_number ? "Hotfix of ##{pr_number} on #{tag}.\n\n#{changelog}" : "Hotfix on #{tag}.\n\n#{changelog}"
           release_pr_url = Helper::RevenuecatInternalHelper.create_pr("Release/#{next_version}", body, repo_name, base_branch, release_branch, github_pr_token, labels: ['pr:next_release'])
-        end
-        next_steps = "Approve #{release_pr_url} but don't merge it: approval tags #{next_version}, then CircleCI deploys it and merges the PR into `#{base_branch}`. " \
-                     "Then delete `#{base_branch}` and add #{next_version} to `CHANGELOG.md` on main. " \
-                     "RELEASING.md lists any steps specific to this repo."
-        if new_release_pr && pr_number
-          github_api('POST', repo_name, "/issues/#{pr_number}/comments", github_pr_token, body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}\n\n#{next_steps}" })
+          if pr_number
+            github_api('POST', repo_name, "/issues/#{pr_number}/comments", github_pr_token,
+                       body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}\n\n#{next_steps(release_pr_url, next_version, base_branch)}" })
+          end
         end
 
         Actions.sh('git', 'checkout', starting_branch) if UI.interactive?
-        UI.success("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
+        UI.success("Hotfix release PR: #{release_pr_url}\n#{next_steps(release_pr_url, next_version, base_branch)}")
         release_pr_url
       end
       # rubocop:enable Metrics/PerceivedComplexity
@@ -194,9 +191,14 @@ module Fastlane
       end
 
       private_class_method def self.ensure_release_exists(dependency_repo, version, github_pr_token)
-        missing = false
-        github_api('GET', dependency_repo, "/releases/tags/#{version}", github_pr_token, error_handlers: { 404 => proc { missing = true } })
-        UI.user_error!("#{dependency_repo} has no #{version} release.") if missing
+        response = github_api('GET', dependency_repo, "/releases/tags/#{version}", github_pr_token, error_handlers: { 404 => proc {} })
+        UI.user_error!("#{dependency_repo} has no #{version} release.") if response[:status] == 404
+      end
+
+      private_class_method def self.next_steps(release_pr_url, next_version, base_branch)
+        "Approve #{release_pr_url} but don't merge it: approval tags #{next_version}, then CircleCI deploys it and merges the PR into `#{base_branch}`. " \
+          "Then delete `#{base_branch}` and add #{next_version} to `CHANGELOG.md` on main. " \
+          "RELEASING.md lists any steps specific to this repo."
       end
 
       private_class_method def self.apply_dependency_update(update_dependencies, next_version, change_marker)
