@@ -30,7 +30,7 @@ module Fastlane
 
       def self.details
         [
-          "A release published to the Central Portal isn't immediately resolvable from repo1.maven.org,",
+          "A release published to the Central Portal isn't immediately resolvable from Maven Central,",
           'so Gradle fails with "Could not find <artifact>" until it syncs.',
           "Gate anything that consumes a fresh release on this action."
         ].join(' ')

@@ -2,11 +2,11 @@ describe Fastlane::Helper::MavenCentralHelper do
   let(:group_id) { 'com.revenuecat.purchases' }
   let(:artifact_id) { 'purchases-hybrid-common' }
   let(:pom_url) do
-    'https://repo1.maven.org/maven2/com/revenuecat/purchases/purchases-hybrid-common/20.4.0/purchases-hybrid-common-20.4.0.pom'
+    'https://repo.maven.apache.org/maven2/com/revenuecat/purchases/purchases-hybrid-common/20.4.0/purchases-hybrid-common-20.4.0.pom'
   end
 
   describe '#pom_url' do
-    it 'builds the repo1 path from the group, artifact and version' do
+    it 'builds the Maven Central path from the group, artifact and version' do
       expect(described_class.pom_url(group_id, artifact_id, '20.4.0')).to eq(pom_url)
     end
   end

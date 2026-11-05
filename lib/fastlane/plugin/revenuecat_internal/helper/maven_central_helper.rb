@@ -10,7 +10,7 @@ module Fastlane
 
   module Helper
     class MavenCentralHelper
-      REPO1_BASE_URL = 'https://repo1.maven.org/maven2'.freeze
+      GRADLE_MAVEN_CENTRAL_URL = 'https://repo.maven.apache.org/maven2'.freeze
 
       def self.check_version_not_published(version, group_id, artifact_ids, auth_token)
         if auth_token.nil? || auth_token.empty?
@@ -61,9 +61,9 @@ module Fastlane
         true
       end
 
-      # Gradle's mavenCentral() resolves a dependency by fetching its POM from repo1.
+      # Gradle's mavenCentral() resolves a dependency by fetching its POM from this host (ArtifactRepositoryContainer.MAVEN_CENTRAL_URL).
       def self.pom_url(group_id, artifact_id, version)
-        "#{REPO1_BASE_URL}/#{group_id.tr('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+        "#{GRADLE_MAVEN_CENTRAL_URL}/#{group_id.tr('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       end
 
       def self.artifact_available?(group_id, artifact_id, version)
