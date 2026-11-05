@@ -3,12 +3,15 @@ require 'fastlane/action'
 require 'rest-client'
 require 'json'
 require 'uri'
+require_relative 'polling_helper'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?(:UI)
 
   module Helper
     class MavenCentralHelper
+      GRADLE_MAVEN_CENTRAL_URL = 'https://repo.maven.apache.org/maven2'.freeze
+
       def self.check_version_not_published(version, group_id, artifact_ids, auth_token)
         if auth_token.nil? || auth_token.empty?
           UI.user_error!("FETCH_PUBLICATIONS_USER_TOKEN_MAVEN_CENTRAL environment variable is not set. Please provide a valid token to check Maven Central publications.")
@@ -56,6 +59,28 @@ module Fastlane
         end
 
         true
+      end
+
+      # Gradle's mavenCentral() resolves a dependency by fetching its POM from this host (ArtifactRepositoryContainer.MAVEN_CENTRAL_URL).
+      def self.pom_url(group_id, artifact_id, version)
+        "#{GRADLE_MAVEN_CENTRAL_URL}/#{group_id.tr('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+      end
+
+      def self.artifact_available?(group_id, artifact_id, version)
+        RestClient.head(pom_url(group_id, artifact_id, version), { 'Cache-Control' => 'no-cache' })
+        true
+      rescue RestClient::NotFound
+        false
+      rescue StandardError => e
+        UI.important("Couldn't check #{group_id}:#{artifact_id}:#{version} on Maven Central: #{e.message}")
+        false
+      end
+
+      def self.wait_for_artifacts(group_id, artifact_ids, version, timeout_seconds, poll_interval_seconds, soft_fail)
+        checks = artifact_ids.to_h do |artifact_id|
+          ["#{group_id}:#{artifact_id}:#{version}", -> { artifact_available?(group_id, artifact_id, version) }]
+        end
+        PollingHelper.wait_for_all(checks, 'Maven Central', timeout_seconds, poll_interval_seconds, soft_fail)
       end
     end
   end
