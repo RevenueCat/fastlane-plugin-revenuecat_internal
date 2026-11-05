@@ -24,6 +24,8 @@ describe Fastlane::Actions::CreateHotfixAction do
   let(:sh_calls) { [] }
   let(:api_calls) { [] }
   let(:release_pr_url) { 'https://github.com/RevenueCat/purchases-android/pull/456' }
+  let(:published_dependency_releases) { ['purchases-ios/4.5.1'] }
+  let(:changed_files) { " M build.gradle\n" }
 
   let(:pull_request) do
     {
@@ -74,6 +76,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       release_branch_commits.map { |subject, body| "#{subject}\x1f#{body}\x1e" }.join("\n")
     when ['git', 'rev-parse', '--abbrev-ref', 'HEAD'] then "main\n"
     when ['git', 'diff', '--name-only', '--diff-filter=U'] then unmerged_files
+    when ['git', 'status', '--porcelain'] then changed_files
     else
       if command.first(3) == ['git', 'rev-list', '-n']
         "#{tag_commit}\n"
@@ -97,7 +100,9 @@ describe Fastlane::Actions::CreateHotfixAction do
     when ['POST', '/repos/RevenueCat/purchases-android/issues/123/comments']
       { status: 201, json: {} }
     else
-      if path.start_with?('/repos/RevenueCat/purchases-android/git/ref/heads/hotfix/')
+      if (release = path.match(%r{\A/repos/RevenueCat/([^/]+)/releases/tags/(.+)\z}))
+        { status: published_dependency_releases.include?("#{release[1]}/#{release[2]}") ? 200 : 404, json: {} }
+      elsif path.start_with?('/repos/RevenueCat/purchases-android/git/ref/heads/hotfix/')
         base_branch_ref_response
       elsif path.start_with?('/repos/RevenueCat/purchases-android/pulls?')
         { status: 200, json: open_release_prs }
@@ -118,10 +123,12 @@ describe Fastlane::Actions::CreateHotfixAction do
     { status: 201, json: { 'object' => { 'sha' => sha } } }
   end
 
-  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {})
+  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {}, pr_number: 123, update_dependencies: nil, dependency_releases: {})
     Fastlane::Actions::CreateHotfixAction.run(
       repo_name: repo_name,
-      pr_number: 123,
+      pr_number: pr_number,
+      update_dependencies: update_dependencies,
+      dependency_releases: dependency_releases,
       version: version,
       changelog_latest_path: changelog_latest_path,
       changelog_path: changelog_path,
@@ -144,6 +151,7 @@ describe Fastlane::Actions::CreateHotfixAction do
   describe 'a new hotfix' do
     it 'creates the base branch, cherry-picks the fix, bumps the version and opens the release PR' do
       expected_changelog = "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix the bug (#123) via Jane Doe (@jane-doe)"
+      allow(Fastlane::UI).to receive(:success)
 
       expect(run_action).to eq(release_pr_url)
 
@@ -163,7 +171,11 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(sh_calls).to include(['git', 'push', '--set-upstream', 'origin', 'release/10.2.1'])
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
         .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
-      expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}"])
+      next_steps = "Approve #{release_pr_url} but don't merge it: approval tags 10.2.1, then CircleCI deploys it and merges the PR into `hotfix/10.2.0`. " \
+                   "Then delete `hotfix/10.2.0` and add 10.2.1 to `CHANGELOG.md` on main. " \
+                   "RELEASING.md lists any steps specific to this repo."
+      expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}\n\n#{next_steps}"])
+      expect(Fastlane::UI).to have_received(:success).with("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
     end
 
     it 'patches the latest release of a major when given only the major' do
@@ -393,6 +405,129 @@ describe Fastlane::Actions::CreateHotfixAction do
         expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:create_pr)
         expect(comments).to be_empty
       end
+    end
+  end
+
+  describe 'a dependency update' do
+    let(:dependency_releases) { { 'purchases-ios' => '4.5.1' } }
+    let(:changelog_entry) { 'iOS 4.5.0 => 4.5.1' }
+    let(:update_calls) { [] }
+    let(:update_dependencies) do
+      lambda do |next_version|
+        update_calls << next_version
+        changelog_entry
+      end
+    end
+    let(:marker) { '(hotfix dependency update: purchases-ios 4.5.1)' }
+
+    def run_dependency_hotfix(**options)
+      run_action(pr_number: nil, update_dependencies: update_dependencies, dependency_releases: dependency_releases, **options)
+    end
+
+    it 'applies the update on the release branch, bumps the version and opens the release PR without commenting' do
+      expected_changelog = "## RevenueCat SDK\n### 📦 Dependency Updates\n* iOS 4.5.0 => 4.5.1"
+
+      expect(run_dependency_hotfix).to eq(release_pr_url)
+
+      expect(update_calls).to eq(['10.2.1'])
+      expect(sh_calls).to include(['git', 'add', '--all'])
+      expect(sh_calls).to include(['git', 'commit', '-m', "iOS 4.5.0 => 4.5.1\n\n#{marker}"])
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog).with(expected_changelog, changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+        .with('Release/10.2.1', "Hotfix on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
+      expect(comments).to be_empty
+      expect(sh_calls.index(['git', 'checkout', '-b', 'release/10.2.1', '10.2.0'])).to be < sh_calls.index { |command| command[1] == 'commit' }
+    end
+
+    context 'when the changelog entry has nested lines' do
+      let(:changelog_entry) { "Updates purchases-hybrid-common to 19.18.0\n  * [Android 10.31.0](https://example.com)" }
+
+      it 'keeps them in the commit body and the changelog' do
+        run_dependency_hotfix
+
+        expect(sh_calls).to include(['git', 'commit', '-m', "Updates purchases-hybrid-common to 19.18.0\n\n  * [Android 10.31.0](https://example.com)\n\n#{marker}"])
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
+          .with("## RevenueCat SDK\n### 📦 Dependency Updates\n* #{changelog_entry}", changelog_latest_path)
+      end
+    end
+
+    context 'when a dependency version has no release' do
+      let(:dependency_releases) { { 'purchases-ios' => '4.5.1', 'purchases-android' => '10.31.0' } }
+
+      it 'fails before changing anything' do
+        expect { run_dependency_hotfix }.to raise_error(FastlaneCore::Interface::FastlaneError, 'purchases-android has no 10.31.0 release.')
+
+        expect(update_calls).to be_empty
+        expect(api_calls.map { |params| params[:http_method] }).not_to include('POST')
+      end
+    end
+
+    context 'when the update returns no changelog entry' do
+      let(:changelog_entry) { nil }
+
+      it { expect { run_dependency_hotfix }.to raise_error(FastlaneCore::Interface::FastlaneError, 'update_dependencies must return the changelog entry.') }
+    end
+
+    context 'when resuming with the releases in another order' do
+      let(:published_dependency_releases) { ['purchases-ios/4.5.1', 'purchases-android/10.31.0'] }
+      let(:dependency_releases) { { 'purchases-ios' => '4.5.1', 'purchases-android' => '10.31.0' } }
+      let(:remote_base_branch_sha) { tag_commit }
+      let(:local_release_branch) { '  release/10.2.1' }
+      let(:release_branch_commits) { [['iOS 4.5.0 => 4.5.1', '(hotfix dependency update: purchases-android 10.31.0, purchases-ios 4.5.1)']] }
+
+      it 'recognizes the update commit' do
+        run_dependency_hotfix
+
+        expect(update_calls).to be_empty
+      end
+    end
+
+    context 'when the update changes no files' do
+      let(:changed_files) { '' }
+
+      it { expect { run_dependency_hotfix }.to raise_error(FastlaneCore::Interface::FastlaneError, 'update_dependencies changed no files.') }
+    end
+
+    it 'rejects both a PR and a dependency update' do
+      expect { run_dependency_hotfix(pr_number: 123) }.to raise_error(FastlaneCore::Interface::FastlaneError, 'Pass either pr_number or update_dependencies.')
+    end
+
+    it 'rejects neither a PR nor a dependency update' do
+      expect { run_action(pr_number: nil) }.to raise_error(FastlaneCore::Interface::FastlaneError, 'Pass either pr_number or update_dependencies.')
+    end
+
+    it 'rejects a dependency update without the releases it applies' do
+      expect { run_dependency_hotfix(dependency_releases: {}) }
+        .to raise_error(FastlaneCore::Interface::FastlaneError, 'Pass the dependency_releases that update_dependencies applies.')
+    end
+
+    it 'changes nothing on a dry run' do
+      expect(run_dependency_hotfix(dry_run: true)).to be_nil
+
+      expect(update_calls).to be_empty
+      expect(api_calls.map { |params| params[:http_method] }).to all(eq('GET'))
+    end
+
+    context 'when resuming after the update was committed' do
+      let(:remote_base_branch_sha) { tag_commit }
+      let(:local_release_branch) { '  release/10.2.1' }
+      let(:release_branch_commits) { [['Updates purchases-hybrid-common to 19.18.0', "  * [Android 10.31.0](https://example.com)\n\n#{marker}"]] }
+
+      it 'rebuilds the changelog from the commit instead of updating again' do
+        run_dependency_hotfix
+
+        expect(update_calls).to be_empty
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
+          .with("## RevenueCat SDK\n### 📦 Dependency Updates\n* Updates purchases-hybrid-common to 19.18.0\n  * [Android 10.31.0](https://example.com)", changelog_latest_path)
+      end
+    end
+
+    context 'when the release branch has an update to other versions' do
+      let(:remote_base_branch_sha) { tag_commit }
+      let(:local_release_branch) { '  release/10.2.1' }
+      let(:release_branch_commits) { [['iOS 4.5.0 => 4.5.2', '(hotfix dependency update: purchases-ios 4.5.2)']] }
+
+      it { expect { run_dependency_hotfix }.to raise_error(FastlaneCore::Interface::FastlaneError, /already has commits that are not part of this hotfix: iOS 4.5.0 => 4.5.2/) }
     end
   end
 
