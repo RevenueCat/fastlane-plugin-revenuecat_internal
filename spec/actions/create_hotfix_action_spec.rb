@@ -18,7 +18,13 @@ describe Fastlane::Actions::CreateHotfixAction do
   let(:remote_base_branch_sha) { nil }
   let(:create_ref_status) { 201 }
   let(:open_release_prs) { [] }
+  let(:open_changelog_prs) { [] }
+  let(:main_changelog) { "## 11.0.0\n* New\n\n## 10.3.0\n* Old\n" }
+  let(:changelog_pr_url) { 'https://github.com/RevenueCat/purchases-android/pull/457' }
   let(:failing_commands) { [] }
+  let(:worktree) { end_with('/worktree') }
+  let(:changelog_push) { ['git', '-C', worktree, '-c', 'core.hooksPath=/dev/null', 'push', '--force', 'origin', 'HEAD:refs/heads/changelog/10.2.1'] }
+  let(:default_branch) { 'main' }
   let(:fix_already_in_tag) { false }
   let(:unmerged_files) { '' }
   let(:sh_calls) { [] }
@@ -35,7 +41,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       'labels' => labels,
       'merged_at' => merged_at,
       'merge_commit_sha' => fix_sha,
-      'base' => { 'ref' => base_ref, 'repo' => { 'default_branch' => 'main' } }
+      'base' => { 'ref' => base_ref, 'repo' => { 'default_branch' => default_branch } }
     }
   end
 
@@ -46,7 +52,8 @@ describe Fastlane::Actions::CreateHotfixAction do
     allow(Fastlane::Actions::EnsureGitStatusCleanAction).to receive(:run)
     allow(Fastlane::Actions).to receive(:sh) do |*command, **options|
       sh_calls << command
-      if failing_commands.include?(command) || (command.first(4) == ['git', 'merge-base', '--is-ancestor', fix_sha] && !fix_already_in_tag)
+      if failing_commands.any? { |failing| RSpec::Support::FuzzyMatcher.values_match?(failing, command) } || (command.first(4) == ['git', 'merge-base', '--is-ancestor', fix_sha] && !fix_already_in_tag)
+        FastlaneCore::UI.user_error!("#{command.join(' ')} failed") unless options[:error_callback]
         options[:error_callback].call('failed')
         ''
       else
@@ -65,7 +72,9 @@ describe Fastlane::Actions::CreateHotfixAction do
     allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog)
     allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:attach_changelog_to_main)
     allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_current_changes)
+    allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:insert_old_version_changelog_in_current_branch)
     allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr).and_return(release_pr_url)
+    allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr).with('Changelog update for 10.2.1', any_args).and_return(changelog_pr_url)
   end
 
   def sh_output(command)
@@ -77,6 +86,7 @@ describe Fastlane::Actions::CreateHotfixAction do
     when ['git', 'rev-parse', '--abbrev-ref', 'HEAD'] then "main\n"
     when ['git', 'diff', '--name-only', '--diff-filter=U'] then unmerged_files
     when ['git', 'status', '--porcelain'] then changed_files
+    when ['git', 'show', "origin/#{default_branch}:#{changelog_path}"] then main_changelog
     else
       if command.first(3) == ['git', 'rev-list', '-n']
         "#{tag_commit}\n"
@@ -93,6 +103,8 @@ describe Fastlane::Actions::CreateHotfixAction do
   def api_response(params)
     path = params[:path]
     case [params[:http_method], path]
+    when ['GET', '/repos/RevenueCat/purchases-android']
+      { status: 200, json: { 'default_branch' => default_branch } }
     when ['GET', '/repos/RevenueCat/purchases-android/pulls/123']
       { status: 200, json: pull_request }
     when ['POST', '/repos/RevenueCat/purchases-android/git/refs']
@@ -105,11 +117,15 @@ describe Fastlane::Actions::CreateHotfixAction do
       elsif path.start_with?('/repos/RevenueCat/purchases-android/git/ref/heads/hotfix/')
         base_branch_ref_response
       elsif path.start_with?('/repos/RevenueCat/purchases-android/pulls?')
-        { status: 200, json: open_release_prs }
+        { status: 200, json: open_prs(path) }
       else
         raise "Unexpected API call: #{params[:http_method]} #{path}"
       end
     end
+  end
+
+  def open_prs(path)
+    path.include?('changelog%2F') ? open_changelog_prs : open_release_prs
   end
 
   def base_branch_ref_response
@@ -170,12 +186,142 @@ describe Fastlane::Actions::CreateHotfixAction do
         .with('Version bump for 10.2.1')
       expect(sh_calls).to include(['git', 'push', '--set-upstream', 'origin', 'release/10.2.1'])
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
-        .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
+        .with('Release/10.2.1', "Hotfix of #123 on 10.2.0. After the deploy, merge #{changelog_pr_url}.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
+      expect(sh_calls).to include(['git', 'worktree', 'add', '--no-checkout', '--detach', worktree, 'origin/main'])
+      expect(sh_calls.select { |command| command.first(2) == ['git', 'checkout'] }).to eq([['git', 'checkout', '-b', 'release/10.2.1', '10.2.0']])
+      expect(sh_calls).to include(['git', '-C', worktree, '-c', 'core.hooksPath=/dev/null', 'checkout', 'HEAD', '--', changelog_path])
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:insert_old_version_changelog_in_current_branch)
+        .with('10.2.1', "#{expected_changelog}\n", end_with(File.join('worktree', changelog_path)))
+      expect(sh_calls).to include(['git', '-C', worktree, '-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Changelog update for 10.2.1', '--', changelog_path])
+      expect(sh_calls).to include(changelog_push)
+      expect(sh_calls).to include(['git', 'worktree', 'remove', '--force', worktree])
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+        .with('Changelog update for 10.2.1', "Adds 10.2.1 to CHANGELOG.md. Merge it once 10.2.1 is deployed.",
+              repo_name, 'main', 'changelog/10.2.1', github_pr_token, labels: ['pr:other', 'pr:changelog_ignore'], team_reviewers: [])
       next_steps = "Approve #{release_pr_url} but don't merge it: approval tags 10.2.1, then CircleCI deploys it and merges the PR into `hotfix/10.2.0`. " \
-                   "Then delete `hotfix/10.2.0` and add 10.2.1 to `CHANGELOG.md` on main. " \
+                   "Then delete `hotfix/10.2.0` and merge #{changelog_pr_url}. " \
                    "RELEASING.md lists any steps specific to this repo."
       expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}\n\n#{next_steps}"])
       expect(Fastlane::UI).to have_received(:success).with("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
+    end
+
+    it 'opens the changelog PR before the release PR' do
+      run_action
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr).with('Changelog update for 10.2.1', any_args).ordered
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr).with('Release/10.2.1', any_args).ordered
+    end
+
+    context 'when the changelog PR cannot be opened' do
+      let(:failing_commands) { [changelog_push] }
+
+      it 'still opens the release PR and asks to add the entry by hand' do
+        expect(run_action).to eq(release_pr_url)
+
+        expect(comments.first).to include("Then delete `hotfix/10.2.0` and add 10.2.1 to `CHANGELOG.md` on main.")
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+          .with('Release/10.2.1', start_with('Hotfix of #123 on 10.2.0. After the deploy, add 10.2.1 to `CHANGELOG.md` on main.'), any_args)
+        expect(sh_calls).to include(['git', 'worktree', 'remove', '--force', worktree])
+      end
+    end
+
+    it 'asks to add the entry by hand when the GitHub API raises' do
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr).with('Changelog update for 10.2.1', any_args).and_raise(SocketError, 'getaddrinfo failed')
+
+      expect(run_action).to eq(release_pr_url)
+
+      expect(comments.first).to include("add 10.2.1 to `CHANGELOG.md` on main")
+    end
+
+    it 'asks to add the entry by hand when GitHub does not create the changelog PR' do
+      allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr).with('Changelog update for 10.2.1', any_args).and_return(nil)
+      allow(Fastlane::UI).to receive(:success)
+
+      run_action
+
+      expect(sh_calls).to include(changelog_push)
+      expect(Fastlane::UI).to have_received(:success).with(include("add 10.2.1 to `CHANGELOG.md` on main"))
+    end
+
+    context 'when the default branch has no changelog' do
+      let(:failing_commands) { [['git', 'show', "origin/main:#{changelog_path}"]] }
+
+      it 'still opens the release PR and asks to add the entry by hand' do
+        expect(run_action).to eq(release_pr_url)
+
+        expect(comments.first).to include("add 10.2.1 to `CHANGELOG.md` on main")
+      end
+    end
+
+    context 'when the default branch is not main' do
+      let(:default_branch) { 'develop' }
+      let(:base_ref) { 'develop' }
+
+      it 'opens the changelog PR into it' do
+        run_action
+
+        expect(sh_calls).to include(['git', 'worktree', 'add', '--no-checkout', '--detach', worktree, 'origin/develop'])
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+          .with('Changelog update for 10.2.1', anything, repo_name, 'develop', 'changelog/10.2.1', github_pr_token, labels: ['pr:other', 'pr:changelog_ignore'], team_reviewers: [])
+      end
+    end
+
+    context 'when the changelog worktree cannot be added' do
+      let(:failing_commands) { [['git', 'worktree', 'add', '--no-checkout', '--detach', worktree, 'origin/main']] }
+
+      it 'still opens the release PR' do
+        expect(run_action).to eq(release_pr_url)
+
+        expect(sh_calls).to include(['git', 'worktree', 'remove', '--force', worktree])
+        expect(comments.first).to include("add 10.2.1 to `CHANGELOG.md` on main")
+      end
+    end
+
+    context 'when the changelog commit fails' do
+      let(:failing_commands) { [['git', '-C', worktree, '-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Changelog update for 10.2.1', '--', changelog_path]] }
+
+      it 'discards the CHANGELOG.md edit and still opens the release PR' do
+        expect(run_action).to eq(release_pr_url)
+
+        expect(sh_calls).to include(['git', 'worktree', 'remove', '--force', worktree])
+        expect(comments.first).to include("add 10.2.1 to `CHANGELOG.md` on main")
+      end
+    end
+
+    context 'when a rerun finds the changelog PR but no release PR' do
+      let(:open_changelog_prs) { [{ 'html_url' => changelog_pr_url }] }
+
+      it 'links the existing changelog PR in the comment' do
+        run_action
+
+        expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:create_pr).with('Changelog update for 10.2.1', any_args)
+        expect(comments.first).to include("merge #{changelog_pr_url}")
+      end
+    end
+
+    context 'when main lists only versions that start the same' do
+      let(:main_changelog) { "## 10.2.10\n* Later\n\n## 10.2.1-beta.1\n* Beta\n\n### 10.2.1\n* Not a header\n" }
+
+      it 'still opens the changelog PR' do
+        run_action
+
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr).with('Changelog update for 10.2.1', any_args)
+      end
+    end
+
+    context 'when main already lists the version' do
+      let(:main_changelog) { "## 11.0.0\n* New\n\n## 10.2.1 \n* Fix\n" }
+
+      it 'opens no changelog PR and leaves it out of the next steps' do
+        allow(Fastlane::UI).to receive(:success)
+
+        run_action
+
+        expect(sh_calls).not_to include(include('changelog/10.2.1'))
+        expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:insert_old_version_changelog_in_current_branch)
+        expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:create_pr).with('Changelog update for 10.2.1', any_args)
+        expect(Fastlane::UI).to have_received(:success).with(include("Then delete `hotfix/10.2.0`. RELEASING.md"))
+      end
     end
 
     it 'patches the latest release of a major when given only the major' do
@@ -201,7 +347,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       it 'returns to the starting branch' do
         run_action
 
-        expect(FastlaneCore::UI).to have_received(:confirm).with('Create release/10.2.1?')
+        expect(FastlaneCore::UI).to have_received(:confirm).with('Create release/10.2.1 and, if main lacks 10.2.1, a CHANGELOG.md PR into it?')
         expect(sh_calls.last).to eq(['git', 'checkout', 'main'])
       end
 
@@ -374,7 +520,7 @@ describe Fastlane::Actions::CreateHotfixAction do
         expect(sh_calls).to include(['git', 'checkout', 'release/10.2.1'])
         expect(sh_calls).not_to include(include('pull'))
         expect(sh_calls).not_to include(['git', 'cherry-pick', '-x', fix_sha])
-        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:commit_current_changes)
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:commit_current_changes).with('Version bump for 10.2.1')
       end
     end
 
@@ -396,14 +542,19 @@ describe Fastlane::Actions::CreateHotfixAction do
       let(:remote_release_branch) { "abc\trefs/heads/release/10.2.1\n" }
       let(:release_branch_commits) { [['Version bump for 10.2.1', ''], ['Fix the bug (#123)', cherry_pick_trailer]] }
       let(:open_release_prs) { [{ 'html_url' => release_pr_url }] }
+      let(:open_changelog_prs) { [{ 'html_url' => changelog_pr_url }] }
 
-      it 'checks out the pushed branch and returns the open PR without commenting again' do
+      it 'checks out the pushed branch and returns the open PRs without commenting again' do
+        allow(Fastlane::UI).to receive(:success)
+
         expect(run_action).to eq(release_pr_url)
 
         expect(sh_calls).to include(['git', 'fetch', 'origin', 'release/10.2.1:release/10.2.1'])
         expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:replace_version_number)
         expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:create_pr)
+        expect(sh_calls).not_to include(include('changelog/10.2.1'))
         expect(comments).to be_empty
+        expect(Fastlane::UI).to have_received(:success).with(include("merge #{changelog_pr_url}"))
       end
     end
   end
@@ -434,9 +585,12 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(sh_calls).to include(['git', 'commit', '-m', "iOS 4.5.0 => 4.5.1\n\n#{marker}"])
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog).with(expected_changelog, changelog_latest_path)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
-        .with('Release/10.2.1', "Hotfix on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
+        .with('Release/10.2.1', "Hotfix on 10.2.0. After the deploy, merge #{changelog_pr_url}.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
       expect(comments).to be_empty
       expect(sh_calls.index(['git', 'checkout', '-b', 'release/10.2.1', '10.2.0'])).to be < sh_calls.index { |command| command[1] == 'commit' }
+      expect(sh_calls).to include(['git', 'fetch', '--force', 'origin', 'refs/tags/*:refs/tags/*', 'refs/heads/main:refs/remotes/origin/main'])
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:insert_old_version_changelog_in_current_branch)
+        .with('10.2.1', "#{expected_changelog}\n", end_with(File.join('worktree', changelog_path)))
     end
 
     context 'when the changelog entry has nested lines' do
@@ -482,6 +636,18 @@ describe Fastlane::Actions::CreateHotfixAction do
       end
     end
 
+    context 'when the default branch is not main' do
+      let(:default_branch) { 'develop' }
+
+      it 'reads it from the repository and opens the changelog PR into it' do
+        run_dependency_hotfix
+
+        expect(sh_calls).to include(['git', 'fetch', '--force', 'origin', 'refs/tags/*:refs/tags/*', 'refs/heads/develop:refs/remotes/origin/develop'])
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+          .with('Changelog update for 10.2.1', anything, repo_name, 'develop', 'changelog/10.2.1', github_pr_token, labels: ['pr:other', 'pr:changelog_ignore'], team_reviewers: [])
+      end
+    end
+
     context 'when the update changes no files' do
       let(:changed_files) { '' }
 
@@ -517,8 +683,10 @@ describe Fastlane::Actions::CreateHotfixAction do
         run_dependency_hotfix
 
         expect(update_calls).to be_empty
-        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
-          .with("## RevenueCat SDK\n### 📦 Dependency Updates\n* Updates purchases-hybrid-common to 19.18.0\n  * [Android 10.31.0](https://example.com)", changelog_latest_path)
+        rebuilt_changelog = "## RevenueCat SDK\n### 📦 Dependency Updates\n* Updates purchases-hybrid-common to 19.18.0\n  * [Android 10.31.0](https://example.com)"
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog).with(rebuilt_changelog, changelog_latest_path)
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:insert_old_version_changelog_in_current_branch)
+          .with('10.2.1', "#{rebuilt_changelog}\n", anything)
       end
     end
 
