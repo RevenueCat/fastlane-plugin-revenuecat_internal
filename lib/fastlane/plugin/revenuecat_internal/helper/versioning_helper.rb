@@ -117,6 +117,12 @@ module Fastlane
         build_changelog_sections(changelog_sections)
       end
 
+      def self.changelog_for_dependency_update(changelog_entry)
+        changelog_sections = empty_changelog_sections
+        changelog_sections[:revenuecat_sdk][:dependency_updates].push("* #{changelog_entry}")
+        build_changelog_sections(changelog_sections)
+      end
+
       def self.platform_changelogs(releases, platform)
         platform_changelogs = []
         releases.each do |release|
@@ -471,7 +477,7 @@ module Fastlane
         end
       end
 
-      private_class_method def self.native_releases_links(github_token, phc_version, versions_file_path, include_purchases_js: false)
+      def self.native_releases_links(github_token, phc_version, versions_file_path, include_purchases_js: false)
         latest_release_row = File.readlines(versions_file_path)[2]
         if latest_release_row.nil?
           UI.error("Can't detect iOS and Android version for version #{phc_version} of purchases-hybrid-common. Empty VERSIONS.md")
