@@ -93,12 +93,10 @@ module Fastlane
         end
 
         unless progress[:bumped]
-          ensure_version_files_contain(tag, params[:files_to_update])
-          ensure_version_files_contain(tag, params[:files_to_update_without_prerelease_modifiers])
           Helper::RevenuecatInternalHelper.replace_version_number(tag,
                                                                   next_version,
-                                                                  params[:files_to_update],
-                                                                  params[:files_to_update_without_prerelease_modifiers],
+                                                                  version_files_on(tag, params[:files_to_update]),
+                                                                  version_files_on(tag, params[:files_to_update_without_prerelease_modifiers]),
                                                                   params[:files_to_update_on_latest_stable_releases])
           Helper::RevenuecatInternalHelper.write_changelog(changelog, changelog_latest_path)
           Helper::RevenuecatInternalHelper.attach_changelog_to_main(next_version, changelog_latest_path, params[:changelog_path])
@@ -242,14 +240,18 @@ module Fastlane
         succeeded
       end
 
-      private_class_method def self.ensure_version_files_contain(version, files_with_patterns)
-        files_with_patterns.each do |path, patterns|
-          UI.user_error!("#{path} does not exist on #{version}.") unless File.exist?(path)
+      private_class_method def self.version_files_on(version, files_with_patterns)
+        files_with_patterns.select do |path, patterns|
+          unless File.exist?(path)
+            UI.important("Skipping #{path}: it does not exist on #{version}.")
+            next false
+          end
 
           contents = File.read(path)
           unless patterns.any? { |pattern| contents.include?(pattern.gsub('{x}', version)) }
             UI.user_error!("#{path} does not contain version #{version}. Its layout on #{version} may differ from the default branch.")
           end
+          true
         end
       end
 

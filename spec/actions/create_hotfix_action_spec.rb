@@ -302,6 +302,23 @@ describe Fastlane::Actions::CreateHotfixAction do
       end
     end
 
+    context 'when a version file does not exist on the tag being patched' do
+      let(:files_to_update) { { './.version' => ['{x}'], './AdMob/package.json' => ['"version": "{x}"'] } }
+
+      before do
+        allow(File).to receive(:exist?).with('./AdMob/package.json').and_return(false)
+        allow(FastlaneCore::UI).to receive(:important).and_call_original
+      end
+
+      it 'bumps only the files that exist' do
+        run_action(files_without_prerelease_modifiers: { './AdMob/package.json' => ['{x}'] })
+
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:replace_version_number)
+          .with('10.2.0', '10.2.1', { './.version' => ['{x}'] }, {}, {})
+        expect(FastlaneCore::UI).to have_received(:important).with('Skipping ./AdMob/package.json: it does not exist on 10.2.0.').twice
+      end
+    end
+
     context 'when a file is listed in both version file lists' do
       let(:files_to_update) { { './.version' => ['v{x}'] } }
 
