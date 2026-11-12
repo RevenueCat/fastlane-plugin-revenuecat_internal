@@ -6,13 +6,13 @@ describe Fastlane::Actions::GetLatestGithubReleaseWithinSameMajorAction do
     end
 
     before(:each) do
-      allow(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        http_method: 'GET',
-        path: "repos/RevenueCat/purchases-ios/releases",
-        api_token: 'mock-github-token',
-        error_handlers: anything
-      ).and_return(get_releases_purchases_ios_response).once
+      allow(Fastlane::Actions::GithubApiAction).to receive(:run).with(hash_including(
+                                                                        server_url: "https://api.github.com",
+                                                                        http_method: 'GET',
+                                                                        path: "repos/RevenueCat/purchases-ios/releases",
+                                                                        api_token: 'mock-github-token',
+                                                                        error_handlers: anything
+                                                                      )).and_return(get_releases_purchases_ios_response).once
     end
 
     it 'returns highest version within same major, but not highest version' do

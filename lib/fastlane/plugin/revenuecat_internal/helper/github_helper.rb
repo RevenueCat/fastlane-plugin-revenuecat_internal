@@ -14,9 +14,11 @@ module Fastlane
 
       def self.github_api_call_with_retry(max_retries: 3, **api_params)
         retries = 0
+        # Without a handler, fastlane logs the request headers, Authorization included.
+        error_handlers = { '*' => redacted_error_handler(api_params) }.merge(api_params[:error_handlers] || {})
 
         loop do
-          return Actions::GithubApiAction.run(**api_params)
+          return Actions::GithubApiAction.run(**api_params, error_handlers: error_handlers)
         rescue StandardError => e
           # Check if it's a rate limit error
           if e.message.include?('403') && e.message.include?('rate limit')
@@ -33,6 +35,15 @@ module Fastlane
             # Re-raise non-rate-limit errors immediately
             raise e
           end
+        end
+      end
+
+      private_class_method def self.redacted_error_handler(api_params)
+        http_method = (api_params[:http_method] || 'GET').to_s.upcase
+        url = api_params[:url] || "#{api_params[:server_url]}#{api_params[:path]}"
+        proc do |result|
+          UI.error("GitHub request failed: #{http_method} #{url}")
+          UI.user_error!("GitHub responded with #{result[:status]}\n---\n#{result[:body]}")
         end
       end
 

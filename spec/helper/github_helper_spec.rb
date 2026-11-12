@@ -881,7 +881,7 @@ describe Fastlane::Helper::GitHubHelper do
     context 'when API call succeeds on first try' do
       it 'returns the response without retries' do
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .once
           .and_return(successful_response)
 
@@ -895,12 +895,12 @@ describe Fastlane::Helper::GitHubHelper do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .once
           .and_raise(rate_limit_error)
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .once
           .and_return(successful_response)
 
@@ -916,7 +916,7 @@ describe Fastlane::Helper::GitHubHelper do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .exactly(4).times # Initial call + 3 retries
           .and_raise(rate_limit_error)
 
@@ -934,7 +934,7 @@ describe Fastlane::Helper::GitHubHelper do
         non_rate_limit_error = StandardError.new('Some other error')
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .once
           .and_raise(non_rate_limit_error)
 
@@ -951,7 +951,7 @@ describe Fastlane::Helper::GitHubHelper do
         auth_error = StandardError.new('GitHub responded with 403 forbidden access')
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .once
           .and_raise(auth_error)
 
@@ -968,7 +968,7 @@ describe Fastlane::Helper::GitHubHelper do
         rate_limit_error = StandardError.new('GitHub responded with 403 rate limit exceeded')
 
         expect(Fastlane::Actions::GithubApiAction).to receive(:run)
-          .with(api_params)
+          .with(hash_including(api_params))
           .exactly(2).times # Initial call + 1 retry
           .and_raise(rate_limit_error)
 
@@ -977,6 +977,54 @@ describe Fastlane::Helper::GitHubHelper do
         expect do
           Fastlane::Helper::GitHubHelper.github_api_call_with_retry(max_retries: 1, **api_params)
         end.to raise_error(FastlaneCore::Interface::FastlaneError, /GitHub rate limit exceeded and max retries \(1\) reached/)
+      end
+    end
+
+    context 'when GitHub responds with an error' do
+      let(:logged) { [] }
+
+      def stub_github_response(status, body)
+        response = double('response', body: body)
+        allow(response).to receive(:[]).with(:status).and_return(status)
+        allow(Fastlane::Actions::GithubApiAction).to receive(:call_endpoint).and_return(response)
+      end
+
+      before do
+        %i[error important message verbose].each do |level|
+          allow(Fastlane::UI).to receive(level) { |msg| logged << msg.to_s }
+        end
+      end
+
+      it 'does not log the request headers or the token' do
+        stub_github_response(404, '{"message": "Not Found"}')
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(**api_params)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /GitHub responded with 404/)
+
+        expect(logged.join("\n")).not_to include('Authorization')
+        expect(logged.join("\n")).not_to include(Base64.strict_encode64('test-token'))
+        expect(logged.join("\n")).to include('GET https://api.github.com/test/path')
+      end
+
+      it 'still retries on rate limit without logging the token' do
+        stub_github_response(403, '{"message": "API rate limit exceeded for user ID 1."}')
+        allow(Fastlane::Helper::GitHubHelper).to receive(:sleep)
+
+        expect do
+          Fastlane::Helper::GitHubHelper.github_api_call_with_retry(max_retries: 1, **api_params)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, /max retries \(1\) reached/)
+
+        expect(Fastlane::Actions::GithubApiAction).to have_received(:call_endpoint).twice
+        expect(logged.join("\n")).not_to include('Authorization')
+      end
+
+      it 'prefers the caller-provided handler for that status' do
+        stub_github_response(422, '{}')
+
+        result = Fastlane::Helper::GitHubHelper.github_api_call_with_retry(error_handlers: { 422 => proc {} }, **api_params)
+
+        expect(result[:status]).to eq(422)
       end
     end
   end

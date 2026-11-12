@@ -958,12 +958,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'creates a PR when no matching PR exists' do
       # Mock the API call to check for existing PRs
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        api_token: github_pr_token,
-        http_method: 'GET',
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
-        server_url: 'https://api.github.com'
-      ).and_return({ json: [] })
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(hash_including(
+                                                                         api_token: github_pr_token,
+                                                                         http_method: 'GET',
+                                                                         path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+                                                                         server_url: 'https://api.github.com'
+                                                                       )).and_return({ json: [] })
 
       # Mock the create PR action
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
@@ -985,12 +985,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'does not create a PR when a matching PR already exists' do
       # Mock the API call to check for existing PRs - return a PR
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        api_token: github_pr_token,
-        http_method: 'GET',
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
-        server_url: 'https://api.github.com'
-      ).and_return({ json: [{ number: 123, html_url: 'https://github.com/RevenueCat/test-repo/pull/123' }] })
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(hash_including(
+                                                                         api_token: github_pr_token,
+                                                                         http_method: 'GET',
+                                                                         path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+                                                                         server_url: 'https://api.github.com'
+                                                                       )).and_return({ json: [{ number: 123, html_url: 'https://github.com/RevenueCat/test-repo/pull/123' }] })
 
       # The create PR action should not be called
       expect(Fastlane::Actions::CreatePullRequestAction).not_to receive(:run)
@@ -1005,12 +1005,12 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
 
     it 'raises an error when PR creation fails' do
       # Mock the API call to check for existing PRs
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        api_token: github_pr_token,
-        http_method: 'GET',
-        path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
-        server_url: 'https://api.github.com'
-      ).and_return({ json: [] })
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(hash_including(
+                                                                         api_token: github_pr_token,
+                                                                         http_method: 'GET',
+                                                                         path: "/repos/#{repo_with_owner}/pulls?head=RevenueCat:#{head_branch}&state=open",
+                                                                         server_url: 'https://api.github.com'
+                                                                       )).and_return({ json: [] })
 
       # Mock the create PR action to return nil (failure)
       expect(Fastlane::Actions::CreatePullRequestAction).to receive(:run).with(
@@ -1416,13 +1416,13 @@ describe Fastlane::Helper::RevenuecatInternalHelper do
     end
 
     it 'returns expected version numbers from response' do
-      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(
-        server_url: "https://api.github.com",
-        http_method: 'GET',
-        path: "repos/RevenueCat/purchases-ios/releases",
-        api_token: 'mock-github-token',
-        error_handlers: anything
-      ).and_return(get_releases_purchases_ios_response).once
+      expect(Fastlane::Actions::GithubApiAction).to receive(:run).with(hash_including(
+                                                                         server_url: "https://api.github.com",
+                                                                         http_method: 'GET',
+                                                                         path: "repos/RevenueCat/purchases-ios/releases",
+                                                                         api_token: 'mock-github-token',
+                                                                         error_handlers: anything
+                                                                       )).and_return(get_releases_purchases_ios_response).once
       tag_names = Fastlane::Helper::RevenuecatInternalHelper.get_github_release_tag_names(repo_name, 'mock-github-token')
       expect(tag_names.count).to eq(3)
       expect(tag_names).to include('4.9.1')
