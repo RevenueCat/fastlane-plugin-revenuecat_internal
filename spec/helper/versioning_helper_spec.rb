@@ -180,6 +180,75 @@ describe Fastlane::Helper::VersioningHelper do
                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (RevenueCat/mock-repo-name#2199) via Toni Rico (@tonidero)")
     end
 
+    it 'generates the changelog with and without PR references from one fetch' do
+      setup_commit_search_stubs(hashes_to_responses)
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelogs = Fastlane::Helper::VersioningHelper.auto_generate_changelog_variants(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        nil,
+        nil,
+        '4.6.0'
+      )
+      expect(changelogs).to eq(
+        with_pr_references: "## RevenueCat SDK\n" \
+                            "### ✨ New Features\n" \
+                            "* added a log when `autoSyncPurchases` is disabled (#1749) via aboedo (@aboedo)\n" \
+                            "### 🐞 Bugfixes\n" \
+                            "* Fix replace version without prerelease modifiers (#1751) via Toni Rico (@tonidero)\n\n" \
+                            "## RevenueCatUI SDK\n" \
+                            "### 🖼 Paywalls\n" \
+                            "#### ✨ New Features\n" \
+                            "* `Paywalls`: multi-package horizontal template (#2949) via Toni Rico (@tonidero)\n\n" \
+                            "### 🔄 Other Changes\n" \
+                            "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key (#2199) via Toni Rico (@tonidero)",
+        without_pr_references: "## RevenueCat SDK\n" \
+                               "### ✨ New Features\n" \
+                               "* added a log when `autoSyncPurchases` is disabled via aboedo (@aboedo)\n" \
+                               "### 🐞 Bugfixes\n" \
+                               "* Fix replace version without prerelease modifiers via Toni Rico (@tonidero)\n\n" \
+                               "## RevenueCatUI SDK\n" \
+                               "### 🖼 Paywalls\n" \
+                               "#### ✨ New Features\n" \
+                               "* `Paywalls`: multi-package horizontal template via Toni Rico (@tonidero)\n\n" \
+                               "### 🔄 Other Changes\n" \
+                               "* `PostReceiptDataOperation`: replaced receipt `base64` with `hash` for cache key via Toni Rico (@tonidero)"
+      )
+    end
+
+    it 'appends native dependencies links to the changelog with and without PR references' do
+      mock_native_releases
+      setup_commit_search_stubs(hashes_to_responses_hybrid, get_commits_response_hybrid, "9237147947bcbce00f36ae3ab51acccc54690782")
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_android_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('5.6.6').once
+      expect(Fastlane::Helper::UpdateHybridsVersionsFileHelper).to receive(:get_ios_version_for_hybrid_common_version)
+        .with(hybrid_common_version, 'mock-github-token').and_return('4.15.4').once
+      expect_any_instance_of(Object).not_to receive(:sleep)
+      changelogs = Fastlane::Helper::VersioningHelper.auto_generate_changelog_variants(
+        'mock-repo-name',
+        'mock-github-token',
+        0,
+        false,
+        hybrid_common_version,
+        versions_path
+      )
+      native_links = "\s\s* [Android 5.6.6](https://github.com/RevenueCat/purchases-android/releases/tag/5.6.6)\n" \
+                     "\s\s* [iOS 4.15.4](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.4)\n" \
+                     "\s\s* [iOS 4.15.3](https://github.com/RevenueCat/purchases-ios/releases/tag/4.15.3)"
+      expect(changelogs).to eq(
+        with_pr_references: "## RevenueCat SDK\n" \
+                            "### 📦 Dependency Updates\n" \
+                            "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 (#553) via RevenueCat Git Bot (@RCGitBot)\n" \
+                            "#{native_links}",
+        without_pr_references: "## RevenueCat SDK\n" \
+                               "### 📦 Dependency Updates\n" \
+                               "* [AUTOMATIC BUMP] Updates purchases-hybrid-common to 4.5.3 via RevenueCat Git Bot (@RCGitBot)\n" \
+                               "#{native_links}"
+      )
+    end
+
     it 'generates changelog automatically from github commits including feat section' do
       setup_commit_search_stubs(hashes_to_responses_wip, get_commits_response_features, 'cfdd80f73d8c91121313d72227b4cbe283b57c1e')
 
