@@ -32,6 +32,7 @@ module Fastlane
         exclude_labels = params[:exclude_labels]
         include_purchases_js = params[:include_purchases_js]
         fallback_pr_lookup = params[:fallback_pr_lookup]
+        omit_pr_references_in_changelog_files = params[:omit_pr_references_in_changelog_files]
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -81,7 +82,15 @@ module Fastlane
           UI.important("No github_token provided.")
         end
 
-        generated_contents = Helper::VersioningHelper.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number, filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup)
+        changelog_arguments = [repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number]
+        changelog_options = { filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup }
+        if omit_pr_references_in_changelog_files
+          changelogs = Helper::VersioningHelper.auto_generate_changelog_variants(*changelog_arguments, **changelog_options)
+          generated_contents = changelogs[:without_pr_references]
+          pr_body = changelogs[:with_pr_references] unless UI.interactive?
+        else
+          generated_contents = Helper::VersioningHelper.auto_generate_changelog(*changelog_arguments, **changelog_options)
+        end
 
         if UI.interactive?
           Helper::RevenuecatInternalHelper.edit_changelog(generated_contents, changelog_latest_path, editor)
@@ -107,7 +116,7 @@ module Fastlane
 
           pr_title = "Release/#{new_version_number}"
           label = 'pr:next_release'
-          body = changelog
+          body = pr_body || changelog
 
           if automatic_release
             body = "**This is an automatic release.**\n\n#{body}"
@@ -249,6 +258,11 @@ module Fastlane
                                        default_value: false),
           FastlaneCore::ConfigItem.new(key: :fallback_pr_lookup,
                                        description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit subject '(#N)' pattern and fetching it directly via the REST API. Assumes squash-merge workflows — a no-op on rebase-and-merge or true-merge workflows whose commit subjects don't include '(#N)'",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :omit_pr_references_in_changelog_files,
+                                       description: "Whether to leave the '(#N)' PR references out of the changelog files, keeping them in the release PR body. Use when the changelog is published in a different repository than the one holding the PRs. In interactive mode the PR body is the edited changelog, so it has no references either",
                                        optional: true,
                                        is_string: false,
                                        default_value: false),

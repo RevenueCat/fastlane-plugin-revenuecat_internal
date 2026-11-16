@@ -26,6 +26,13 @@ module Fastlane
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
+      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution) do
+        def line(include_pr_reference: true)
+          reference = " (#{pr_reference})" if include_pr_reference && pr_reference
+          "* #{title}#{reference}#{attribution}"
+        end
+      end
+
       LATEST_VERSION_COLUMN = 1
       IOS_VERSION_COLUMN = 2
       ANDROID_VERSION_COLUMN = 3
@@ -52,8 +59,12 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
+      def self.auto_generate_changelog(*arguments, **options)
+        auto_generate_changelog_variants(*arguments, **options)[:with_pr_references]
+      end
+
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false)
+      def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -66,7 +77,7 @@ module Fastlane
 
         changelog_sections = empty_changelog_sections
 
-        last_phc_dep_line = nil
+        last_phc_dep_entry = nil
 
         commits.map do |commit|
           name = commit["commit"]["author"]["name"]
@@ -83,19 +94,18 @@ module Fastlane
             next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
             next if exclude_labels && !(all_labels & exclude_labels.map(&:downcase).to_set).empty?
 
-            line = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference)
-            next if line.nil?
+            entry = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference)
+            next if entry.nil?
 
-            if all_labels.include?("pr:phc_dependencies") && last_phc_dep_line.nil?
-              last_phc_dep_line = line
+            if all_labels.include?("pr:phc_dependencies") && last_phc_dep_entry.nil?
+              last_phc_dep_entry = entry
             end
           when 0
             unless filter_labels
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
               message = commit["commit"]["message"]
               name = commit["commit"]["author"]["name"]
-              line = "* #{message} via #{name}"
-              changelog_sections[:other].push(line)
+              changelog_sections[:other].push(ChangelogEntry.new(message, nil, " via #{name}"))
             end
           else
             pr_numbers = items.map { |multi_item| "##{multi_item['number']}" }.join(', ')
@@ -103,11 +113,14 @@ module Fastlane
           end
         end
 
-        if last_phc_dep_line && hybrid_common_version && versions_file_path
-          last_phc_dep_line << native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
+        if last_phc_dep_entry && hybrid_common_version && versions_file_path
+          last_phc_dep_entry.attribution << native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
         end
 
-        build_changelog_sections(changelog_sections)
+        {
+          with_pr_references: build_changelog_sections(changelog_sections),
+          without_pr_references: build_changelog_sections(changelog_sections, include_pr_references: false)
+        }
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
@@ -119,7 +132,7 @@ module Fastlane
 
       def self.changelog_for_dependency_update(changelog_entry)
         changelog_sections = empty_changelog_sections
-        changelog_sections[:revenuecat_sdk][:dependency_updates].push("* #{changelog_entry}")
+        changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(changelog_entry, nil, ''))
         build_changelog_sections(changelog_sections)
       end
 
@@ -331,8 +344,7 @@ module Fastlane
         types_of_change = get_type_of_change_from_pr_info(item)
         return nil if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
 
-        message = "#{item['title']} (#{cross_repo_pr_reference}##{item['number']})"
-        line = "* #{message} via #{author_name} (@#{item['user']['login']})"
+        entry = ChangelogEntry.new(item['title'], "#{cross_repo_pr_reference}##{item['number']}", " via #{author_name} (@#{item['user']['login']})")
         section = get_section_depending_on_types_of_change(types_of_change)
         sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
 
@@ -341,16 +353,17 @@ module Fastlane
           subsection = section[2]
           changelog_sections[sdk_section][:functionalities][functionality_name] ||= {}
           changelog_sections[sdk_section][:functionalities][functionality_name][subsection] ||= []
-          changelog_sections[sdk_section][:functionalities][functionality_name][subsection].push(line)
+          changelog_sections[sdk_section][:functionalities][functionality_name][subsection].push(entry)
         elsif section == :other
-          changelog_sections[:other].push(line)
+          changelog_sections[:other].push(entry)
         elsif changelog_sections[sdk_section].key?(section)
-          changelog_sections[sdk_section][section].push(line)
+          changelog_sections[sdk_section][section].push(entry)
         end
-        line
+        entry
       end
 
-      private_class_method def self.build_changelog_sections(changelog_sections)
+      private_class_method def self.build_changelog_sections(changelog_sections, include_pr_references: true)
+        lines = ->(entries) { entries.map { |entry| entry.line(include_pr_reference: include_pr_references) }.join("\n") }
         sections = []
         standard_sections = [
           [:breaking_changes, "### 💥 Breaking Changes"],
@@ -370,7 +383,7 @@ module Fastlane
             items = changelog_sections[sdk][section_name]
             next if items.empty?
 
-            sdk_content << "#{title}\n#{items.join("\n")}"
+            sdk_content << "#{title}\n#{lines.call(items)}"
           end
 
           # Handle functionality-specific sections
@@ -381,7 +394,7 @@ module Fastlane
               next if subsections[subsection].nil? || subsections[subsection].empty?
 
               title = subsection == :new_features ? "#### ✨ New Features" : "#### 🐞 Bugfixes"
-              functionality_content << "#{title}\n#{subsections[subsection].join("\n")}"
+              functionality_content << "#{title}\n#{lines.call(subsections[subsection])}"
             end
 
             unless functionality_content.empty?
@@ -395,7 +408,7 @@ module Fastlane
 
         # Add global Other Changes section
         unless changelog_sections[:other].empty?
-          sections << "### 🔄 Other Changes\n#{changelog_sections[:other].join("\n")}"
+          sections << "### 🔄 Other Changes\n#{lines.call(changelog_sections[:other])}"
         end
 
         sections.join("\n\n")
