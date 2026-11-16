@@ -992,7 +992,7 @@ describe Fastlane::Helper::VersioningHelper do
           'mock-repo-name', 'mock-github-token', 0, false, nil, nil, nil
         )
         expect(changelog).to eq("### 🔄 Other Changes\n" \
-                                "* Fix flaky race condition (#42)\n\n* inner commit details via Antonio Pallares")
+                                "* Fix flaky race condition (#42) via Antonio Pallares")
       end
 
       it 'does not hit the direct PR endpoint when enabled but commit subject has no PR reference' do

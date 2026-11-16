@@ -103,7 +103,7 @@ module Fastlane
           when 0
             unless filter_labels
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-              message = commit["commit"]["message"]
+              message = commit["commit"]["message"].lines.first.to_s.strip
               name = commit["commit"]["author"]["name"]
               changelog_sections[:other].push(ChangelogEntry.new(message, nil, " via #{name}"))
             end
