@@ -663,6 +663,49 @@ describe Fastlane::Helper::GitHubHelper do
 
       expect(body).not_to be_nil
     end
+
+    let(:release_with_assets_params) do
+      {
+        repository_name: "RevenueCat/#{repo_name}",
+        api_token: github_token,
+        name: release_version,
+        tag_name: release_version,
+        upload_assets: ['asset.zip'],
+        make_latest: is_latest_stable_release,
+        server_url: server_url
+      }
+    end
+
+    it 'uploads assets to a draft and publishes it afterwards' do
+      release_url, upload_url = JSON.parse(create_release_response[:body]).values_at('url', 'upload_url')
+
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST',
+                             path: "repos/RevenueCat/#{repo_name}/releases",
+                             body: hash_including('draft' => true)))
+        .ordered
+        .and_return(create_release_response)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:upload_assets)
+        .with(['asset.zip'], upload_url, github_token)
+        .ordered
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'PATCH',
+                             url: release_url,
+                             body: { 'draft' => false, 'make_latest' => is_latest_stable_release }))
+        .ordered
+        .and_return(create_release_response)
+
+      Fastlane::Helper::GitHubHelper.create_github_release(release_with_assets_params)
+    end
+
+    it 'keeps a requested draft unpublished after uploading assets' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', body: hash_including('draft' => true)))
+        .and_return(create_release_response)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:upload_assets)
+
+      Fastlane::Helper::GitHubHelper.create_github_release(release_with_assets_params.merge(is_draft: true))
+    end
   end
 
   describe '.pr_approved_by_org_member_with_write_permissions?' do

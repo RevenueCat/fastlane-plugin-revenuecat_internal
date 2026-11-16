@@ -398,16 +398,17 @@ module Fastlane
       # Forked from: https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/set_github_release.rb
       def self.create_github_release(params)
         UI.important("Creating release of #{params[:repository_name]} on tag \"#{params[:tag_name]}\" with name \"#{params[:name]}\".")
-        UI.important("Will also upload assets #{params[:upload_assets]}.") if params[:upload_assets]
 
         repo_name = params[:repository_name]
         api_token = params[:api_token]
         server_url = params[:server_url]
         tag_name = params[:tag_name]
+        assets = params[:upload_assets].to_a
 
         payload = {
           'tag_name' => params[:tag_name],
-          'draft' => !!params[:is_draft],
+          # Immutable releases reject asset uploads once published, so assets go to a draft first.
+          'draft' => !!params[:is_draft] || !assets.empty?,
           'prerelease' => !!params[:is_prerelease],
           'generate_release_notes' => !!params[:is_generate_release_notes],
           'make_latest' => (!!params[:make_latest]).to_s
@@ -448,13 +449,26 @@ module Fastlane
         UI.success("Successfully created release at tag \"#{tag_name}\" on GitHub")
         UI.important("See release at \"#{html_url}\"")
 
-        assets = params[:upload_assets]
-        if assets && assets.count > 0
+        unless assets.empty?
+          UI.important("Uploading assets #{assets}.")
           upload_assets(assets, json['upload_url'], api_token)
           UI.success("Successfully uploaded assets #{assets} to release \"#{html_url}\"")
+          json = publish_draft_release(json['url'], payload['make_latest'], api_token) unless params[:is_draft]
         end
 
         json || response[:body]
+      end
+
+      def self.publish_draft_release(release_url, make_latest, api_token)
+        response = github_api_call_with_retry(
+          api_token: api_token,
+          http_method: 'PATCH',
+          url: release_url,
+          body: { 'draft' => false, 'make_latest' => make_latest }
+        )
+        json = JSON.parse(response[:body])
+        UI.success("Published release at \"#{json['html_url']}\"")
+        json
       end
 
       def self.upload_assets(assets, upload_url_template, api_token)
