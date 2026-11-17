@@ -137,7 +137,10 @@ module Fastlane
         url = recent_builds_url(branch: branch, offset: offset)
         return nil if url.nil?
 
-        response = Net::HTTP.get_response(URI.parse(url))
+        # Private projects answer 404 to anonymous reads of their build history.
+        token = ENV.fetch("CIRCLECI_READ_TOKEN", nil)
+        headers = token.to_s.empty? ? {} : { "Circle-Token" => token }
+        response = Net::HTTP.get_response(URI.parse(url), headers)
         unless response.kind_of?(Net::HTTPSuccess)
           UI.important("Could not read the CircleCI build history: #{response.code}")
           return nil
