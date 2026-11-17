@@ -749,6 +749,25 @@ describe Fastlane::Actions::SlackBackendIntegrationTestResultsAction do
         .to eq([build_entry(job: 'a-job', build_num: 1, status: 'success')])
     end
 
+    it 'authenticates with the read token when one is set, since private projects refuse anonymous reads' do
+      ENV['CIRCLECI_READ_TOKEN'] = 'read-token'
+      request = stub_request(:get, url).with(headers: { 'Circle-Token' => 'read-token' }).to_return(status: 200, body: [].to_json)
+
+      action_instance.fetch_recent_builds(branch: 'main', offset: 0)
+
+      expect(request).to have_been_requested
+    ensure
+      ENV.delete('CIRCLECI_READ_TOKEN')
+    end
+
+    it 'sends no token when none is set' do
+      stub_request(:get, url).to_return(status: 200, body: [].to_json)
+
+      action_instance.fetch_recent_builds(branch: 'main', offset: 0)
+
+      expect(a_request(:get, url).with { |request| !request.headers.key?('Circle-Token') }).to have_been_made
+    end
+
     # Every unreadable answer has to look the same to the caller, which resolves it to :unknown and posts.
     it 'returns nil when CircleCI answers with an error' do
       stub_request(:get, url).to_return(status: 401, body: 'nope')
