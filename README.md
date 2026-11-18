@@ -51,6 +51,14 @@ To automatically fix many of the styling issues, use
 rubocop -a
 ```
 
+## Releasing
+
+PR titles must follow [Conventional Commits](https://conventionalcommits.org/) (checked by the `PR title` workflow), since they become the squash-merge commit message.
+
+[release-please](https://github.com/googleapis/release-please) keeps a release PR open that bumps `version.rb` and updates `CHANGELOG.md` from the merged commits. Merging it creates the `vX.Y.Z` tag and GitHub release.
+
+`feat` releases a minor version; `fix`, `perf`, `revert`, `chore` and `docs` release a patch. `ci`, `build`, `refactor`, `test` and `style` do not trigger a release. A `!` after the type (e.g. `feat!:`) releases a minor version while on `0.x`, and a major version after that.
+
 ## Issues and Feedback
 
 For any other issues and feedback about this plugin, please submit it to this repository.
