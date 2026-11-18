@@ -44,6 +44,8 @@ module Fastlane
                                                                 {},
                                                                 {})
 
+        params[:before_commit]&.call
+
         return unless open_pr
 
         open_pr_against_main(automatic_release, github_pr_token, new_branch_name, new_version_number, repo_name, version_number, enable_auto_merge, slack_url)
@@ -99,6 +101,10 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
+          FastlaneCore::ConfigItem.new(key: :before_commit,
+                                       description: "Callback after version updates and before committing or pushing, also runs when open_pr is false",
+                                       optional: true,
+                                       type: Proc),
           FastlaneCore::ConfigItem.new(key: :slack_url,
                                        env_name: "SLACK_URL_SDK_RELEASES",
                                        description: "Slack webhook URL to notify on auto-merge failures",

@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 describe Fastlane::Actions::BumpPhcVersionAction do
   describe '#run' do
     let(:mock_github_pr_token) { 'mock-github-pr-token' }
@@ -227,6 +229,72 @@ describe Fastlane::Actions::BumpPhcVersionAction do
       )
     end
 
+    it 'includes callback changes in the first commit after updating PHC' do
+      setup_stubs
+
+      Dir.mktmpdir do |directory|
+        podfile = File.join(directory, 'Podfile')
+        File.write(podfile, "phc_version = '#{current_version}'\nnative_ios_version = '5.1.0'\n")
+        allow(Fastlane::Helper::RevenuecatInternalHelper).to receive(:replace_version_number).and_call_original
+        callback = lambda do
+          contents = File.read(podfile)
+          expect(contents).to include("phc_version = '#{new_version}'")
+          File.write(podfile, contents.sub("native_ios_version = '5.1.0'", "native_ios_version = '5.2.0'"))
+        end
+        expect(callback).to receive(:call).once.and_call_original
+        expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:commit_changes_and_push_current_branch).once do
+          expect(File.read(podfile)).to eq("phc_version = '#{new_version}'\nnative_ios_version = '5.2.0'\n")
+        end
+
+        configuration = FastlaneCore::Configuration.create(
+          described_class.available_options,
+          current_version: current_version,
+          next_version: new_version,
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          files_to_update: { podfile => ["phc_version = '{x}'"] },
+          open_pr: true,
+          before_commit: callback
+        )
+        described_class.run(configuration)
+      end
+    end
+
+    it 'does not commit, push, or open a PR when the callback fails' do
+      setup_stubs
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:commit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_pr)
+
+      expect do
+        described_class.run(
+          current_version: current_version,
+          next_version: new_version,
+          repo_name: mock_repo_name,
+          github_pr_token: mock_github_pr_token,
+          files_to_update: { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
+          open_pr: true,
+          before_commit: -> { raise 'Native pin update failed' }
+        )
+      end.to raise_error('Native pin update failed')
+    end
+
+    it 'runs the callback for a local bump without opening a PR' do
+      setup_stubs
+      callback = instance_double(Proc)
+      expect(callback).to receive(:call).once
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:validate_local_config_status_for_bump)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:commit_changes_and_push_current_branch)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to receive(:create_pr)
+
+      described_class.run(
+        current_version: current_version,
+        next_version: new_version,
+        files_to_update: { './test_file.sh' => ['{x}'], './test_file2.rb' => ['{x}'] },
+        open_pr: false,
+        before_commit: callback
+      )
+    end
+
     def setup_stubs
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(false)
       allow(FastlaneCore::UI).to receive(:input).with('New version number: ').and_return(new_version)
@@ -246,7 +314,7 @@ describe Fastlane::Actions::BumpPhcVersionAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpPhcVersionAction.available_options.size).to eq(9)
+      expect(Fastlane::Actions::BumpPhcVersionAction.available_options.size).to eq(10)
     end
   end
 end
