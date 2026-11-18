@@ -1,5 +1,6 @@
 require 'fastlane/action'
 require 'fastlane_core/configuration/config_item'
+require 'tmpdir'
 require 'uri'
 require_relative '../helper/github_helper'
 require_relative '../helper/revenuecat_internal_helper'
@@ -44,8 +45,9 @@ module Fastlane
           change_marker = "(hotfix dependency update: #{dependencies})"
           change_summary = "dependency update to #{dependencies}"
         end
+        default_branch ||= github_api('GET', repo_name, '', github_pr_token)[:json]['default_branch']
 
-        Actions.sh('git', 'fetch', '--force', 'origin', 'refs/tags/*:refs/tags/*', *default_branch)
+        Actions.sh('git', 'fetch', '--force', 'origin', 'refs/tags/*:refs/tags/*', "refs/heads/#{default_branch}:refs/remotes/origin/#{default_branch}")
         tags = Actions.sh('git', 'tag', log: false).split("\n")
         tag = resolve_tag(requested_version, tags)
         next_version = next_patch_version(tag)
@@ -63,7 +65,7 @@ module Fastlane
 
         base_branch = "hotfix/#{tag}"
         release_branch = "release/#{next_version}"
-        UI.important("Hotfix of #{change_summary} on #{tag}: release PR #{release_branch} into #{base_branch}")
+        UI.important("Hotfix of #{change_summary} on #{tag}: release PR #{release_branch} into #{base_branch}, and a CHANGELOG.md PR into #{default_branch} if it lacks #{next_version}")
         UI.message("Changelog:\n#{changelog}") if changelog
 
         if params[:dry_run]
@@ -72,7 +74,7 @@ module Fastlane
         end
 
         Actions::EnsureGitStatusCleanAction.run(show_diff: true)
-        UI.user_error!("Cancelled") if UI.interactive? && !UI.confirm("Create #{release_branch}?")
+        UI.user_error!("Cancelled") if UI.interactive? && !UI.confirm("Create #{release_branch} and, if #{default_branch} lacks #{next_version}, a CHANGELOG.md PR into it?")
         starting_branch = Actions.sh('git', 'rev-parse', '--abbrev-ref', 'HEAD', log: false).strip
 
         tag_commit = Actions.sh('git', 'rev-list', '-n', '1', tag, log: false).strip
@@ -105,18 +107,20 @@ module Fastlane
 
         Actions.sh('git', 'push', '--set-upstream', 'origin', release_branch)
 
+        changelog_step = open_changelog_pr(next_version, changelog, params[:changelog_path], default_branch, repo_name, github_pr_token)
         release_pr_url = open_pr_url(repo_name, release_branch, base_branch, github_pr_token)
         if release_pr_url.nil?
-          body = pr_number ? "Hotfix of ##{pr_number} on #{tag}.\n\n#{changelog}" : "Hotfix on #{tag}.\n\n#{changelog}"
-          release_pr_url = Helper::RevenuecatInternalHelper.create_pr("Release/#{next_version}", body, repo_name, base_branch, release_branch, github_pr_token, labels: ['pr:next_release'])
+          body = pr_number ? "Hotfix of ##{pr_number} on #{tag}." : "Hotfix on #{tag}."
+          body += " After the deploy, #{changelog_step}." if changelog_step
+          release_pr_url = Helper::RevenuecatInternalHelper.create_pr("Release/#{next_version}", "#{body}\n\n#{changelog}", repo_name, base_branch, release_branch, github_pr_token, labels: ['pr:next_release'])
           if pr_number
             github_api('POST', repo_name, "/issues/#{pr_number}/comments", github_pr_token,
-                       body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}\n\n#{next_steps(release_pr_url, next_version, base_branch)}" })
+                       body: { body: "Hotfix release PR for #{tag}: #{release_pr_url}\n\n#{next_steps(release_pr_url, changelog_step, next_version, base_branch)}" })
           end
         end
 
         Actions.sh('git', 'checkout', starting_branch) if UI.interactive?
-        UI.success("Hotfix release PR: #{release_pr_url}\n#{next_steps(release_pr_url, next_version, base_branch)}")
+        UI.success("Hotfix release PR: #{release_pr_url}\n#{next_steps(release_pr_url, changelog_step, next_version, base_branch)}")
         release_pr_url
       end
       # rubocop:enable Metrics/PerceivedComplexity
@@ -193,10 +197,40 @@ module Fastlane
         UI.user_error!("#{dependency_repo} has no #{version} release.") if response[:status] == 404
       end
 
-      private_class_method def self.next_steps(release_pr_url, next_version, base_branch)
+      private_class_method def self.next_steps(release_pr_url, changelog_step, next_version, base_branch)
         "Approve #{release_pr_url} but don't merge it: approval tags #{next_version}, then CircleCI deploys it and merges the PR into `#{base_branch}`. " \
-          "Then delete `#{base_branch}` and add #{next_version} to `CHANGELOG.md` on main. " \
+          "Then delete `#{base_branch}`#{" and #{changelog_step}" if changelog_step}. " \
           "RELEASING.md lists any steps specific to this repo."
+      end
+
+      private_class_method def self.open_changelog_pr(next_version, changelog, changelog_path, default_branch, repo_name, github_pr_token)
+        return nil if Actions.sh('git', 'show', "origin/#{default_branch}:#{changelog_path}", log: false).match?(/^##\s+#{Regexp.escape(next_version)}\s*$/)
+
+        changelog_branch = "changelog/#{next_version}"
+        existing_pr_url = open_pr_url(repo_name, changelog_branch, default_branch, github_pr_token)
+        return "merge #{existing_pr_url}" if existing_pr_url
+
+        title = "Changelog update for #{next_version}"
+        Dir.mktmpdir do |directory|
+          worktree = File.join(directory, 'worktree')
+          worktree_git = ['git', '-C', worktree, '-c', 'core.hooksPath=/dev/null']
+          Actions.sh('git', 'worktree', 'add', '--no-checkout', '--detach', worktree, "origin/#{default_branch}")
+          Actions.sh(*worktree_git, 'checkout', 'HEAD', '--', changelog_path)
+          Helper::RevenuecatInternalHelper.insert_old_version_changelog_in_current_branch(next_version, "#{changelog}\n", File.join(worktree, changelog_path))
+          Actions.sh(*worktree_git, 'commit', '-m', title, '--', changelog_path)
+          Actions.sh(*worktree_git, 'push', '--force', 'origin', "HEAD:refs/heads/#{changelog_branch}")
+        ensure
+          Actions.sh('git', 'worktree', 'remove', '--force', worktree, error_callback: ->(_) {})
+        end
+        pr_url = Helper::RevenuecatInternalHelper.create_pr(title,
+                                                            "Adds #{next_version} to CHANGELOG.md. Merge it once #{next_version} is deployed.",
+                                                            repo_name, default_branch, changelog_branch, github_pr_token,
+                                                            labels: ['pr:other', 'pr:changelog_ignore'], team_reviewers: [])
+        UI.user_error!("GitHub did not create the PR from #{changelog_branch}.") unless pr_url
+        "merge #{pr_url}"
+      rescue StandardError => e
+        UI.error("Could not open the CHANGELOG.md PR into #{default_branch}: #{e.message}")
+        "add #{next_version} to `CHANGELOG.md` on #{default_branch}"
       end
 
       private_class_method def self.apply_dependency_update(update_dependencies, next_version, change_marker)
@@ -261,7 +295,7 @@ module Fastlane
       end
 
       def self.description
-        "Creates a hotfix release PR for an older release: cherry-picks a PR merged into the default branch, or applies a dependency update, onto the release's tag, bumps the patch version and opens the release PR."
+        "Creates a hotfix release PR for an older release: cherry-picks a PR merged into the default branch, or applies a dependency update, onto the release's tag, bumps the patch version and opens the release PR, plus a PR adding the entry to CHANGELOG.md on the default branch."
       end
 
       def self.authors
@@ -323,7 +357,7 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :github_pr_token,
                                        env_name: "GITHUB_PULL_REQUEST_API_TOKEN",
-                                       description: "Github token to create the base branch, the release PR and the comments",
+                                       description: "Github token to create the base branch, the release PR, the CHANGELOG.md PR into the default branch and the comments",
                                        optional: false,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :dry_run,
