@@ -124,10 +124,10 @@ module Fastlane
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      def self.changelog_for_pull_request(pull_request, author_name)
+      def self.changelog_for_pull_request(pull_request, author_name, include_pr_references: true)
         changelog_sections = empty_changelog_sections
         add_pull_request_to_changelog_sections(changelog_sections, pull_request, author_name, '')
-        build_changelog_sections(changelog_sections)
+        build_changelog_sections(changelog_sections, include_pr_references: include_pr_references)
       end
 
       def self.changelog_for_dependency_update(changelog_entry)

@@ -1169,6 +1169,14 @@ describe Fastlane::Helper::VersioningHelper do
                               "* Fix replace version without prerelease modifiers (#1751) via Jane Doe (@jane-doe)")
     end
 
+    it 'leaves out the PR reference when asked to' do
+      changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request(['pr:fix']), 'Jane Doe', include_pr_references: false)
+
+      expect(changelog).to eq("## RevenueCat SDK\n" \
+                              "### 🐞 Bugfixes\n" \
+                              "* Fix replace version without prerelease modifiers via Jane Doe (@jane-doe)")
+    end
+
     it 'returns an empty changelog for a pull request excluded from changelogs' do
       changelog = Fastlane::Helper::VersioningHelper.changelog_for_pull_request(pull_request(['pr:fix', 'pr:changelog_ignore']), 'Jane Doe')
 

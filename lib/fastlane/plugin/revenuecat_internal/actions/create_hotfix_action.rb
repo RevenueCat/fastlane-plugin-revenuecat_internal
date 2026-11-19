@@ -98,7 +98,10 @@ module Fastlane
                                                                   version_files_on(tag, params[:files_to_update]),
                                                                   version_files_on(tag, params[:files_to_update_without_prerelease_modifiers]),
                                                                   params[:files_to_update_on_latest_stable_releases])
-          Helper::RevenuecatInternalHelper.write_changelog(changelog, changelog_latest_path)
+          if pr_number && params[:omit_pr_references_in_changelog_files]
+            changelog_in_files = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name, include_pr_references: false)
+          end
+          Helper::RevenuecatInternalHelper.write_changelog(changelog_in_files || changelog, changelog_latest_path)
           Helper::RevenuecatInternalHelper.attach_changelog_to_main(next_version, changelog_latest_path, params[:changelog_path])
           Helper::RevenuecatInternalHelper.commit_current_changes("Version bump for #{next_version}")
         end
@@ -326,6 +329,11 @@ module Fastlane
                                        description: "Github token to create the base branch, the release PR and the comments",
                                        optional: false,
                                        type: String),
+          FastlaneCore::ConfigItem.new(key: :omit_pr_references_in_changelog_files,
+                                       description: "Whether to leave the '(#N)' PR reference out of the changelog files, keeping it in the release PR body. Same as in bump_version_update_changelog_create_pr",
+                                       optional: true,
+                                       is_string: false,
+                                       default_value: false),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Print the hotfix that would be created without changing anything",
                                        optional: true,
