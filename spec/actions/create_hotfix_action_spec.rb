@@ -123,7 +123,7 @@ describe Fastlane::Actions::CreateHotfixAction do
     { status: 201, json: { 'object' => { 'sha' => sha } } }
   end
 
-  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {}, pr_number: 123, update_dependencies: nil, dependency_releases: {})
+  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {}, pr_number: 123, update_dependencies: nil, dependency_releases: {}, omit_pr_references_in_changelog_files: false)
     Fastlane::Actions::CreateHotfixAction.run(
       repo_name: repo_name,
       pr_number: pr_number,
@@ -136,6 +136,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       files_to_update_without_prerelease_modifiers: files_without_prerelease_modifiers,
       files_to_update_on_latest_stable_releases: {},
       github_pr_token: github_pr_token,
+      omit_pr_references_in_changelog_files: omit_pr_references_in_changelog_files,
       dry_run: dry_run
     )
   end
@@ -176,6 +177,16 @@ describe Fastlane::Actions::CreateHotfixAction do
                    "RELEASING.md lists any steps specific to this repo."
       expect(comments).to eq(["Hotfix release PR for 10.2.0: #{release_pr_url}\n\n#{next_steps}"])
       expect(Fastlane::UI).to have_received(:success).with("Hotfix release PR: #{release_pr_url}\n#{next_steps}")
+    end
+
+    it 'leaves the PR reference out of the changelog files but keeps it in the release PR when asked to' do
+      expect(run_action(omit_pr_references_in_changelog_files: true)).to eq(release_pr_url)
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
+        .with("## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix the bug via Jane Doe (@jane-doe)", changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+        .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix the bug (#123) via Jane Doe (@jane-doe)",
+              repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
     end
 
     it 'patches the latest release of a major when given only the major' do
