@@ -415,7 +415,8 @@ module Fastlane
         }
         payload['name'] = params[:name] if params[:name]
         payload['body'] = params[:description] if params[:description]
-        payload['target_commitish'] = params[:commitish] if params[:commitish]
+        target_commitish = commitish_for_new_tag(params[:commitish], repo_name, tag_name, api_token, server_url)
+        payload['target_commitish'] = target_commitish if target_commitish
 
         response = github_api_call_with_retry(
           server_url: server_url,
@@ -425,8 +426,7 @@ module Fastlane
           body: payload,
           error_handlers: {
             422 => proc do |result|
-              UI.error(result[:body])
-              UI.error("Release on tag #{tag_name} already exists!")
+              ensure_release_already_exists(result[:body], tag_name)
               return nil
             end,
             404 => proc do |result|
@@ -457,6 +457,36 @@ module Fastlane
         end
 
         json || response[:body]
+      end
+
+      def self.tag_exists?(repo_name, tag_name, api_token, server_url)
+        response = github_api_call_with_retry(
+          server_url: server_url,
+          api_token: api_token,
+          http_method: 'GET',
+          path: "repos/#{repo_name}/git/ref/tags/#{tag_name}",
+          error_handlers: { 404 => proc {} }
+        )
+        response[:status] == 200
+      end
+
+      # GitHub releases an existing tag wherever it points, but still rejects a commitish the repository doesn't
+      # have, like the internal commit of a tag that Copybara exported as another commit.
+      private_class_method def self.commitish_for_new_tag(commitish, repo_name, tag_name, api_token, server_url)
+        commitish unless commitish.nil? || tag_exists?(repo_name, tag_name, api_token, server_url)
+      end
+
+      private_class_method def self.ensure_release_already_exists(body, tag_name)
+        UI.error(body)
+        UI.user_error!("GitHub could not create the release on tag #{tag_name}") unless release_already_exists?(body)
+        UI.error("Release on tag #{tag_name} already exists!")
+      end
+
+      private_class_method def self.release_already_exists?(body)
+        errors = JSON.parse(body)['errors'] || []
+        errors.any? { |error| error['code'] == 'already_exists' && error['field'] == 'tag_name' }
+      rescue JSON::ParserError
+        false
       end
 
       def self.publish_draft_release(release_url, make_latest, api_token)

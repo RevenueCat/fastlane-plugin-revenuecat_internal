@@ -640,11 +640,23 @@ describe Fastlane::Helper::GitHubHelper do
         api_token: github_token
       }
 
+      allow(Fastlane::Helper::GitHubHelper).to receive(:tag_exists?)
+        .with("RevenueCat/#{repo_name}", release_version, github_token, server_url)
+        .and_return(false)
       expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(hash_including(expected_params))
         .and_return(create_release_response)
 
-      Fastlane::Helper::GitHubHelper.create_github_release(
+      Fastlane::Helper::GitHubHelper.create_github_release(release_params)
+
+      github_response = create_release_response
+      body = JSON.parse(github_response[:body])
+
+      expect(body).not_to be_nil
+    end
+
+    let(:release_params) do
+      {
         repository_name: "RevenueCat/#{repo_name}",
         api_token: github_token,
         name: release_version,
@@ -655,13 +667,41 @@ describe Fastlane::Helper::GitHubHelper do
         is_prerelease: is_prerelease,
         make_latest: is_latest_stable_release,
         is_generate_release_notes: true,
-        server_url: 'https://api.github.com'
-      )
+        server_url: server_url
+      }
+    end
 
-      github_response = create_release_response
-      body = JSON.parse(github_response[:body])
+    it 'releases an existing tag without the commitish, which the repository may not have' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:tag_exists?)
+        .with("RevenueCat/#{repo_name}", release_version, github_token, server_url)
+        .and_return(true)
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'POST', body: hash_excluding('target_commitish')))
+        .and_return(create_release_response)
 
-      expect(body).not_to be_nil
+      Fastlane::Helper::GitHubHelper.create_github_release(release_params)
+    end
+
+    it 'returns nil when the release already exists' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:tag_exists?).and_return(true)
+      already_exists = { status: 422, body: '{"message":"Validation Failed","errors":[{"resource":"Release","code":"already_exists","field":"tag_name"}]}' }
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry) do |params|
+        params[:error_handlers][422].call(already_exists)
+      end
+
+      expect(Fastlane::Helper::GitHubHelper.create_github_release(release_params)).to be_nil
+    end
+
+    it 'fails when GitHub rejects the release for another reason' do
+      allow(Fastlane::Helper::GitHubHelper).to receive(:tag_exists?).and_return(false)
+      invalid_commitish = { status: 422, body: '{"message":"Validation Failed","errors":[{"resource":"Release","code":"invalid","field":"target_commitish"}]}' }
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry) do |params|
+        params[:error_handlers][422].call(invalid_commitish)
+      end
+
+      expect do
+        Fastlane::Helper::GitHubHelper.create_github_release(release_params)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, "GitHub could not create the release on tag #{release_version}")
     end
 
     let(:release_with_assets_params) do
@@ -705,6 +745,27 @@ describe Fastlane::Helper::GitHubHelper do
       expect(Fastlane::Helper::GitHubHelper).to receive(:upload_assets)
 
       Fastlane::Helper::GitHubHelper.create_github_release(release_with_assets_params.merge(is_draft: true))
+    end
+  end
+
+  describe '.tag_exists?' do
+    let(:server_url) { 'https://api.github.com' }
+
+    it 'is true when GitHub has the tag' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(http_method: 'GET', path: 'repos/RevenueCat/mock-repo/git/ref/tags/1.11.0'))
+        .and_return({ status: 200, body: '{}' })
+
+      expect(Fastlane::Helper::GitHubHelper.tag_exists?('RevenueCat/mock-repo', '1.11.0', 'mock-token', server_url)).to be(true)
+    end
+
+    it 'is false when GitHub answers 404' do
+      expect(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry) do |params|
+        params[:error_handlers][404].call({ status: 404 })
+        { status: 404, body: '{"message":"Not Found"}' }
+      end
+
+      expect(Fastlane::Helper::GitHubHelper.tag_exists?('RevenueCat/mock-repo', '1.11.0', 'mock-token', server_url)).to be(false)
     end
   end
 
