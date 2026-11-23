@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal/compare/v0.3.0...v0.3.1) (2026-11-23)
+
+
+### Fixed
+
+* stop silently skipping GitHub releases of Copybara-exported tags ([#180](https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal/issues/180)) ([fa61c0c](https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal/commit/fa61c0c68d53c957a48bd3ca6bbdeb070ae80b7b))
+
 ## [0.3.0](https://github.com/RevenueCat/fastlane-plugin-revenuecat_internal/compare/v0.2.0...v0.3.0) (2026-11-20)
 
 
