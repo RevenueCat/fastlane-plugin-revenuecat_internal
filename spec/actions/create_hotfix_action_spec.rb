@@ -193,7 +193,9 @@ describe Fastlane::Actions::CreateHotfixAction do
 
     it 'writes the linked PR and public release snapshot when the hotfix has no individual export' do
       allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
+      allow(FastlaneCore::UI).to receive(:important).and_call_original
       expect(run_action(public_repo_name: 'purchases-android', omit_pr_references_in_changelog_files: true)).to eq(release_pr_url)
+      expect(FastlaneCore::UI).to have_received(:important).with(/public_repo_name takes precedence over omit_pr_references_in_changelog_files/).once
 
       expected_changelog = <<~MARKDOWN.chomp
         ## RevenueCat SDK

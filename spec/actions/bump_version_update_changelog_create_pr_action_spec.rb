@@ -251,6 +251,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
     it 'writes linked notes to the changelog and uses them in the release PR when a public repo is configured' do
       setup_stubs
+      allow(FastlaneCore::UI).to receive(:important).and_call_original
       linked_changelog = '* Fix foo ([`abc1234`](https://github.com/RevenueCat/mock-public-repo/commit/abc1234)) via Jane Doe (@jane) ([internal #12](https://github.com/RevenueCat/mock-repo-name/pull/12))'
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return("#{linked_changelog}\n")
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
@@ -275,6 +276,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         is_prerelease: false,
         omit_pr_references_in_changelog_files: true
       )
+      expect(FastlaneCore::UI).to have_received(:important).with(/public_repo_name takes precedence over omit_pr_references_in_changelog_files/).once
     end
 
     it 'leaves the changelogs and release branch untouched while a public export is pending' do

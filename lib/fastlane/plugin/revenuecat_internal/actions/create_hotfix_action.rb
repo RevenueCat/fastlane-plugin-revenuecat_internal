@@ -15,6 +15,7 @@ module Fastlane
       def self.run(params)
         repo_name = params[:repo_name]
         public_repo_name = params[:public_repo_name]
+        omit_pr_references_in_changelog_files = Helper::VersioningHelper.omit_changelog_pr_references?(params[:omit_pr_references_in_changelog_files], public_repo_name)
         pr_number = params[:pr_number]
         update_dependencies = params[:update_dependencies]
         dependency_releases = params[:dependency_releases]
@@ -101,7 +102,7 @@ module Fastlane
                                                                   version_files_on(tag, params[:files_to_update]),
                                                                   version_files_on(tag, params[:files_to_update_without_prerelease_modifiers]),
                                                                   params[:files_to_update_on_latest_stable_releases])
-          if pr_number && params[:omit_pr_references_in_changelog_files] && !public_repo_name
+          if pr_number && omit_pr_references_in_changelog_files
             changelog_in_files = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name, include_pr_references: false)
           end
           Helper::RevenuecatInternalHelper.write_changelog(changelog_in_files || changelog, changelog_latest_path)

@@ -60,6 +60,14 @@ module Fastlane
         return calculate_next_version(old_version, type_of_bump, false), type_of_bump
       end
 
+      def self.omit_changelog_pr_references?(omit_pr_references, public_repo_name)
+        return false unless omit_pr_references
+        return true unless public_repo_name
+
+        UI.important("public_repo_name takes precedence over omit_pr_references_in_changelog_files. Remove omit_pr_references_in_changelog_files from this Fastfile action.")
+        false
+      end
+
       def self.auto_generate_changelog(*arguments, **options)
         auto_generate_changelog_variants(*arguments, **options)[:with_pr_references]
       end

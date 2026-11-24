@@ -36,7 +36,7 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 
 ### Linked SDK changelogs
 
-Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. Pass it to `determine_next_version_using_labels` in automatic release lanes so the version bump and changelog use the same PR lookup. Keep passing the internal repository's name as `repo_name`. Linked changelogs take precedence over `omit_pr_references_in_changelog_files`.
+Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. Pass it to `determine_next_version_using_labels` in automatic release lanes so the version bump and changelog use the same PR lookup. Keep passing the internal repository's name as `repo_name`. If `omit_pr_references_in_changelog_files` is also enabled, Fastlane logs a migration warning and generates linked changelogs.
 
 Release prep looks for each source commit in the public default branch. A shared SHA takes precedence over Copybara's `GitOrigin-RevId`. Regular releases stop before writing the changelog if a match is missing or ambiguous. Check the Copybara export and retry when the public commits can be resolved. Hotfixes link to the release snapshot by tag when an individual commit cannot be resolved and log each fallback. An internal PR link requires a merged PR with the exact source SHA. If a commit has a possible PR association and the merge can't be verified, the actions log and skip it. External attribution requires matching import metadata. `create_github_release` uses the existing `CHANGELOG.latest.md` as the release body.
 

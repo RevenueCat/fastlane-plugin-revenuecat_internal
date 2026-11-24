@@ -33,7 +33,7 @@ module Fastlane
         exclude_labels = params[:exclude_labels]
         include_purchases_js = params[:include_purchases_js]
         fallback_pr_lookup = params[:fallback_pr_lookup]
-        omit_pr_references_in_changelog_files = params[:omit_pr_references_in_changelog_files]
+        omit_pr_references_in_changelog_files = Helper::VersioningHelper.omit_changelog_pr_references?(params[:omit_pr_references_in_changelog_files], public_repo_name)
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -86,7 +86,7 @@ module Fastlane
         changelog_arguments = [repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number]
         changelog_options = { filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup }
         changelog_options[:public_repo_name] = public_repo_name if public_repo_name
-        if omit_pr_references_in_changelog_files && !public_repo_name
+        if omit_pr_references_in_changelog_files
           changelogs = Helper::VersioningHelper.auto_generate_changelog_variants(*changelog_arguments, **changelog_options)
           generated_contents = changelogs[:without_pr_references]
           pr_body = changelogs[:with_pr_references] unless UI.interactive?
