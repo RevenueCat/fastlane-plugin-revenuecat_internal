@@ -200,7 +200,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       expected_changelog = <<~MARKDOWN.chomp
         ## RevenueCat SDK
         ### 🐞 Bugfixes
-        * Fix the bug ([public release snapshot](https://github.com/RevenueCat/purchases-android/tree/refs/tags/10.2.1)) via Jane Doe (@jane-doe) ([internal #123](https://github.com/RevenueCat/purchases-android_internal/pull/123))
+        * Fix the bug ([public release snapshot](https://github.com/RevenueCat/purchases-android/tree/refs/tags/10.2.1)) via Jane Doe (@jane-doe) ([RevenueCat/purchases-android_internal#123](https://github.com/RevenueCat/purchases-android_internal/pull/123))
       MARKDOWN
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
         .with(expected_changelog, changelog_latest_path)

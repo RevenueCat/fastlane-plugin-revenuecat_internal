@@ -16,9 +16,9 @@ module Fastlane
             FastlaneCore::UI.user_error!("Expected a GitHub repository name without an owner for linked changelogs.")
           end
         end
-        @internal_repo_url = "https://github.com/RevenueCat/#{internal_repo_name}"
-        @public_repo_url = "https://github.com/RevenueCat/#{public_repo_name}"
-        @public_repo_name = public_repo_name
+        @internal_repo = "RevenueCat/#{internal_repo_name}"
+        @public_repo = "RevenueCat/#{public_repo_name}"
+        @public_repo_url = "https://github.com/#{@public_repo}"
         @snapshot_tag = snapshot_tag
       end
 
@@ -26,7 +26,7 @@ module Fastlane
         title, external_credit = external_contribution(entry.title, entry.pull_request)
         pr_number = entry.pull_request&.dig('number')
         if pr_number.kind_of?(Integer) && pr_number.positive?
-          internal_pr = " ([internal ##{pr_number}](#{@internal_repo_url}/pull/#{pr_number}))"
+          internal_pr = " (#{pull_request_link(@internal_repo, pr_number)})"
         end
 
         title = markdown_text(title, preserve_code: true) unless entry.title_is_markdown
@@ -34,6 +34,10 @@ module Fastlane
       end
 
       private
+
+      def pull_request_link(repository, number)
+        "[#{repository}##{number}](https://github.com/#{repository}/pull/#{number})"
+      end
 
       def public_reference(source_sha)
         public_sha = public_commits[source_sha] if source_sha
@@ -96,8 +100,8 @@ module Fastlane
       def external_contribution(title, pull_request)
         return [title, nil] unless pull_request
 
-        repo = Regexp.escape(@public_repo_name)
-        reference = title.match(%r{\s+\((?:RevenueCat/#{repo})?#(\d+)\) (?:via|by) @([a-z0-9-]+)\z}i)
+        repo = Regexp.escape(@public_repo)
+        reference = title.match(/\s+\((?:#{repo})?#(\d+)\) (?:via|by) @([a-z0-9-]+)\z/i)
         return [title, nil] unless reference
 
         number, contributor = reference.captures
@@ -110,7 +114,7 @@ module Fastlane
 
         title = reference.pre_match
         title = "[EXTERNAL] #{title}" unless legacy_import
-        [title, " via **@#{contributor}** ([##{number}](#{url}))"]
+        [title, " via **@#{contributor}** (#{pull_request_link(@public_repo, number)})"]
       end
     end
   end

@@ -7,7 +7,7 @@ describe Fastlane::Helper::ChangelogLinks do
   let(:pull_request) { { 'number' => 13 } }
   let(:credit) { ' via Jane Doe (@jane-doe)' }
   let(:public_link) { "([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{public_sha}))" }
-  let(:internal_link) { '([internal #13](https://github.com/RevenueCat/purchases_internal/pull/13))' }
+  let(:internal_link) { '([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))' }
   let(:snapshot_link) { '([public release snapshot](https://github.com/RevenueCat/purchases/tree/refs/tags/2.0.1))' }
   let(:git_status) { instance_double(Process::Status, success?: true) }
   let(:git_history) { "#{public_sha}\t#{source_sha}\0#{mirrored_sha}\t\0" }
@@ -38,7 +38,7 @@ describe Fastlane::Helper::ChangelogLinks do
     imported_pr = pull_request.merge('body' => "Description\n\nContributed by @contributor in https://github.com/RevenueCat/purchases/pull/42")
     entry = entry_class.new('[EXTERNAL] Fix a typo (#42) by @contributor', '#13', credit, source_sha, imported_pr)
 
-    expect(links.line(entry)).to eq("* \\[EXTERNAL\\] Fix a typo #{public_link} via **@contributor** ([#42](https://github.com/RevenueCat/purchases/pull/42))#{credit} #{internal_link}")
+    expect(links.line(entry)).to eq("* \\[EXTERNAL\\] Fix a typo #{public_link} via **@contributor** ([RevenueCat/purchases#42](https://github.com/RevenueCat/purchases/pull/42))#{credit} #{internal_link}")
   end
 
   it 'credits the original PR when the Copybara import records it in the body' do
@@ -46,7 +46,7 @@ describe Fastlane::Helper::ChangelogLinks do
     imported_pr = pull_request.merge('body' => 'Imports https://github.com/RevenueCat/purchases/pull/42 by @contributor at 123abc, approved by @reviewer.')
     entry = entry_class.new(title, '#13', credit, source_sha, imported_pr)
 
-    expect(links.line(entry)).to eq("* \\[EXTERNAL\\] Fix a typo #{public_link} via **@contributor** ([#42](https://github.com/RevenueCat/purchases/pull/42))#{credit} #{internal_link}")
+    expect(links.line(entry)).to eq("* \\[EXTERNAL\\] Fix a typo #{public_link} via **@contributor** ([RevenueCat/purchases#42](https://github.com/RevenueCat/purchases/pull/42))#{credit} #{internal_link}")
   end
 
   it 'preserves a title with a PR mention when it is not an imported contribution' do

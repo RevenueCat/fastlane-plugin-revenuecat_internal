@@ -1192,7 +1192,7 @@ describe Fastlane::Helper::VersioningHelper do
         native_links = "\n  * [iOS 5.0](https://github.com/RevenueCat/purchases-ios/releases/tag/5.0)"
         allow(described_class).to receive(:native_releases_links).with(github_token, hybrid_common_version, versions_file_path, include_purchases_js: false).and_return(native_links)
         expect(linked_changelogs).to eq(
-          with_pr_references: "## RevenueCat SDK\n### 📦 Dependency Updates\n* Update Hybrid Common ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([internal #13](https://github.com/RevenueCat/purchases_internal/pull/13))#{native_links}",
+          with_pr_references: "## RevenueCat SDK\n### 📦 Dependency Updates\n* Update Hybrid Common ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))#{native_links}",
           without_pr_references: "## RevenueCat SDK\n### 📦 Dependency Updates\n* Update Hybrid Common via Jane Doe (@jane)#{native_links}"
         )
       end
