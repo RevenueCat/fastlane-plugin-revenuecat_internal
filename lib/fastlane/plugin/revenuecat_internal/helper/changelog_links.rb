@@ -35,7 +35,7 @@ module Fastlane
       end
 
       def line(entry)
-        verified_pr = GitHubHelper.verified_changelog_pr(entry.pull_request, entry.source_sha, @internal_repo, @github_token)
+        verified_pr = entry.verified_pull_request || GitHubHelper.verified_changelog_pr(entry.pull_request, entry.source_sha, @internal_repo, @github_token)
         title, external_credit = external_contribution(entry.title, verified_pr)
         pr_number = verified_pr&.dig('number')
         if pr_number.kind_of?(Integer) && pr_number.positive?

@@ -27,7 +27,7 @@ module Fastlane
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
-      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request, :extra_notes, :title_is_markdown) do
+      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request, :extra_notes, :title_is_markdown, :verified_pull_request) do
         def line(include_pr_reference: true)
           reference = " (#{pr_reference})" if include_pr_reference && pr_reference
           "* #{title}#{reference}#{attribution}#{extra_notes}"
@@ -98,8 +98,14 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+          commit_message = commit["commit"]["message"]
+          message = commit_message.lines.first.to_s.strip
+          fallback_commit_message = fallback_pr_lookup ? commit_message : nil
           items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+          if links && items.empty?
+            recovered_pr = GitHubHelper.recover_changelog_pr(message, sha, "RevenueCat/#{repo_name}", base_branch, github_token)
+            items = [recovered_pr] if recovered_pr
+          end
 
           case items.size
           when 1
@@ -112,14 +118,14 @@ module Fastlane
             entry = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference, sha)
             next if entry.nil?
 
+            entry.verified_pull_request = recovered_pr
             if all_labels.include?("pr:phc_dependencies") && last_phc_dep_entry.nil?
               last_phc_dep_entry = entry
             end
           when 0
             unless filter_labels
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
-              message = commit["commit"]["message"].lines.first.to_s.strip
-              name = commit["commit"]["author"]["name"]
+              message = message.sub(GitHubHelper::SQUASH_PR_SUFFIX, '') if links
               changelog_sections[:other].push(ChangelogEntry.new(message, nil, " via #{name}", sha))
             end
           else

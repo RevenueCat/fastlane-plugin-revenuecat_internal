@@ -88,6 +88,9 @@ module Fastlane
         attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
       end
 
+      SQUASH_PR_SUFFIX = / \(#(?<number>[1-9][0-9]*)\)\z/
+      CHANGELOG_COMMIT_SHA = /\A[0-9a-f]{40}\z/
+
       def self.verified_changelog_pr(pull_request, sha, repository, github_token)
         return unless pull_request
 
@@ -102,11 +105,86 @@ module Fastlane
         nil
       end
 
+      def self.recover_changelog_pr(title, sha, repository, base_branch, github_token)
+        reference = SQUASH_PR_SUFFIX.match(title)
+        return unless reference
+
+        number = reference[:number].to_i
+        pull_request = fetch_changelog_pr(repository, number, github_token)
+        return unless changelog_pr_on_branch?(pull_request, number, base_branch)
+        return unless changelog_pr_metadata?(pull_request)
+
+        merge_sha = pull_request['merge_commit_sha']
+        return pull_request if merge_sha == sha
+        return unless pull_request['title'] == reference.pre_match
+
+        pull_request if rewritten_changelog_commit?(sha, merge_sha, repository, github_token)
+      rescue TypeError
+        nil
+      end
+
+      private_class_method def self.changelog_pr_on_branch?(pull_request, number, base_branch)
+        pull_request && pull_request['number'] == number && pull_request['merged_at'] && pull_request.dig('base', 'ref') == base_branch
+      end
+
+      private_class_method def self.changelog_pr_metadata?(pull_request)
+        return false unless pull_request['title'].kind_of?(String) && pull_request.dig('user', 'login').kind_of?(String)
+
+        labels = pull_request['labels']
+        labels.kind_of?(Array) && labels.all? { |label| label.kind_of?(Hash) && label['name'].kind_of?(String) }
+      end
+
+      private_class_method def self.rewritten_changelog_commit?(sha, merge_sha, repository, github_token)
+        return false unless CHANGELOG_COMMIT_SHA.match?(sha) && CHANGELOG_COMMIT_SHA.match?(merge_sha)
+
+        source = changelog_commit_details(sha, repository, github_token)
+        source && source == changelog_commit_details(merge_sha, repository, github_token)
+      end
+
+      private_class_method def self.changelog_commit_details(sha, repository, github_token)
+        commit = fetch_changelog_resource("/repos/#{repository}/commits/#{sha}", github_token)
+        return unless commit && commit['sha'] == sha
+
+        files = changelog_commit_diff(commit['files'])
+        metadata = changelog_commit_metadata(commit)
+        [metadata, files] if metadata && files
+      end
+
+      private_class_method def self.changelog_commit_metadata(commit)
+        parents = commit['parents']
+        return unless parents.kind_of?(Array) && parents.one?
+
+        metadata = commit['commit']
+        return unless metadata.kind_of?(Hash) && commit['stats'].kind_of?(Hash)
+        return unless metadata['author'].kind_of?(Hash) && metadata['message'].kind_of?(String)
+
+        [metadata['author'], metadata['message'], commit['stats']]
+      end
+
+      private_class_method def self.changelog_commit_diff(files)
+        # GitHub paginates commits with more than 300 changed files. Require a
+        # complete, non-empty text diff before accepting a rewritten SHA.
+        return unless files.kind_of?(Array) && files.size.between?(1, 299)
+        return unless files.all? { |file| changelog_file_diff?(file) }
+
+        files.sort_by { |file| file['filename'] }.map { |file| file.slice('filename', 'previous_filename', 'status', 'sha', 'patch') }
+      end
+
+      private_class_method def self.changelog_file_diff?(file)
+        return false unless file.kind_of?(Hash) && CHANGELOG_COMMIT_SHA.match?(file['sha'].to_s)
+
+        file['filename'].kind_of?(String) && file['status'].kind_of?(String) && file['patch'].kind_of?(String) && !file['patch'].empty?
+      end
+
       private_class_method def self.fetch_changelog_pr(repository, number, github_token)
         return unless number.kind_of?(Integer) && number.positive? && !github_token.to_s.empty?
 
+        fetch_changelog_resource("/repos/#{repository}/pulls/#{number}", github_token)
+      end
+
+      private_class_method def self.fetch_changelog_resource(path, github_token)
         response = github_api_call_with_retry(server_url: 'https://api.github.com',
-                                              path: "/repos/#{repository}/pulls/#{number}",
+                                              path: path,
                                               http_method: 'GET',
                                               body: {},
                                               api_token: github_token,

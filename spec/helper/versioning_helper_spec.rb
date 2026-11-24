@@ -1167,6 +1167,43 @@ describe Fastlane::Helper::VersioningHelper do
       )
     end
 
+    context 'with a commit that includes a PR number but has no normal match' do
+      let(:commit_message) { "Update things (#13)\n\nCommit details" }
+      let(:recovered_pr) do
+        { 'number' => 13, 'title' => 'Update things', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:fix' }],
+          'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'b' * 40 }
+      end
+
+      def recover_as(pull_request)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:recover_changelog_pr)
+          .with('Update things (#13)', sha, 'RevenueCat/purchases_internal', 'main', github_token)
+          .and_return(pull_request)
+      end
+
+      it 'removes the unqualified PR suffix when recovery finds no match' do
+        recover_as(nil)
+
+        expect(linked_changelogs).to eq(
+          with_pr_references: "### 🔄 Other Changes\n* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe",
+          without_pr_references: "### 🔄 Other Changes\n* Update things via Jane Doe"
+        )
+      end
+
+      it 'links a recovered internal PR using its verified repository' do
+        recover_as(recovered_pr)
+
+        expect(linked_changelogs[:with_pr_references]).to end_with(
+          "* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))"
+        )
+      end
+
+      it 'applies the recovered changelog_ignore label to both variants' do
+        recover_as(recovered_pr.merge('labels' => [{ 'name' => 'pr:changelog_ignore' }]))
+
+        expect(linked_changelogs).to eq(with_pr_references: '', without_pr_references: '')
+      end
+    end
+
     it 'uses the target release tag for an explicitly allowlisted commit without a public SHA' do
       allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
 
