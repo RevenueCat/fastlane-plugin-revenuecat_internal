@@ -138,8 +138,13 @@ describe Fastlane::Helper::ChangelogLinks do
     end
   end
 
-  it 'rejects a repository name that could change the GitHub URL' do
+  it 'identifies an invalid public repository name and its value' do
     expect { described_class.new('purchases_internal', '../another-repo') }
-      .to raise_error(FastlaneCore::Interface::FastlaneError, /Expected a GitHub repository name/)
+      .to raise_error(FastlaneCore::Interface::FastlaneError, 'Invalid public repository name (public_repo_name) "../another-repo". Pass a GitHub repository name without an owner.')
+  end
+
+  it 'identifies an invalid internal repository name and its value' do
+    expect { described_class.new('RevenueCat/purchases_internal', 'purchases') }
+      .to raise_error(FastlaneCore::Interface::FastlaneError, 'Invalid internal repository name (repo_name) "RevenueCat/purchases_internal". Pass a GitHub repository name without an owner.')
   end
 end

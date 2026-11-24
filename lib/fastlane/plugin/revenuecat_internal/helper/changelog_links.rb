@@ -11,10 +11,11 @@ module Fastlane
       TITLE_PART = /(?<code>(?<ticks>(?<![\\\x60])\x60+(?!\x60)).*?(?<!\x60)\k<ticks>(?!\x60))|[^\x60]+|\x60+/
 
       def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil)
-        [internal_repo_name, public_repo_name].each do |name|
-          unless REPOSITORY_NAME.match?(name) && name != '.' && name != '..'
-            FastlaneCore::UI.user_error!("Expected a GitHub repository name without an owner for linked changelogs.")
-          end
+        repo_names = { 'internal repository name (repo_name)' => internal_repo_name, 'public repository name (public_repo_name)' => public_repo_name }
+        repo_names.each do |option, name|
+          next if name.kind_of?(String) && name.valid_encoding? && REPOSITORY_NAME.match?(name) && name != '.' && name != '..'
+
+          FastlaneCore::UI.user_error!("Invalid #{option} #{name.inspect}. Pass a GitHub repository name without an owner.")
         end
         @internal_repo = "RevenueCat/#{internal_repo_name}"
         @public_repo = "RevenueCat/#{public_repo_name}"
