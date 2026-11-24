@@ -55,53 +55,17 @@ module Fastlane
       #      branch, such as the ones in a stack.
       #   3. Only when +fallback_commit_message+ is a non-nil string: the PR number
       #      parsed out of that message, fetched directly. Pass nil to opt out.
-      # With +require_exact_merge+, unverifiable PR associations stop release
-      # prep. An empty array means no PR was found.
-      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil, require_exact_merge: false)
+      def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil)
         if github_token.nil? || github_token.empty?
-          UI.user_error!("A GitHub token is required to verify pull requests for linked changelogs.") if require_exact_merge
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
           return []
         end
 
-        if require_exact_merge
-          return lookup_verified_pr(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message)
-        end
-
-        items = search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
-        return items if items.size == 1
-        return disambiguate_pr_items_by_merge_commit_sha(items, sha, github_token, rate_limit_sleep, repo_name) if items.size > 1
-
-        candidates = fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name)
-        associated_items = landing_prs_for_commit(sha, candidates)
-        return associated_items unless associated_items.empty?
-
-        attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
-      end
-
-      private_class_method def self.lookup_verified_pr(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message)
-        candidates = fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name, require_complete: true)
-        landing_prs = landing_prs_for_commit(sha, candidates)
-        return landing_prs unless landing_prs.empty?
-
-        fallback = attempt_pr_lookup_from_commit_message(sha, commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
-        return fallback unless fallback.empty?
-
-        hinted_pr = extract_pr_number_from_commit_message(commit_message)
-        if candidates.empty? && hinted_pr.nil?
-          candidates = search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, require_complete: true)
-          return [] if candidates.empty?
-        end
-
-        pr_numbers = (candidates.map { |pr| pr['number'] } + [hinted_pr]).compact.uniq.map { |number| "##{number}" }.join(', ')
-        UI.user_error!("Could not verify the landing PR for source commit #{sha} in RevenueCat/#{repo_name}. Candidate PRs #{pr_numbers}. Check their merge SHAs and retry.")
-      end
-
-      private_class_method def self.search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, require_complete: false)
         if rate_limit_sleep > 0
           UI.message("Sleeping #{rate_limit_sleep} second(s) to avoid rate limit 🐌")
           sleep(rate_limit_sleep)
         end
+
         if base_branch.to_s.strip.empty?
           UI.important("No base branch provided for PR search of SHA #{sha}; relying on the `SHA:` qualifier alone, which may match stacked PRs that contain the commit.")
         end
@@ -112,11 +76,46 @@ module Fastlane
                                              http_method: 'GET',
                                              body: {},
                                              api_token: github_token)
-        response = JSON.parse(pr_resp[:body])
-        if require_complete && (response["incomplete_results"] || !response["items"].kind_of?(Array))
-          UI.user_error!("GitHub returned incomplete pull request search results for #{sha}. Retry release prep.")
+        body = JSON.parse(pr_resp[:body])
+        items = body["items"]
+
+        return items if items.size == 1
+        return disambiguate_pr_items_by_merge_commit_sha(items, sha, github_token, rate_limit_sleep, repo_name) if items.size > 1
+
+        associated_items = lookup_pr_by_commit_association(sha, github_token, rate_limit_sleep, repo_name)
+        return associated_items unless associated_items.empty?
+
+        attempt_pr_lookup_from_commit_message(sha, fallback_commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
+      end
+
+      def self.verified_changelog_pr(pull_request, sha, repository, github_token)
+        return unless pull_request
+
+        number = pull_request['number']
+        candidate = pull_request
+        candidate = fetch_changelog_pr(repository, number, github_token) unless candidate['merge_commit_sha']
+        if candidate && candidate['number'] == number && candidate['merged_at'] && sha && candidate['merge_commit_sha'] == sha
+          return candidate
         end
-        response["items"]
+
+        UI.important("Could not verify #{repository}##{number} for source commit #{sha}. Continuing without its PR links.")
+        nil
+      end
+
+      private_class_method def self.fetch_changelog_pr(repository, number, github_token)
+        return unless number.kind_of?(Integer) && number.positive? && !github_token.to_s.empty?
+
+        response = github_api_call_with_retry(server_url: 'https://api.github.com',
+                                              path: "/repos/#{repository}/pulls/#{number}",
+                                              http_method: 'GET',
+                                              body: {},
+                                              api_token: github_token,
+                                              max_retries: 0,
+                                              error_handlers: { '*' => proc {} })
+        candidate = JSON.parse(response[:body])
+        candidate if candidate.kind_of?(Hash)
+      rescue StandardError
+        nil
       end
 
       # The `base:` qualifier in the search above only finds PRs opened directly
@@ -128,7 +127,8 @@ module Fastlane
       # commit no matter what they targeted. Keeping only merged PRs whose
       # `merge_commit_sha` is the commit itself preserves the guarantee the `base:`
       # filter provided: the commit reached the released branch because that PR merged.
-      private_class_method def self.landing_prs_for_commit(sha, prs)
+      private_class_method def self.lookup_pr_by_commit_association(sha, github_token, rate_limit_sleep, repo_name)
+        prs = fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name)
         # The endpoint also lists PRs that merely contain the commit, so keep only
         # the PR GitHub merged as this exact commit.
         matches = prs.select { |pr| pr["merged_at"] && pr["merge_commit_sha"] == sha }
@@ -146,12 +146,12 @@ module Fastlane
         []
       end
 
-      private_class_method def self.fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name, require_complete: false)
+      private_class_method def self.fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name)
         if rate_limit_sleep > 0
           sleep(rate_limit_sleep)
         end
 
-        UI.message("Looking up PRs associated with #{sha}.")
+        UI.message("Search API found no PR for #{sha}. Looking up PRs associated with the commit.")
 
         resp = github_api_call_with_retry(server_url: 'https://api.github.com',
                                           path: "/repos/RevenueCat/#{repo_name}/commits/#{sha}/pulls",
@@ -159,13 +159,8 @@ module Fastlane
                                           body: {},
                                           api_token: github_token)
         prs = JSON.parse(resp[:body])
-        return prs if prs.kind_of?(Array)
-
-        UI.user_error!("GitHub returned invalid pull request associations for #{sha}. Retry release prep.") if require_complete
-        []
+        prs.kind_of?(Array) ? prs : []
       rescue StandardError => e
-        raise if require_complete
-
         UI.important("Failed to look up PRs associated with #{sha}: #{e.message}")
         []
       end
@@ -189,7 +184,7 @@ module Fastlane
           sleep(rate_limit_sleep)
         end
 
-        UI.message("Looking up PR ##{pr_number} from the commit message for #{sha}.")
+        UI.message("Search API returned no results for #{sha}. Falling back to direct PR ##{pr_number} lookup.")
         fetch_pr_by_number(pr_number, github_token, repo_name, expected_base: base_branch, expected_sha: sha)
       end
 

@@ -52,7 +52,8 @@ module Fastlane
         tag = resolve_tag(requested_version, tags)
         next_version = next_patch_version(tag)
         changelog_options = {}
-        changelog_options[:links] = Helper::ChangelogLinks.new(repo_name, public_repo_name, snapshot_tag: next_version) if public_repo_name
+        links = Helper::ChangelogLinks.build(repo_name, public_repo_name, snapshot_tag: next_version)
+        changelog_options[:links] = links if links
         next_core_version = core_version(next_version)
         if tags.any? { |existing_tag| core_version(existing_tag) == next_core_version }
           UI.user_error!("#{next_core_version} is already released. Hotfix #{next_core_version} instead of #{tag}.")
@@ -102,7 +103,7 @@ module Fastlane
                                                                   version_files_on(tag, params[:files_to_update]),
                                                                   version_files_on(tag, params[:files_to_update_without_prerelease_modifiers]),
                                                                   params[:files_to_update_on_latest_stable_releases])
-          if pr_number && omit_pr_references_in_changelog_files
+          if pr_number && (omit_pr_references_in_changelog_files || (public_repo_name && !links))
             changelog_in_files = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name, include_pr_references: false)
           end
           Helper::RevenuecatInternalHelper.write_changelog(changelog_in_files || changelog, changelog_latest_path)

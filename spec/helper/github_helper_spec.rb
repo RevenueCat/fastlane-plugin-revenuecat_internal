@@ -1,4 +1,28 @@
 describe Fastlane::Helper::GitHubHelper do
+  describe '.verified_changelog_pr' do
+    let(:sha) { 'a' * 40 }
+    let(:repository) { 'RevenueCat/purchases_internal' }
+    let(:selected_pr) { { 'number' => 13 } }
+
+    it 'fetches details for a search result and verifies its merge SHA' do
+      verified_pr = selected_pr.merge('merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => sha)
+      allow(described_class).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/#{repository}/pulls/13", max_retries: 0))
+        .and_return({ body: verified_pr.to_json })
+
+      expect(described_class.verified_changelog_pr(selected_pr, sha, repository, 'mock-token')).to eq(verified_pr)
+    end
+
+    it 'warns and omits the link when the optional request fails' do
+      allow(described_class).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/#{repository}/pulls/13", max_retries: 0))
+        .and_raise(IOError, 'Network unavailable')
+      expect(FastlaneCore::UI).to receive(:important).with(/Could not verify .*#13.*#{sha}.*without its PR links/)
+
+      expect(described_class.verified_changelog_pr(selected_pr, sha, repository, 'mock-token')).to be_nil
+    end
+  end
+
   describe '.get_pr_resp_items_for_sha' do
     let(:base_branch) { 'main' }
     let(:server_url) { 'https://api.github.com' }
@@ -62,50 +86,6 @@ describe Fastlane::Helper::GitHubHelper do
         'main'
       )
       expect(items).not_to be_nil
-    end
-
-    it 'requires a merged PR with the exact commit when generating linked notes' do
-      open_pr = { 'number' => 1, 'merge_commit_sha' => hash }
-      unrelated_pr = { 'number' => 2, 'merged_at' => '2026-04-22T08:12:37Z', 'merge_commit_sha' => 'e' * 40 }
-      landing_pr = { 'number' => 3, 'merged_at' => '2026-04-22T08:12:37Z', 'merge_commit_sha' => hash }
-      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
-        .and_return({ body: [open_pr, unrelated_pr, landing_pr].to_json })
-      expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry).with(hash_including(path: %r{/search/issues}))
-
-      items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
-
-      expect(items).to eq([landing_pr])
-    end
-
-    it 'fails with the SHA and candidate PRs when the exact lookup cannot verify the merge' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(hash_including(path: %r{/search/issues}))
-        .and_return({ body: { 'items' => [{ 'number' => 13 }, { 'number' => 27 }] }.to_json })
-
-      expect do
-        Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
-      end.to raise_error(FastlaneCore::Interface::FastlaneError, /#{hash}.*Candidate PRs #13, #27/)
-    end
-
-    it 'returns no PRs for a direct commit without associations or search results' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(hash_including(path: %r{/search/issues}))
-        .and_return({ body: { 'items' => [], 'incomplete_results' => false }.to_json })
-
-      items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
-
-      expect(items).to eq([])
-    end
-
-    it 'rejects incomplete search results instead of treating the commit as direct' do
-      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
-        .with(hash_including(path: %r{/search/issues}))
-        .and_return({ body: { 'items' => [], 'incomplete_results' => true }.to_json })
-
-      expect do
-        Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
-      end.to raise_error(FastlaneCore::Interface::FastlaneError, /GitHub returned incomplete pull request search results/)
     end
 
     context 'when search returns empty and fallback_commit_message is provided' do

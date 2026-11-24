@@ -36,13 +36,13 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 
 ### Linked SDK changelogs
 
-Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. In the same SDK rollout, set `require_verified_prs: true` on `determine_next_version_using_labels` in automatic release lanes so version calculation and changelog generation use the same PR lookup. Keep passing the internal repository's name as `repo_name`. If `omit_pr_references_in_changelog_files` is also enabled, Fastlane logs a migration warning and generates linked changelogs.
+Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. Keep passing the internal repository's name as `repo_name`. The actions add links after normal version calculation and changelog filtering. If `omit_pr_references_in_changelog_files` is also enabled, Fastlane logs a migration warning and generates linked changelogs.
 
-Release prep looks for each source commit in the public default branch. A shared SHA takes precedence over Copybara's `GitOrigin-RevId`. Regular releases stop before writing the changelog if a match is missing or ambiguous. Check the Copybara export and retry when the public commits can be resolved. Hotfixes link to the release snapshot by tag when an individual commit cannot be resolved and log each fallback.
+Release prep looks for each source commit in the public default branch. A shared SHA takes precedence over Copybara's `GitOrigin-RevId`. Missing or ambiguous mappings and failed public history reads log warnings and leave the entries in place without public commit links. Hotfixes can link to the release snapshot by tag when an individual commit cannot be resolved.
 
-For a regular release with commits known to be exported only in the release snapshot, pass their full internal SHAs as `snapshot_fallback_shas` to `bump_version_update_changelog_create_pr`. Each missing allowlisted SHA gets a logged snapshot link. Available public commit links take precedence, and ambiguous matches still stop release prep.
+For a regular release with commits known to be exported only in the release snapshot, pass their full internal SHAs as `snapshot_fallback_shas` to `bump_version_update_changelog_create_pr`. Each missing allowlisted SHA gets a logged snapshot link. Available public commit links take precedence.
 
-An internal PR link requires a merged PR with the exact source SHA. If a possible PR association can't be verified, both version calculation and changelog generation stop with the source SHA and candidate PR numbers. External attribution requires matching import metadata. `create_github_release` uses the existing `CHANGELOG.latest.md` as the release body.
+An internal PR link requires a merged PR with the exact source SHA. If verification fails, Fastlane logs the PR and SHA and keeps the original entry without its PR links. External attribution requires matching import metadata. `create_github_release` uses the existing `CHANGELOG.latest.md` as the release body.
 
 ## Example
 

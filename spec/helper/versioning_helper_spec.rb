@@ -1151,7 +1151,7 @@ describe Fastlane::Helper::VersioningHelper do
       allow(described_class).to receive(:latest_version_number_smaller_than).with('1.2.0', include_prereleases: false).and_return('1.1.0')
       allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit])
       allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
-        .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true)
+        .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: nil)
         .and_return(pull_requests)
       allow(Open3).to receive(:capture3).and_return(["#{sha}\t\0", '', instance_double(Process::Status, success?: true)])
     end
@@ -1160,7 +1160,7 @@ describe Fastlane::Helper::VersioningHelper do
       described_class.auto_generate_changelog_variants(repo_name, github_token, 0, false, hybrid_common_version, versions_file_path, '1.2.0', public_repo_name: public_repo_name, **options)
     end
 
-    it 'uses exact-merge lookup and links a direct commit under Other Changes' do
+    it 'links a direct commit under Other Changes using the existing PR lookup' do
       expect(linked_changelogs).to eq(
         with_pr_references: "### 🔄 Other Changes\n* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe",
         without_pr_references: "### 🔄 Other Changes\n* Update things via Jane Doe"
@@ -1175,50 +1175,51 @@ describe Fastlane::Helper::VersioningHelper do
       expect(notes[:with_pr_references]).to eq("### 🔄 Other Changes\n* Update things ([public release snapshot](https://github.com/RevenueCat/purchases/tree/refs/tags/1.2.0)) via Jane Doe")
     end
 
-    context 'when a possible PR cannot be verified' do
-      let(:attribution_error) { "Could not verify the landing PR for source commit #{sha}. Candidate PRs #13." }
-
-      before do
-        allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
-          .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true) do
-            FastlaneCore::UI.user_error!(attribution_error)
-          end
+    context 'when the selected PR has a different merge SHA' do
+      let(:pull_requests) do
+        [{ 'number' => 13, 'title' => 'Fix behavior', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:fix' }],
+           'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'b' * 40 }]
       end
 
-      it 'stops changelog generation before rendering the uncertain commit' do
-        expect { linked_changelogs }.to raise_error(FastlaneCore::Interface::FastlaneError, attribution_error)
+      it 'preserves the entry and its section with only a verified public commit link' do
+        expect(linked_changelogs).to eq(
+          with_pr_references: "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix behavior ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane)",
+          without_pr_references: "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix behavior via Jane Doe (@jane)"
+        )
       end
 
-      it 'uses the same lookup for version determination and stops the bump' do
+      it 'keeps the existing version calculation without verifying links' do
         allow(described_class).to receive(:latest_version_number).with(include_prereleases: false, current_version: '1.1.0').and_return('1.1.0')
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:verified_changelog_pr)
 
-        expect do
-          described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0', require_verified_prs: true)
-        end.to raise_error(FastlaneCore::Interface::FastlaneError, attribution_error)
+        expect(described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0')).to eq(['1.1.1', :patch])
+      end
+
+      it 'uses plain notes for an invalid optional repo name' do
+        notes = linked_changelogs(public_repo_name: '../not-an-sdk')
+
+        expect(notes[:with_pr_references]).to eq(notes[:without_pr_references])
+        expect(notes[:with_pr_references]).to include('* Fix behavior via Jane Doe (@jane)')
       end
     end
 
-    it 'verifies subsequent PRs even after finding a breaking change' do
-      second_sha = 'b' * 40
-      second_commit = commit.merge('sha' => second_sha)
-      allow(described_class).to receive(:latest_version_number).with(include_prereleases: false, current_version: '1.1.0').and_return('1.1.0')
-      allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit, second_commit])
-      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
-        .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true)
-        .and_return([{ 'labels' => [{ 'name' => 'pr:breaking' }] }])
-      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
-        .with(second_sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true) do
-          FastlaneCore::UI.user_error!('Unverified PR after breaking change')
-        end
+    context 'when the selected PR is excluded from the changelog' do
+      let(:pull_requests) do
+        [{ 'number' => 13, 'title' => 'Internal change', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:changelog_ignore' }] }]
+      end
 
-      expect do
-        described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0', require_verified_prs: true)
-      end.to raise_error(FastlaneCore::Interface::FastlaneError, 'Unverified PR after breaking change')
+      it 'applies the existing filter before trying to look up links' do
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:verified_changelog_pr)
+        expect(Open3).not_to receive(:capture3)
+
+        expect(linked_changelogs).to eq(with_pr_references: '', without_pr_references: '')
+      end
     end
 
     context 'with a PHC dependency PR' do
       let(:pull_requests) do
-        [{ 'number' => 13, 'title' => 'Update Hybrid Common', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:phc_dependencies' }] }]
+        [{ 'number' => 13, 'title' => 'Update Hybrid Common', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:phc_dependencies' }],
+           'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => sha }]
       end
 
       it 'nests the native release links under the dependency entry in both variants' do

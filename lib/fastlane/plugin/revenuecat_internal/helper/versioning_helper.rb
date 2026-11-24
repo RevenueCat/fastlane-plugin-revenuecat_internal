@@ -39,13 +39,13 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false, require_verified_prs: false)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: require_verified_prs)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup)
 
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
@@ -76,9 +76,10 @@ module Fastlane
       def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil,
                                                 filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil, snapshot_fallback_shas: [])
         if !snapshot_fallback_shas.empty? && (!public_repo_name || target_tag.to_s.empty?)
-          UI.user_error!("snapshot_fallback_shas requires public_repo_name and a target release tag.")
+          UI.important("Ignoring snapshot_fallback_shas. It requires public_repo_name and a target release tag.")
+          snapshot_fallback_shas = []
         end
-        links = ChangelogLinks.new(repo_name, public_repo_name, snapshot_tag: target_tag, snapshot_fallback_shas: snapshot_fallback_shas) if public_repo_name
+        links = ChangelogLinks.build(repo_name, public_repo_name, snapshot_tag: target_tag, snapshot_fallback_shas: snapshot_fallback_shas, github_token: github_token)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -97,7 +98,9 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: !links.nil?)
+          fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+
           case items.size
           when 1
             item = items.first
@@ -129,10 +132,13 @@ module Fastlane
           last_phc_dep_entry.extra_notes = native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
         end
 
-        {
-          with_pr_references: build_changelog_sections(changelog_sections, links: links),
-          without_pr_references: build_changelog_sections(changelog_sections, include_pr_references: false)
-        }
+        without_pr_references = build_changelog_sections(changelog_sections, include_pr_references: false)
+        with_pr_references = if public_repo_name && !links
+                               without_pr_references
+                             else
+                               build_changelog_sections(changelog_sections, links: links)
+                             end
+        { with_pr_references: with_pr_references, without_pr_references: without_pr_references }
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
@@ -459,14 +465,14 @@ module Fastlane
           .to_set
       end
 
-      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, **lookup_options)
+      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: false)
         base_branch = Actions.git_branch
 
         type_of_bump = :skip
         commits.each do |commit|
-          break if type_of_bump == :major && !lookup_options[:require_exact_merge]
+          break if type_of_bump == :major
 
-          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
+          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
           next if type_of_bump_for_commit.nil?
 
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
@@ -474,16 +480,11 @@ module Fastlane
         type_of_bump
       end
 
-      private_class_method def self.pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup:, require_exact_merge:)
-        fallback_commit_message = commit["commit"]["message"] if fallback_pr_lookup || require_exact_merge
-        options = { fallback_commit_message: fallback_commit_message }
-        options[:require_exact_merge] = true if require_exact_merge
-        Helper::GitHubHelper.get_pr_resp_items_for_sha(commit["sha"], github_token, rate_limit_sleep, repo_name, base_branch, **options)
-      end
-
-      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
+      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
         sha = commit["sha"]
-        items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
+        fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
+        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+
         if items.size == 0
           UI.important("There is no pull request associated with #{sha}")
           return nil

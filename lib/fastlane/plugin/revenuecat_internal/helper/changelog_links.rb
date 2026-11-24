@@ -2,6 +2,7 @@ require 'fastlane_core/ui/ui'
 require 'open3'
 require 'tmpdir'
 require 'uri'
+require_relative 'github_helper'
 
 module Fastlane
   module Helper
@@ -10,7 +11,16 @@ module Fastlane
       COMMIT_SHA = /\A[0-9a-f]{40}\z/
       TITLE_PART = /(?<code>(?<ticks>(?<![\\\x60])\x60+(?!\x60)).*?(?<!\x60)\k<ticks>(?!\x60))|[^\x60]+|\x60+/
 
-      def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil, snapshot_fallback_shas: nil)
+      def self.build(internal_repo_name, public_repo_name, **options)
+        return unless public_repo_name
+
+        new(internal_repo_name, public_repo_name, **options)
+      rescue FastlaneCore::Interface::FastlaneError => e
+        FastlaneCore::UI.important("#{e.message} Continuing without changelog links.")
+        nil
+      end
+
+      def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil, snapshot_fallback_shas: nil, github_token: nil)
         validate_repository_name!(internal_repo_name, 'internal repository name (repo_name)')
         validate_repository_name!(public_repo_name, 'public repository name (public_repo_name)')
         @internal_repo = "RevenueCat/#{internal_repo_name}"
@@ -21,11 +31,13 @@ module Fastlane
           FastlaneCore::UI.user_error!("snapshot_fallback_shas must contain full lowercase Git commit SHAs.")
         end
         @snapshot_fallback_shas = snapshot_fallback_shas
+        @github_token = github_token
       end
 
       def line(entry)
-        title, external_credit = external_contribution(entry.title, entry.pull_request)
-        pr_number = entry.pull_request&.dig('number')
+        verified_pr = GitHubHelper.verified_changelog_pr(entry.pull_request, entry.source_sha, @internal_repo, @github_token)
+        title, external_credit = external_contribution(entry.title, verified_pr)
+        pr_number = verified_pr&.dig('number')
         if pr_number.kind_of?(Integer) && pr_number.positive?
           internal_pr = " (#{pull_request_link(@internal_repo, pr_number)})"
         end
@@ -47,34 +59,42 @@ module Fastlane
       end
 
       def public_reference(source_sha)
-        public_sha = public_commits[source_sha] if source_sha
+        commits = source_sha ? public_commits : {}
+        return '' unless commits
+
+        public_sha = commits[source_sha]
         return " ([`#{public_sha[0, 7]}`](#{@public_repo_url}/commit/#{public_sha}))" if public_sha
 
         problem = if source_sha.nil?
                     "This change has no source commit SHA."
-                  elsif public_commits.key?(source_sha)
+                  elsif commits.key?(source_sha)
                     "Multiple commits on the public default branch of #{@public_repo_url} claim source SHA #{source_sha}."
                   else
                     "Source commit #{source_sha} has no match on the public default branch of #{@public_repo_url}."
                   end
-        if use_snapshot?(source_sha)
-          release = @snapshot_fallback_shas ? "release #{@snapshot_tag} as configured in snapshot_fallback_shas" : "hotfix #{@snapshot_tag}"
-          FastlaneCore::UI.important("#{problem} Using the public release snapshot for #{release}.")
-          return " ([public release snapshot](#{@public_repo_url}/tree/refs/tags/#{URI.encode_www_form_component(@snapshot_tag)}))"
-        end
+        return snapshot_reference(problem) if use_snapshot?(source_sha, commits)
 
-        FastlaneCore::UI.user_error!("#{problem} Check the Copybara export and rerun release prep once the public commit can be resolved.")
+        FastlaneCore::UI.important("#{problem} Continuing without a public commit link for this entry.")
+        ''
       end
 
-      def use_snapshot?(source_sha)
+      def snapshot_reference(problem)
+        release = @snapshot_fallback_shas ? "release #{@snapshot_tag} as configured in snapshot_fallback_shas" : "hotfix #{@snapshot_tag}"
+        FastlaneCore::UI.important("#{problem} Using the public release snapshot for #{release}.")
+        " ([public release snapshot](#{@public_repo_url}/tree/refs/tags/#{URI.encode_www_form_component(@snapshot_tag)}))"
+      end
+
+      def use_snapshot?(source_sha, commits)
         return false unless @snapshot_tag
         return true unless @snapshot_fallback_shas
 
-        @snapshot_fallback_shas.include?(source_sha) && !public_commits.key?(source_sha)
+        @snapshot_fallback_shas.include?(source_sha) && !commits.key?(source_sha)
       end
 
       def public_commits
-        @public_commits ||= Dir.mktmpdir('sdk-changelog-') do |directory|
+        return @public_commits if defined?(@public_commits)
+
+        @public_commits = Dir.mktmpdir('sdk-changelog-') do |directory|
           # Only commit objects are needed to read their SHAs and Copybara trailers.
           git(directory, '-c', 'credential.helper=', '-c', 'core.askPass=', '-c', 'http.lowSpeedLimit=1', '-c', 'http.lowSpeedTime=30',
               'clone', '--quiet', '--bare', '--single-branch', '--no-tags', '--filter=tree:0', "#{@public_repo_url}.git", '.')
@@ -91,6 +111,9 @@ module Fastlane
           end
           origins.merge(public_shas)
         end
+      rescue IOError, SystemCallError
+        FastlaneCore::UI.important("Could not read public commit history from #{@public_repo_url}. Continuing without public commit links.")
+        @public_commits = nil
       end
 
       def git(directory, *arguments)
@@ -98,7 +121,7 @@ module Fastlane
         stdout, _stderr, status = Open3.capture3(environment, 'git', *arguments, chdir: directory, binmode: true)
         return stdout if status.success?
 
-        FastlaneCore::UI.user_error!("Could not read public commit history from #{@public_repo_url}. Check the repository name and GitHub connectivity, then retry.")
+        raise IOError, "Could not read public Git history"
       end
 
       def markdown_text(text, preserve_code: false)
