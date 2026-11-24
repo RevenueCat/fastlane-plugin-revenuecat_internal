@@ -191,12 +191,13 @@ describe Fastlane::Actions::CreateHotfixAction do
     end
 
     it 'writes the linked PR and public release snapshot when the hotfix has no individual export' do
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
       expect(run_action(public_repo_name: 'public-android', omit_pr_references_in_changelog_files: true)).to eq(release_pr_url)
 
       expected_changelog = <<~MARKDOWN.chomp
         ## RevenueCat SDK
         ### 🐞 Bugfixes
-        * Fix the bug ([public release snapshot](https://github.com/RevenueCat/public-android/tree/10.2.1)) via Jane Doe (@jane-doe) ([internal #123](https://github.com/RevenueCat/purchases-android/pull/123))
+        * Fix the bug ([public release snapshot](https://github.com/RevenueCat/public-android/tree/refs/tags/10.2.1)) via Jane Doe (@jane-doe) ([internal #123](https://github.com/RevenueCat/purchases-android/pull/123))
       MARKDOWN
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
         .with(expected_changelog, changelog_latest_path)

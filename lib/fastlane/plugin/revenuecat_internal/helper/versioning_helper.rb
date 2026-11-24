@@ -27,10 +27,10 @@ module Fastlane
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
-      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request) do
+      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request, :extra_notes) do
         def line(include_pr_reference: true)
           reference = " (#{pr_reference})" if include_pr_reference && pr_reference
-          "* #{title}#{reference}#{attribution}"
+          "* #{title}#{reference}#{attribution}#{extra_notes}"
         end
       end
 
@@ -66,6 +66,7 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil)
+        links = ChangelogLinks.new(repo_name, public_repo_name, target_tag) if public_repo_name
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -84,8 +85,10 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+          fallback_commit_message = commit["commit"]["message"] if fallback_pr_lookup || links
+          lookup_options = { fallback_commit_message: fallback_commit_message }
+          lookup_options[:require_exact_merge] = true if links
+          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
 
           case items.size
           when 1
@@ -115,10 +118,9 @@ module Fastlane
         end
 
         if last_phc_dep_entry && hybrid_common_version && versions_file_path
-          last_phc_dep_entry.attribution << native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
+          last_phc_dep_entry.extra_notes = native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
         end
 
-        links = ChangelogLinks.new(repo_name, public_repo_name, target_tag) if public_repo_name
         {
           with_pr_references: build_changelog_sections(changelog_sections, links: links),
           without_pr_references: build_changelog_sections(changelog_sections, include_pr_references: false)
@@ -134,7 +136,8 @@ module Fastlane
 
       def self.changelog_for_dependency_update(changelog_entry, links: nil)
         changelog_sections = empty_changelog_sections
-        changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(changelog_entry, nil, ''))
+        title, newline, notes = changelog_entry.partition("\n")
+        changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(title, nil, '', nil, nil, "#{newline}#{notes}"))
         build_changelog_sections(changelog_sections, links: links)
       end
 

@@ -64,6 +64,20 @@ describe Fastlane::Helper::GitHubHelper do
       expect(items).not_to be_nil
     end
 
+    it 'requires a merged PR with the exact commit when generating linked notes' do
+      open_pr = { 'number' => 1, 'merge_commit_sha' => hash }
+      unrelated_pr = { 'number' => 2, 'merged_at' => '2026-04-22T08:12:37Z', 'merge_commit_sha' => 'e' * 40 }
+      landing_pr = { 'number' => 3, 'merged_at' => '2026-04-22T08:12:37Z', 'merge_commit_sha' => hash }
+      allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/RevenueCat/mock-repo-name/commits/#{hash}/pulls"))
+        .and_return({ body: [open_pr, unrelated_pr, landing_pr].to_json })
+      expect(Fastlane::Helper::GitHubHelper).not_to receive(:github_api_call_with_retry).with(hash_including(path: %r{/search/issues}))
+
+      items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
+
+      expect(items).to eq([landing_pr])
+    end
+
     context 'when search returns empty and fallback_commit_message is provided' do
       let(:empty_search_response) { { body: '{"items": []}' } }
       let(:valid_pr_body) do
