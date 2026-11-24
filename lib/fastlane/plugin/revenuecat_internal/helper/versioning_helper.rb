@@ -27,7 +27,7 @@ module Fastlane
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
-      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request, :extra_notes) do
+      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request, :extra_notes, :title_is_markdown) do
         def line(include_pr_reference: true)
           reference = " (#{pr_reference})" if include_pr_reference && pr_reference
           "* #{title}#{reference}#{attribution}#{extra_notes}"
@@ -39,13 +39,13 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false, public_repo_name: nil)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: !public_repo_name.nil?)
 
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
@@ -66,7 +66,7 @@ module Fastlane
 
       # rubocop:disable Metrics/PerceivedComplexity
       def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil)
-        links = ChangelogLinks.new(repo_name, public_repo_name, target_tag) if public_repo_name
+        links = ChangelogLinks.new(repo_name, public_repo_name) if public_repo_name
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -85,10 +85,8 @@ module Fastlane
           name = commit["commit"]["author"]["name"]
 
           sha = commit["sha"]
-          fallback_commit_message = commit["commit"]["message"] if fallback_pr_lookup || links
-          lookup_options = { fallback_commit_message: fallback_commit_message }
-          lookup_options[:require_exact_merge] = true if links
-          items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
+          items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: !links.nil?)
+          next if items.nil?
 
           case items.size
           when 1
@@ -137,7 +135,7 @@ module Fastlane
       def self.changelog_for_dependency_update(changelog_entry, links: nil)
         changelog_sections = empty_changelog_sections
         title, newline, notes = changelog_entry.partition("\n")
-        changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(title, nil, '', nil, nil, "#{newline}#{notes}"))
+        changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(title, nil, '', nil, nil, "#{newline}#{notes}", true))
         build_changelog_sections(changelog_sections, links: links)
       end
 
@@ -451,14 +449,14 @@ module Fastlane
           .to_set
       end
 
-      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: false)
+      private_class_method def self.get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, **lookup_options)
         base_branch = Actions.git_branch
 
         type_of_bump = :skip
         commits.each do |commit|
           break if type_of_bump == :major
 
-          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+          type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
           next if type_of_bump_for_commit.nil?
 
           type_of_bump = [type_of_bump, type_of_bump_for_commit].max_by { |t| BUMP_VALUES[t] }
@@ -466,10 +464,17 @@ module Fastlane
         type_of_bump
       end
 
-      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup)
+      private_class_method def self.pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup:, require_exact_merge:)
+        fallback_commit_message = commit["commit"]["message"] if fallback_pr_lookup || require_exact_merge
+        options = { fallback_commit_message: fallback_commit_message }
+        options[:require_exact_merge] = true if require_exact_merge
+        Helper::GitHubHelper.get_pr_resp_items_for_sha(commit["sha"], github_token, rate_limit_sleep, repo_name, base_branch, **options)
+      end
+
+      private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
         sha = commit["sha"]
-        fallback_commit_message = fallback_pr_lookup ? commit["commit"]["message"] : nil
-        items = Helper::GitHubHelper.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: fallback_commit_message)
+        items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
+        return nil if items.nil?
 
         if items.size == 0
           UI.important("There is no pull request associated with #{sha}")

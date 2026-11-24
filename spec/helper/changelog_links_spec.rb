@@ -1,5 +1,5 @@
 describe Fastlane::Helper::ChangelogLinks do
-  let(:links) { described_class.new('purchases_internal', 'purchases', '2.0.1') }
+  let(:links) { described_class.new('purchases_internal', 'purchases') }
   let(:public_sha) { 'a' * 40 }
   let(:source_sha) { 'b' * 40 }
   let(:mirrored_sha) { 'c' * 40 }
@@ -69,19 +69,42 @@ describe Fastlane::Helper::ChangelogLinks do
     expect(links.line(entry)).to eq("* Fix \\[reference\\](https://example.test) \\* Update \\<tag\\> #{public_link} via Jane \\* Doe (@jane-doe) #{internal_link}")
   end
 
-  it 'links to the tag for a change without an individual public commit' do
+  it 'preserves a code span and an intraword underscore in a title' do
+    entry = entry_class.new('add `CheckpointResult` result_container', '#13', credit, source_sha, pull_request)
+
+    expect(links.line(entry)).to eq("* add `CheckpointResult` result_container #{public_link}#{credit} #{internal_link}")
+  end
+
+  it 'escapes unmatched backticks before appending the commit link' do
+    entry = entry_class.new('add `CheckpointResult', '#13', credit, source_sha, pull_request)
+
+    expect(links.line(entry)).to eq("* add \\`CheckpointResult #{public_link}#{credit} #{internal_link}")
+  end
+
+  it 'stops regular release prep when a source commit is missing from the public branch' do
     entry = entry_class.new('Fix a typo', '#13', credit, 'd' * 40, pull_request)
 
-    expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+    expect { links.line(entry) }.to raise_error(FastlaneCore::Interface::FastlaneError, /Source commit #{'d' * 40} has no match.*Check the Copybara export/)
+  end
+
+  context 'when generating a hotfix' do
+    let(:links) { described_class.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1') }
+
+    it 'logs the missing match and links the release tag' do
+      entry = entry_class.new('Fix a typo', '#13', credit, 'd' * 40, pull_request)
+      expect(FastlaneCore::UI).to receive(:important).with(/Source commit #{'d' * 40} has no match.*Using the public release snapshot for hotfix 2\.0\.1/)
+
+      expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+    end
   end
 
   context 'when two exports claim the same source SHA' do
     let(:git_history) { "#{public_sha}\t#{source_sha}\0#{mirrored_sha}\t#{source_sha}\0" }
 
-    it 'links to the release tag because the commit mapping is ambiguous' do
+    it 'stops regular release prep because the commit mapping is ambiguous' do
       entry = entry_class.new('Fix a typo', '#13', credit, source_sha, pull_request)
 
-      expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+      expect { links.line(entry) }.to raise_error(FastlaneCore::Interface::FastlaneError, /Multiple commits.*claim source SHA #{source_sha}/)
     end
   end
 
@@ -101,7 +124,7 @@ describe Fastlane::Helper::ChangelogLinks do
     it 'ignores the invalid origin values' do
       entry = entry_class.new('Fix a typo', '#13', credit, source_sha, pull_request)
 
-      expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+      expect { links.line(entry) }.to raise_error(FastlaneCore::Interface::FastlaneError, /Source commit #{source_sha} has no match/)
     end
   end
 
@@ -116,7 +139,7 @@ describe Fastlane::Helper::ChangelogLinks do
   end
 
   it 'rejects a repository name that could change the GitHub URL' do
-    expect { described_class.new('purchases_internal', '../another-repo', '2.0.1') }
+    expect { described_class.new('purchases_internal', '../another-repo') }
       .to raise_error(FastlaneCore::Interface::FastlaneError, /Expected a GitHub repository name/)
   end
 end

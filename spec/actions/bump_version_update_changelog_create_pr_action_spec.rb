@@ -277,6 +277,40 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       )
     end
 
+    it 'leaves the changelogs and release branch untouched while a public export is pending' do
+      setup_stubs
+      sha = 'd' * 40
+      commit_message = 'A change waiting for Copybara'
+      commit = { 'sha' => sha, 'commit' => { 'author' => { 'name' => 'Jane Doe' }, 'message' => commit_message } }
+      allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
+      allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil, public_repo_name: 'mock-public-repo')
+        .and_call_original
+      allow(Fastlane::Helper::VersioningHelper).to receive(:latest_version_number_smaller_than).with(new_version, include_prereleases: false).and_return(current_version)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(mock_github_token, current_version, mock_repo_name).and_return([commit])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+        .with(sha, mock_github_token, 3, mock_repo_name, base_branch, fallback_commit_message: commit_message, require_exact_merge: true)
+        .and_return([])
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
+
+      expect do
+        Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+          current_version: current_version,
+          changelog_latest_path: mock_changelog_latest_path,
+          changelog_path: mock_changelog_path,
+          repo_name: mock_repo_name,
+          public_repo_name: 'mock-public-repo',
+          github_pr_token: mock_github_pr_token,
+          github_token: mock_github_token,
+          github_rate_limit: 3,
+          is_prerelease: false
+        )
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /Source commit #{sha} has no match.*Check the Copybara export/)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:write_changelog)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:attach_changelog_to_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).not_to have_received(:create_new_branch_and_checkout)
+    end
+
     it 'fails if selected no during prompt validating current branch' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)

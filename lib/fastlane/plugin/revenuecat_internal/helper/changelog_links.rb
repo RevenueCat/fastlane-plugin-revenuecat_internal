@@ -8,8 +8,9 @@ module Fastlane
     class ChangelogLinks
       REPOSITORY_NAME = /\A[a-z0-9_.-]+\z/i
       COMMIT_SHA = /\A[0-9a-f]{40}\z/
+      TITLE_PART = /(?<code>(?<ticks>(?<![\\\x60])\x60+(?!\x60)).*?(?<!\x60)\k<ticks>(?!\x60))|[^\x60]+|\x60+/
 
-      def initialize(internal_repo_name, public_repo_name, release_tag)
+      def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil)
         [internal_repo_name, public_repo_name].each do |name|
           unless REPOSITORY_NAME.match?(name) && name != '.' && name != '..'
             FastlaneCore::UI.user_error!("Expected a GitHub repository name without an owner for linked changelogs.")
@@ -18,7 +19,7 @@ module Fastlane
         @internal_repo_url = "https://github.com/RevenueCat/#{internal_repo_name}"
         @public_repo_url = "https://github.com/RevenueCat/#{public_repo_name}"
         @public_repo_name = public_repo_name
-        @release_tag = release_tag
+        @snapshot_tag = snapshot_tag
       end
 
       def line(entry)
@@ -28,7 +29,8 @@ module Fastlane
           internal_pr = " ([internal ##{pr_number}](#{@internal_repo_url}/pull/#{pr_number}))"
         end
 
-        "* #{markdown_text(title)}#{public_reference(entry.source_sha)}#{external_credit}#{markdown_text(entry.attribution)}#{internal_pr}#{entry.extra_notes}"
+        title = markdown_text(title, preserve_code: true) unless entry.title_is_markdown
+        "* #{title}#{public_reference(entry.source_sha)}#{external_credit}#{markdown_text(entry.attribution)}#{internal_pr}#{entry.extra_notes}"
       end
 
       private
@@ -36,9 +38,20 @@ module Fastlane
       def public_reference(source_sha)
         public_sha = public_commits[source_sha] if source_sha
         return " ([`#{public_sha[0, 7]}`](#{@public_repo_url}/commit/#{public_sha}))" if public_sha
-        return '' unless @release_tag
 
-        " ([public release snapshot](#{@public_repo_url}/tree/refs/tags/#{URI.encode_www_form_component(@release_tag)}))"
+        problem = if source_sha.nil?
+                    "This change has no source commit SHA."
+                  elsif public_commits.key?(source_sha)
+                    "Multiple commits on the public default branch of #{@public_repo_url} claim source SHA #{source_sha}."
+                  else
+                    "Source commit #{source_sha} has no match on the public default branch of #{@public_repo_url}."
+                  end
+        if @snapshot_tag
+          FastlaneCore::UI.important("#{problem} Using the public release snapshot for hotfix #{@snapshot_tag}.")
+          return " ([public release snapshot](#{@public_repo_url}/tree/refs/tags/#{URI.encode_www_form_component(@snapshot_tag)}))"
+        end
+
+        FastlaneCore::UI.user_error!("#{problem} Check the Copybara export and rerun release prep once the public commit can be resolved.")
       end
 
       def public_commits
@@ -69,8 +82,15 @@ module Fastlane
         FastlaneCore::UI.user_error!("Could not read public commit history from #{@public_repo_url}. Check the repository name and GitHub connectivity, then retry.")
       end
 
-      def markdown_text(text)
-        text.gsub(/\p{Bidi_Control}/, '').gsub(/[[:cntrl:]]/, ' ').gsub(/[\\\x60*_\[\]<>~|&#]/) { |character| "\\#{character}" }
+      def markdown_text(text, preserve_code: false)
+        text = text.gsub(/\p{Bidi_Control}/, '').gsub(/[[:cntrl:]]/, ' ')
+        return escape_markdown(text) unless preserve_code
+
+        text.gsub(TITLE_PART) { |part| Regexp.last_match(:code) ? part : escape_markdown(part) }
+      end
+
+      def escape_markdown(text)
+        text.gsub(/[\\\x60*\[\]<>~|&#]|(?<![[:alnum:]])_|_(?![[:alnum:]])/) { |character| "\\#{character}" }
       end
 
       def external_contribution(title, pull_request)

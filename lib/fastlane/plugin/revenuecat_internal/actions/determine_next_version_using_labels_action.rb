@@ -14,7 +14,7 @@ module Fastlane
         current_version = params[:current_version]
         fallback_pr_lookup = params[:fallback_pr_lookup]
 
-        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: fallback_pr_lookup)
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: fallback_pr_lookup, public_repo_name: params[:public_repo_name])
       end
 
       def self.description
@@ -51,7 +51,11 @@ module Fastlane
                                        description: "When the GitHub search API can't find a PR for a commit SHA, fall back to extracting the PR number from the commit subject '(#N)' pattern and fetching it directly via the REST API. Assumes squash-merge workflows — a no-op on rebase-and-merge or true-merge workflows whose commit subjects don't include '(#N)'",
                                        optional: true,
                                        is_string: false,
-                                       default_value: false)
+                                       default_value: false),
+          FastlaneCore::ConfigItem.new(key: :public_repo_name,
+                                       description: "Public SDK repository name. Uses the same exact-merge PR lookup as linked changelog generation",
+                                       optional: true,
+                                       type: String)
         ]
       end
 

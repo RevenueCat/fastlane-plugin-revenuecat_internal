@@ -51,7 +51,7 @@ module Fastlane
         tag = resolve_tag(requested_version, tags)
         next_version = next_patch_version(tag)
         changelog_options = {}
-        changelog_options[:links] = Helper::ChangelogLinks.new(repo_name, public_repo_name, next_version) if public_repo_name
+        changelog_options[:links] = Helper::ChangelogLinks.new(repo_name, public_repo_name, snapshot_tag: next_version) if public_repo_name
         next_core_version = core_version(next_version)
         if tags.any? { |existing_tag| core_version(existing_tag) == next_core_version }
           UI.user_error!("#{next_core_version} is already released. Hotfix #{next_core_version} instead of #{tag}.")
