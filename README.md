@@ -34,6 +34,12 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `ci_pull_request_context`: This action returns the current CircleCI pull-request number, head commit and branch and, for merge-queue builds, the target branch and actual base SHA encoded in the queue branch. CircleCI values take precedence over Git fallbacks. It returns an empty hash outside a pull request.
 - `sentry_ci_metadata`: This action combines the Sentry organization and project with normalized CircleCI pull-request context. Sentry infers ordinary Git metadata; merge-queue builds provide their encoded base branch and SHA explicitly.
 
+### Linked SDK changelogs
+
+Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. Keep passing the internal repository's name as `repo_name`. The actions write fully qualified links to public commits, internal PRs, and original public contributor PRs. These links take precedence over `omit_pr_references_in_changelog_files`.
+
+Release prep looks for the source commits in the public default branch, using Copybara's `GitOrigin-RevId` or a shared commit SHA. An entry without an individual public commit links to the release snapshot by tag. `create_github_release` uses the existing `CHANGELOG.latest.md` as the release body.
+
 ## Example
 
 Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.

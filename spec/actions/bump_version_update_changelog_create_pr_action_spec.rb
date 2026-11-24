@@ -249,6 +249,34 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       end
     end
 
+    it 'writes linked notes to the changelog and uses them in the release PR when a public repo is configured' do
+      setup_stubs
+      linked_changelog = '* Fix foo ([`abc1234`](https://github.com/RevenueCat/mock-public-repo/commit/abc1234)) via Jane Doe (@jane) ([internal #12](https://github.com/RevenueCat/mock-repo-name/pull/12))'
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return("#{linked_changelog}\n")
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil, public_repo_name: 'mock-public-repo')
+        .and_return(linked_changelog)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog).with(linked_changelog, mock_changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", "#{linked_changelog}\n", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels: labels, enable_auto_merge: false, slack_url: nil)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        public_repo_name: 'mock-public-repo',
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        is_prerelease: false,
+        omit_pr_references_in_changelog_files: true
+      )
+    end
+
     it 'fails if selected no during prompt validating current branch' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
@@ -868,7 +896,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(25)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(26)
     end
   end
 end

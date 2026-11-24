@@ -9,6 +9,7 @@ module Fastlane
       # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         repo_name = params[:repo_name]
+        public_repo_name = params[:public_repo_name]
         github_pr_token = params[:github_pr_token]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
@@ -84,7 +85,8 @@ module Fastlane
 
         changelog_arguments = [repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number]
         changelog_options = { filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup }
-        if omit_pr_references_in_changelog_files
+        changelog_options[:public_repo_name] = public_repo_name if public_repo_name
+        if omit_pr_references_in_changelog_files && !public_repo_name
           changelogs = Helper::VersioningHelper.auto_generate_changelog_variants(*changelog_arguments, **changelog_options)
           generated_contents = changelogs[:without_pr_references]
           pr_body = changelogs[:with_pr_references] unless UI.interactive?
@@ -266,6 +268,10 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
+          FastlaneCore::ConfigItem.new(key: :public_repo_name,
+                                       description: "Public SDK repository name. Adds fully qualified commit and PR links to the changelog files, taking precedence over omit_pr_references_in_changelog_files",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Whether to run the action in dry run mode",
                                        optional: true,

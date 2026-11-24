@@ -1,6 +1,7 @@
 require 'fastlane_core/ui/ui'
 require 'fastlane/action'
 require 'fastlane/actions/github_api'
+require_relative 'changelog_links'
 require_relative 'github_helper'
 require_relative 'update_hybrids_versions_file_helper'
 require_relative '../constants'
@@ -26,7 +27,7 @@ module Fastlane
     class VersioningHelper
       # This assumes all hybrids have the same format in the VERSIONS.md.
       # When doing .gsub(/[[:space:]]/, '').split('|'), the first item is "", that's why the indexes here start with 1
-      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution) do
+      ChangelogEntry = Struct.new(:title, :pr_reference, :attribution, :source_sha, :pull_request) do
         def line(include_pr_reference: true)
           reference = " (#{pr_reference})" if include_pr_reference && pr_reference
           "* #{title}#{reference}#{attribution}"
@@ -64,7 +65,7 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false)
+      def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil)
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -94,7 +95,7 @@ module Fastlane
             next if filter_labels && (all_labels & filter_labels.map(&:downcase).to_set).empty?
             next if exclude_labels && !(all_labels & exclude_labels.map(&:downcase).to_set).empty?
 
-            entry = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference)
+            entry = add_pull_request_to_changelog_sections(changelog_sections, item, name, cross_repo_pr_reference, sha)
             next if entry.nil?
 
             if all_labels.include?("pr:phc_dependencies") && last_phc_dep_entry.nil?
@@ -105,7 +106,7 @@ module Fastlane
               UI.important("Cannot find pull request associated to #{sha}. Using commit information and adding it to the Other section")
               message = commit["commit"]["message"].lines.first.to_s.strip
               name = commit["commit"]["author"]["name"]
-              changelog_sections[:other].push(ChangelogEntry.new(message, nil, " via #{name}"))
+              changelog_sections[:other].push(ChangelogEntry.new(message, nil, " via #{name}", sha))
             end
           else
             pr_numbers = items.map { |multi_item| "##{multi_item['number']}" }.join(', ')
@@ -117,23 +118,24 @@ module Fastlane
           last_phc_dep_entry.attribution << native_releases_links(github_token, hybrid_common_version, versions_file_path, include_purchases_js: include_purchases_js)
         end
 
+        links = ChangelogLinks.new(repo_name, public_repo_name, target_tag) if public_repo_name
         {
-          with_pr_references: build_changelog_sections(changelog_sections),
+          with_pr_references: build_changelog_sections(changelog_sections, links: links),
           without_pr_references: build_changelog_sections(changelog_sections, include_pr_references: false)
         }
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      def self.changelog_for_pull_request(pull_request, author_name, include_pr_references: true)
+      def self.changelog_for_pull_request(pull_request, author_name, include_pr_references: true, links: nil)
         changelog_sections = empty_changelog_sections
-        add_pull_request_to_changelog_sections(changelog_sections, pull_request, author_name, '')
-        build_changelog_sections(changelog_sections, include_pr_references: include_pr_references)
+        add_pull_request_to_changelog_sections(changelog_sections, pull_request, author_name, '', pull_request['merge_commit_sha'])
+        build_changelog_sections(changelog_sections, include_pr_references: include_pr_references, links: links)
       end
 
-      def self.changelog_for_dependency_update(changelog_entry)
+      def self.changelog_for_dependency_update(changelog_entry, links: nil)
         changelog_sections = empty_changelog_sections
         changelog_sections[:revenuecat_sdk][:dependency_updates].push(ChangelogEntry.new(changelog_entry, nil, ''))
-        build_changelog_sections(changelog_sections)
+        build_changelog_sections(changelog_sections, links: links)
       end
 
       def self.platform_changelogs(releases, platform)
@@ -340,11 +342,11 @@ module Fastlane
         }
       end
 
-      private_class_method def self.add_pull_request_to_changelog_sections(changelog_sections, item, author_name, cross_repo_pr_reference)
+      private_class_method def self.add_pull_request_to_changelog_sections(changelog_sections, item, author_name, cross_repo_pr_reference, source_sha)
         types_of_change = get_type_of_change_from_pr_info(item)
         return nil if types_of_change.include?("pr:next_release") || types_of_change.include?("pr:changelog_ignore")
 
-        entry = ChangelogEntry.new(item['title'], "#{cross_repo_pr_reference}##{item['number']}", " via #{author_name} (@#{item['user']['login']})")
+        entry = ChangelogEntry.new(item['title'], "#{cross_repo_pr_reference}##{item['number']}", " via #{author_name} (@#{item['user']['login']})", source_sha, item)
         section = get_section_depending_on_types_of_change(types_of_change)
         sdk_section = types_of_change.include?("pr:revenuecatui") ? :revenuecatui_sdk : :revenuecat_sdk
 
@@ -362,8 +364,10 @@ module Fastlane
         entry
       end
 
-      private_class_method def self.build_changelog_sections(changelog_sections, include_pr_references: true)
-        lines = ->(entries) { entries.map { |entry| entry.line(include_pr_reference: include_pr_references) }.join("\n") }
+      private_class_method def self.build_changelog_sections(changelog_sections, include_pr_references: true, links: nil)
+        lines = lambda do |entries|
+          entries.map { |entry| links ? links.line(entry) : entry.line(include_pr_reference: include_pr_references) }.join("\n")
+        end
         sections = []
         standard_sections = [
           [:breaking_changes, "### 💥 Breaking Changes"],
