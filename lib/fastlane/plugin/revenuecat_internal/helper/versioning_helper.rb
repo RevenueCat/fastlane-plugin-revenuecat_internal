@@ -39,13 +39,13 @@ module Fastlane
       ANDROID_VERSION_COLUMN = 3
       PHC_VERSION_COLUMN = 4
 
-      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false, public_repo_name: nil)
+      def self.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: false, require_verified_prs: false)
         old_version = latest_version_number(include_prereleases: include_prereleases, current_version: current_version)
         UI.important("Determining next version after #{old_version}")
 
         commits = Helper::GitHubHelper.get_commits_since_old_version(github_token, old_version, repo_name)
 
-        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: !public_repo_name.nil?)
+        type_of_bump = get_type_of_bump_from_commits(commits, github_token, rate_limit_sleep, repo_name, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: require_verified_prs)
 
         if type_of_bump == :major && current_version
           latest_major = latest_version_number(include_prereleases: include_prereleases).split('.').first
@@ -73,8 +73,12 @@ module Fastlane
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil, filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil)
-        links = ChangelogLinks.new(repo_name, public_repo_name) if public_repo_name
+      def self.auto_generate_changelog_variants(repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, target_tag = nil,
+                                                filter_labels: nil, exclude_labels: nil, cross_repo_pr_reference: '', include_purchases_js: false, fallback_pr_lookup: false, public_repo_name: nil, snapshot_fallback_shas: [])
+        if !snapshot_fallback_shas.empty? && (!public_repo_name || target_tag.to_s.empty?)
+          UI.user_error!("snapshot_fallback_shas requires public_repo_name and a target release tag.")
+        end
+        links = ChangelogLinks.new(repo_name, public_repo_name, snapshot_tag: target_tag, snapshot_fallback_shas: snapshot_fallback_shas) if public_repo_name
         filter_labels = nil if filter_labels&.empty?
         exclude_labels = nil if exclude_labels&.empty?
         cross_repo_pr_reference = cross_repo_pr_reference.to_s.strip
@@ -94,8 +98,6 @@ module Fastlane
 
           sha = commit["sha"]
           items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, fallback_pr_lookup: fallback_pr_lookup, require_exact_merge: !links.nil?)
-          next if items.nil?
-
           case items.size
           when 1
             item = items.first
@@ -462,7 +464,7 @@ module Fastlane
 
         type_of_bump = :skip
         commits.each do |commit|
-          break if type_of_bump == :major
+          break if type_of_bump == :major && !lookup_options[:require_exact_merge]
 
           type_of_bump_for_commit = get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
           next if type_of_bump_for_commit.nil?
@@ -482,8 +484,6 @@ module Fastlane
       private_class_method def self.get_type_of_bump_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
         sha = commit["sha"]
         items = pull_requests_for_commit(commit, github_token, rate_limit_sleep, repo_name, base_branch, **lookup_options)
-        return nil if items.nil?
-
         if items.size == 0
           UI.important("There is no pull request associated with #{sha}")
           return nil

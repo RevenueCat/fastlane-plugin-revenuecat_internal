@@ -7,7 +7,7 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
 
     it 'calls all the appropriate methods with appropriate parameters' do
       expect(Fastlane::Helper::VersioningHelper).to receive(:determine_next_version_using_labels)
-        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: nil, public_repo_name: nil)
+        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: nil, require_verified_prs: nil)
         .and_return(new_version)
         .once
 
@@ -22,7 +22,7 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
 
     it 'forwards fallback_pr_lookup when enabled' do
       expect(Fastlane::Helper::VersioningHelper).to receive(:determine_next_version_using_labels)
-        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: true, public_repo_name: nil)
+        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: true, require_verified_prs: nil)
         .and_return(new_version)
         .once
 
@@ -35,16 +35,16 @@ describe Fastlane::Actions::DetermineNextVersionUsingLabelsAction do
       )
     end
 
-    it 'forwards the public repo for linked changelogs' do
+    it 'forwards the verified PR requirement for linked changelogs' do
       expect(Fastlane::Helper::VersioningHelper).to receive(:determine_next_version_using_labels)
-        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: nil, public_repo_name: 'purchases')
+        .with(mock_repo_name, mock_github_token, 3, false, current_version, fallback_pr_lookup: nil, require_verified_prs: true)
 
       Fastlane::Actions::DetermineNextVersionUsingLabelsAction.run(
         repo_name: mock_repo_name,
         github_token: mock_github_token,
         github_rate_limit: 3,
         current_version: current_version,
-        public_repo_name: 'purchases'
+        require_verified_prs: true
       )
     end
   end

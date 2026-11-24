@@ -78,15 +78,14 @@ describe Fastlane::Helper::GitHubHelper do
       expect(items).to eq([landing_pr])
     end
 
-    it 'signals to skip when search finds a PR but the exact lookup cannot verify the merge' do
+    it 'fails with the SHA and candidate PRs when the exact lookup cannot verify the merge' do
       allow(Fastlane::Helper::GitHubHelper).to receive(:github_api_call_with_retry)
         .with(hash_including(path: %r{/search/issues}))
-        .and_return({ body: { 'items' => [{ 'number' => 13, 'labels' => [{ 'name' => 'pr:changelog_ignore' }] }] }.to_json })
-      expect(FastlaneCore::UI).to receive(:important).with(/Skipping commit #{hash} because its landing PR could not be verified/)
+        .and_return({ body: { 'items' => [{ 'number' => 13 }, { 'number' => 27 }] }.to_json })
 
-      items = Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
-
-      expect(items).to be_nil
+      expect do
+        Fastlane::Helper::GitHubHelper.get_pr_resp_items_for_sha(hash, github_token, 0, 'mock-repo-name', 'main', require_exact_merge: true)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, /#{hash}.*Candidate PRs #13, #27/)
     end
 
     it 'returns no PRs for a direct commit without associations or search results' do

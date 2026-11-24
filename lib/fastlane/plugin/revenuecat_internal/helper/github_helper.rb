@@ -55,16 +55,17 @@ module Fastlane
       #      branch, such as the ones in a stack.
       #   3. Only when +fallback_commit_message+ is a non-nil string: the PR number
       #      parsed out of that message, fetched directly. Pass nil to opt out.
-      # With +require_exact_merge+, unverifiable PR associations return nil so
-      # callers skip the commit. An empty array means no PR was found.
+      # With +require_exact_merge+, unverifiable PR associations stop release
+      # prep. An empty array means no PR was found.
       def self.get_pr_resp_items_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message: nil, require_exact_merge: false)
-        if require_exact_merge
-          return lookup_verified_pr(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message)
-        end
-
         if github_token.nil? || github_token.empty?
+          UI.user_error!("A GitHub token is required to verify pull requests for linked changelogs.") if require_exact_merge
           UI.important("No GitHub token provided, skipping PR lookup for SHA: #{sha}")
           return []
+        end
+
+        if require_exact_merge
+          return lookup_verified_pr(sha, github_token, rate_limit_sleep, repo_name, base_branch, fallback_commit_message)
         end
 
         items = search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch)
@@ -79,8 +80,6 @@ module Fastlane
       end
 
       private_class_method def self.lookup_verified_pr(sha, github_token, rate_limit_sleep, repo_name, base_branch, commit_message)
-        UI.user_error!("A GitHub token is required to verify pull requests for linked changelogs.") if github_token.to_s.empty?
-
         candidates = fetch_prs_associated_with_commit(sha, github_token, rate_limit_sleep, repo_name, require_complete: true)
         landing_prs = landing_prs_for_commit(sha, candidates)
         return landing_prs unless landing_prs.empty?
@@ -88,13 +87,14 @@ module Fastlane
         fallback = attempt_pr_lookup_from_commit_message(sha, commit_message, github_token, rate_limit_sleep, repo_name, base_branch)
         return fallback unless fallback.empty?
 
-        if candidates.empty? && extract_pr_number_from_commit_message(commit_message).nil?
-          search_results = search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, require_complete: true)
-          return [] if search_results.empty?
+        hinted_pr = extract_pr_number_from_commit_message(commit_message)
+        if candidates.empty? && hinted_pr.nil?
+          candidates = search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, require_complete: true)
+          return [] if candidates.empty?
         end
 
-        UI.important("Skipping commit #{sha} because its landing PR could not be verified. Check the commit's pull request attribution.")
-        nil
+        pr_numbers = (candidates.map { |pr| pr['number'] } + [hinted_pr]).compact.uniq.map { |number| "##{number}" }.join(', ')
+        UI.user_error!("Could not verify the landing PR for source commit #{sha} in RevenueCat/#{repo_name}. Candidate PRs #{pr_numbers}. Check their merge SHAs and retry.")
       end
 
       private_class_method def self.search_prs_for_sha(sha, github_token, rate_limit_sleep, repo_name, base_branch, require_complete: false)

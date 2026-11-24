@@ -252,10 +252,12 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
     it 'writes linked notes to the changelog and uses them in the release PR when a public repo is configured' do
       setup_stubs
       allow(FastlaneCore::UI).to receive(:important).and_call_original
+      snapshot_fallback_shas = ['a' * 40]
       linked_changelog = '* Fix foo ([`abc1234`](https://github.com/RevenueCat/mock-public-repo/commit/abc1234)) via Jane Doe (@jane) ([RevenueCat/mock-repo-name#12](https://github.com/RevenueCat/mock-repo-name/pull/12))'
       allow(File).to receive(:read).with(mock_changelog_latest_path).and_return("#{linked_changelog}\n")
       expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
-        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil, public_repo_name: 'mock-public-repo')
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil,
+              public_repo_name: 'mock-public-repo', snapshot_fallback_shas: snapshot_fallback_shas)
         .and_return(linked_changelog)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog).with(linked_changelog, mock_changelog_latest_path)
       expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
@@ -270,6 +272,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
         files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
         repo_name: mock_repo_name,
         public_repo_name: 'mock-public-repo',
+        snapshot_fallback_shas: snapshot_fallback_shas,
         github_pr_token: mock_github_pr_token,
         github_token: mock_github_token,
         github_rate_limit: 3,
@@ -932,7 +935,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(26)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(27)
     end
   end
 end

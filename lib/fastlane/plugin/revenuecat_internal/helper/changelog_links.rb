@@ -10,17 +10,17 @@ module Fastlane
       COMMIT_SHA = /\A[0-9a-f]{40}\z/
       TITLE_PART = /(?<code>(?<ticks>(?<![\\\x60])\x60+(?!\x60)).*?(?<!\x60)\k<ticks>(?!\x60))|[^\x60]+|\x60+/
 
-      def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil)
-        repo_names = { 'internal repository name (repo_name)' => internal_repo_name, 'public repository name (public_repo_name)' => public_repo_name }
-        repo_names.each do |option, name|
-          next if name.kind_of?(String) && name.valid_encoding? && REPOSITORY_NAME.match?(name) && name != '.' && name != '..'
-
-          FastlaneCore::UI.user_error!("Invalid #{option} #{name.inspect}. Pass a GitHub repository name without an owner.")
-        end
+      def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil, snapshot_fallback_shas: nil)
+        validate_repository_name!(internal_repo_name, 'internal repository name (repo_name)')
+        validate_repository_name!(public_repo_name, 'public repository name (public_repo_name)')
         @internal_repo = "RevenueCat/#{internal_repo_name}"
         @public_repo = "RevenueCat/#{public_repo_name}"
         @public_repo_url = "https://github.com/#{@public_repo}"
         @snapshot_tag = snapshot_tag
+        if snapshot_fallback_shas&.any? { |sha| !sha.kind_of?(String) || !COMMIT_SHA.match?(sha) }
+          FastlaneCore::UI.user_error!("snapshot_fallback_shas must contain full lowercase Git commit SHAs.")
+        end
+        @snapshot_fallback_shas = snapshot_fallback_shas
       end
 
       def line(entry)
@@ -35,6 +35,12 @@ module Fastlane
       end
 
       private
+
+      def validate_repository_name!(name, option)
+        return if name.kind_of?(String) && name.valid_encoding? && REPOSITORY_NAME.match?(name) && name != '.' && name != '..'
+
+        FastlaneCore::UI.user_error!("Invalid #{option} #{name.inspect}. Pass a GitHub repository name without an owner.")
+      end
 
       def pull_request_link(repository, number)
         "[#{repository}##{number}](https://github.com/#{repository}/pull/#{number})"
@@ -51,12 +57,20 @@ module Fastlane
                   else
                     "Source commit #{source_sha} has no match on the public default branch of #{@public_repo_url}."
                   end
-        if @snapshot_tag
-          FastlaneCore::UI.important("#{problem} Using the public release snapshot for hotfix #{@snapshot_tag}.")
+        if use_snapshot?(source_sha)
+          release = @snapshot_fallback_shas ? "release #{@snapshot_tag} as configured in snapshot_fallback_shas" : "hotfix #{@snapshot_tag}"
+          FastlaneCore::UI.important("#{problem} Using the public release snapshot for #{release}.")
           return " ([public release snapshot](#{@public_repo_url}/tree/refs/tags/#{URI.encode_www_form_component(@snapshot_tag)}))"
         end
 
         FastlaneCore::UI.user_error!("#{problem} Check the Copybara export and rerun release prep once the public commit can be resolved.")
+      end
+
+      def use_snapshot?(source_sha)
+        return false unless @snapshot_tag
+        return true unless @snapshot_fallback_shas
+
+        @snapshot_fallback_shas.include?(source_sha) && !public_commits.key?(source_sha)
       end
 
       def public_commits

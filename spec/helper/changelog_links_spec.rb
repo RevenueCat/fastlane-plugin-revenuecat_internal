@@ -98,6 +98,30 @@ describe Fastlane::Helper::ChangelogLinks do
     end
   end
 
+  context 'with an explicitly allowed snapshot SHA on a regular release' do
+    let(:release_only_sha) { 'd' * 40 }
+    let(:links) { described_class.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1', snapshot_fallback_shas: [release_only_sha]) }
+
+    it 'logs the override and links to the release snapshot for that SHA' do
+      entry = entry_class.new('Fix a typo', '#13', credit, release_only_sha, pull_request)
+      expect(FastlaneCore::UI).to receive(:important).with(/Source commit #{release_only_sha} has no match.*snapshot_fallback_shas/)
+
+      expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+    end
+
+    it 'stops if a different SHA is missing' do
+      missing_sha = 'e' * 40
+      entry = entry_class.new('Fix a typo', '#13', credit, missing_sha, pull_request)
+
+      expect { links.line(entry) }.to raise_error(FastlaneCore::Interface::FastlaneError, /Source commit #{missing_sha} has no match/)
+    end
+  end
+
+  it 'requires full SHAs for the snapshot override' do
+    expect { described_class.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1', snapshot_fallback_shas: ['a1b2c3d']) }
+      .to raise_error(FastlaneCore::Interface::FastlaneError, /snapshot_fallback_shas must contain full lowercase Git commit SHAs/)
+  end
+
   context 'when two exports claim the same source SHA' do
     let(:git_history) { "#{public_sha}\t#{source_sha}\0#{mirrored_sha}\t#{source_sha}\0" }
 

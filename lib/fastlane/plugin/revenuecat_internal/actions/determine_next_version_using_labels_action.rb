@@ -14,7 +14,8 @@ module Fastlane
         current_version = params[:current_version]
         fallback_pr_lookup = params[:fallback_pr_lookup]
 
-        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version, fallback_pr_lookup: fallback_pr_lookup, public_repo_name: params[:public_repo_name])
+        Helper::VersioningHelper.determine_next_version_using_labels(repo_name, github_token, rate_limit_sleep, include_prereleases, current_version,
+                                                                     fallback_pr_lookup: fallback_pr_lookup, require_verified_prs: params[:require_verified_prs])
       end
 
       def self.description
@@ -52,10 +53,11 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
-          FastlaneCore::ConfigItem.new(key: :public_repo_name,
-                                       description: "Public SDK repository name. Uses the same exact-merge PR lookup as linked changelog generation",
+          FastlaneCore::ConfigItem.new(key: :require_verified_prs,
+                                       description: "Verify PR attribution by exact merge SHA, as required for linked changelogs",
                                        optional: true,
-                                       type: String)
+                                       is_string: false,
+                                       default_value: false)
         ]
       end
 

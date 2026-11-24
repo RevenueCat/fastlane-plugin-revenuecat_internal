@@ -1156,8 +1156,8 @@ describe Fastlane::Helper::VersioningHelper do
       allow(Open3).to receive(:capture3).and_return(["#{sha}\t\0", '', instance_double(Process::Status, success?: true)])
     end
 
-    def linked_changelogs
-      described_class.auto_generate_changelog_variants(repo_name, github_token, 0, false, hybrid_common_version, versions_file_path, '1.2.0', public_repo_name: public_repo_name)
+    def linked_changelogs(**options)
+      described_class.auto_generate_changelog_variants(repo_name, github_token, 0, false, hybrid_common_version, versions_file_path, '1.2.0', public_repo_name: public_repo_name, **options)
     end
 
     it 'uses exact-merge lookup and links a direct commit under Other Changes' do
@@ -1167,20 +1167,53 @@ describe Fastlane::Helper::VersioningHelper do
       )
     end
 
-    context 'when a possible PR cannot be verified' do
-      let(:pull_requests) { nil }
+    it 'uses the target release tag for an explicitly allowlisted commit without a public SHA' do
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
 
-      it 'skips the commit in both changelog variants' do
-        expect(linked_changelogs).to eq(with_pr_references: '', without_pr_references: '')
+      notes = linked_changelogs(snapshot_fallback_shas: [sha])
+
+      expect(notes[:with_pr_references]).to eq("### 🔄 Other Changes\n* Update things ([public release snapshot](https://github.com/RevenueCat/purchases/tree/refs/tags/1.2.0)) via Jane Doe")
+    end
+
+    context 'when a possible PR cannot be verified' do
+      let(:attribution_error) { "Could not verify the landing PR for source commit #{sha}. Candidate PRs #13." }
+
+      before do
+        allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+          .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true) do
+            FastlaneCore::UI.user_error!(attribution_error)
+          end
       end
 
-      it 'uses the same lookup for version determination and skips the uncertain commit' do
+      it 'stops changelog generation before rendering the uncertain commit' do
+        expect { linked_changelogs }.to raise_error(FastlaneCore::Interface::FastlaneError, attribution_error)
+      end
+
+      it 'uses the same lookup for version determination and stops the bump' do
         allow(described_class).to receive(:latest_version_number).with(include_prereleases: false, current_version: '1.1.0').and_return('1.1.0')
 
-        version = described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0', public_repo_name: public_repo_name)
-
-        expect(version).to eq(['1.1.0', :skip])
+        expect do
+          described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0', require_verified_prs: true)
+        end.to raise_error(FastlaneCore::Interface::FastlaneError, attribution_error)
       end
+    end
+
+    it 'verifies subsequent PRs even after finding a breaking change' do
+      second_sha = 'b' * 40
+      second_commit = commit.merge('sha' => second_sha)
+      allow(described_class).to receive(:latest_version_number).with(include_prereleases: false, current_version: '1.1.0').and_return('1.1.0')
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit, second_commit])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+        .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true)
+        .and_return([{ 'labels' => [{ 'name' => 'pr:breaking' }] }])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+        .with(second_sha, github_token, 0, repo_name, 'main', fallback_commit_message: commit_message, require_exact_merge: true) do
+          FastlaneCore::UI.user_error!('Unverified PR after breaking change')
+        end
+
+      expect do
+        described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0', require_verified_prs: true)
+      end.to raise_error(FastlaneCore::Interface::FastlaneError, 'Unverified PR after breaking change')
     end
 
     context 'with a PHC dependency PR' do
