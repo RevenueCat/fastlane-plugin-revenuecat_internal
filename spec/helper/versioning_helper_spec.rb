@@ -1197,6 +1197,24 @@ describe Fastlane::Helper::VersioningHelper do
         )
       end
 
+      it 'does not reuse a recovered PR for a later commit' do
+        recover_as(recovered_pr)
+        later_sha = 'c' * 40
+        later_commit = { 'sha' => later_sha, 'commit' => { 'author' => { 'name' => 'John Doe' }, 'message' => 'Fix behavior' } }
+        later_pr = { 'number' => 14, 'title' => 'Fix behavior', 'user' => { 'login' => 'john' }, 'labels' => [{ 'name' => 'pr:fix' }],
+                     'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'f' * 40 }
+        allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit, later_commit])
+        allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+          .with(later_sha, github_token, 0, repo_name, 'main', fallback_commit_message: nil)
+          .and_return([later_pr])
+        allow(Open3).to receive(:capture3).and_return(["#{sha}\t\0#{later_sha}\t\0", '', instance_double(Process::Status, success?: true)])
+
+        expect(linked_changelogs[:with_pr_references].lines(chomp: true)).to include(
+          "* Fix behavior ([`ccccccc`](https://github.com/RevenueCat/purchases/commit/#{later_sha})) via John Doe (@john)",
+          "* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))"
+        )
+      end
+
       it 'applies the recovered changelog_ignore label to both variants' do
         recover_as(recovered_pr.merge('labels' => [{ 'name' => 'pr:changelog_ignore' }]))
 

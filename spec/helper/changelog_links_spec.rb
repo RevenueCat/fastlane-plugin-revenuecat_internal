@@ -165,6 +165,37 @@ describe Fastlane::Helper::ChangelogLinks do
 
       2.times { expect(links.line(entry)).to eq("* Fix a typo#{credit} #{internal_link}") }
     end
+
+    context 'when generating a hotfix' do
+      let(:links) { described_class.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1') }
+
+      it 'still links the release tag' do
+        entry = entry_class.new('Fix a typo', '#13', credit, source_sha, pull_request)
+        allow(FastlaneCore::UI).to receive(:important)
+
+        expect(links.line(entry)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+        expect(FastlaneCore::UI).to have_received(:important).with(/Public commit history is unavailable for source commit #{source_sha}.*hotfix 2\.0\.1/)
+      end
+    end
+
+    context 'with an explicitly allowed snapshot SHA on a regular release' do
+      let(:links) { described_class.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1', snapshot_fallback_shas: [source_sha]) }
+
+      it 'links the release tag only for the allowed SHA' do
+        allowed = entry_class.new('Fix a typo', '#13', credit, source_sha, pull_request)
+        other_sha = 'e' * 40
+        other = entry_class.new('Fix another typo', '#13', credit, other_sha, pull_request.merge('merge_commit_sha' => other_sha))
+        allow(FastlaneCore::UI).to receive(:important)
+
+        expect(links.line(allowed)).to eq("* Fix a typo #{snapshot_link}#{credit} #{internal_link}")
+        expect(links.line(other)).to eq("* Fix another typo#{credit} #{internal_link}")
+      end
+    end
+  end
+
+  it 'fails instead of dropping links when build receives an invalid snapshot SHA' do
+    expect { described_class.build('purchases_internal', 'purchases', snapshot_tag: '2.0.1', snapshot_fallback_shas: ['a1b2c3d']) }
+      .to raise_error(FastlaneCore::Interface::FastlaneError, /snapshot_fallback_shas must contain full lowercase Git commit SHAs/)
   end
 
   it 'identifies an invalid public repository name and its value' do

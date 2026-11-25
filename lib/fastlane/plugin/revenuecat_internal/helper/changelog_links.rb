@@ -14,22 +14,29 @@ module Fastlane
       def self.build(internal_repo_name, public_repo_name, **options)
         return unless public_repo_name
 
-        new(internal_repo_name, public_repo_name, **options)
-      rescue FastlaneCore::Interface::FastlaneError => e
-        FastlaneCore::UI.important("#{e.message} Continuing without changelog links.")
-        nil
+        validate_snapshot_fallback_shas!(options[:snapshot_fallback_shas])
+        begin
+          new(internal_repo_name, public_repo_name, **options)
+        rescue FastlaneCore::Interface::FastlaneError => e
+          FastlaneCore::UI.important("#{e.message} Continuing without changelog links.")
+          nil
+        end
+      end
+
+      def self.validate_snapshot_fallback_shas!(shas)
+        return unless shas&.any? { |sha| !sha.kind_of?(String) || !COMMIT_SHA.match?(sha) }
+
+        FastlaneCore::UI.user_error!("snapshot_fallback_shas must contain full lowercase Git commit SHAs.")
       end
 
       def initialize(internal_repo_name, public_repo_name, snapshot_tag: nil, snapshot_fallback_shas: nil, github_token: nil)
         validate_repository_name!(internal_repo_name, 'internal repository name (repo_name)')
         validate_repository_name!(public_repo_name, 'public repository name (public_repo_name)')
+        self.class.validate_snapshot_fallback_shas!(snapshot_fallback_shas)
         @internal_repo = "RevenueCat/#{internal_repo_name}"
         @public_repo = "RevenueCat/#{public_repo_name}"
         @public_repo_url = "https://github.com/#{@public_repo}"
         @snapshot_tag = snapshot_tag
-        if snapshot_fallback_shas&.any? { |sha| !sha.kind_of?(String) || !COMMIT_SHA.match?(sha) }
-          FastlaneCore::UI.user_error!("snapshot_fallback_shas must contain full lowercase Git commit SHAs.")
-        end
         @snapshot_fallback_shas = snapshot_fallback_shas
         @github_token = github_token
       end
@@ -60,22 +67,27 @@ module Fastlane
 
       def public_reference(source_sha)
         commits = source_sha ? public_commits : {}
-        return '' unless commits
-
-        public_sha = commits[source_sha]
+        public_sha = commits&.dig(source_sha)
         return " ([`#{public_sha[0, 7]}`](#{@public_repo_url}/commit/#{public_sha}))" if public_sha
 
-        problem = if source_sha.nil?
-                    "This change has no source commit SHA."
-                  elsif commits.key?(source_sha)
-                    "Multiple commits on the public default branch of #{@public_repo_url} claim source SHA #{source_sha}."
-                  else
-                    "Source commit #{source_sha} has no match on the public default branch of #{@public_repo_url}."
-                  end
+        problem = missing_public_commit_problem(source_sha, commits)
         return snapshot_reference(problem) if use_snapshot?(source_sha, commits)
+        return '' if commits.nil?
 
         FastlaneCore::UI.important("#{problem} Continuing without a public commit link for this entry.")
         ''
+      end
+
+      def missing_public_commit_problem(source_sha, commits)
+        if commits.nil?
+          "Public commit history is unavailable for source commit #{source_sha}."
+        elsif source_sha.nil?
+          "This change has no source commit SHA."
+        elsif commits.key?(source_sha)
+          "Multiple commits on the public default branch of #{@public_repo_url} claim source SHA #{source_sha}."
+        else
+          "Source commit #{source_sha} has no match on the public default branch of #{@public_repo_url}."
+        end
       end
 
       def snapshot_reference(problem)
@@ -88,7 +100,7 @@ module Fastlane
         return false unless @snapshot_tag
         return true unless @snapshot_fallback_shas
 
-        @snapshot_fallback_shas.include?(source_sha) && !commits.key?(source_sha)
+        @snapshot_fallback_shas.include?(source_sha) && !commits&.key?(source_sha)
       end
 
       def public_commits
