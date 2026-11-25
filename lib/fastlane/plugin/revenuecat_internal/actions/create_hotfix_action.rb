@@ -14,6 +14,8 @@ module Fastlane
       # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         repo_name = params[:repo_name]
+        public_repo_name = params[:public_repo_name]
+        omit_pr_references_in_changelog_files = Helper::VersioningHelper.omit_changelog_pr_references?(params[:omit_pr_references_in_changelog_files], public_repo_name)
         pr_number = params[:pr_number]
         update_dependencies = params[:update_dependencies]
         dependency_releases = params[:dependency_releases]
@@ -49,6 +51,9 @@ module Fastlane
         tags = Actions.sh('git', 'tag', log: false).split("\n")
         tag = resolve_tag(requested_version, tags)
         next_version = next_patch_version(tag)
+        changelog_options = {}
+        links = Helper::ChangelogLinks.build(repo_name, public_repo_name, snapshot_tag: next_version)
+        changelog_options[:links] = links if links
         next_core_version = core_version(next_version)
         if tags.any? { |existing_tag| core_version(existing_tag) == next_core_version }
           UI.user_error!("#{next_core_version} is already released. Hotfix #{next_core_version} instead of #{tag}.")
@@ -57,7 +62,7 @@ module Fastlane
           UI.user_error!("#{tag} already contains #{fix_sha}, so there is nothing to hotfix.") if git_succeeds?('merge-base', '--is-ancestor', fix_sha, tag)
 
           author_name = Actions.sh('git', 'log', '-1', '--format=%an', fix_sha, log: false).strip
-          changelog = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name)
+          changelog = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name, **changelog_options)
           UI.user_error!("PR ##{pr_number} is excluded from changelogs, so there is nothing to release.") if changelog.empty?
         end
 
@@ -89,7 +94,7 @@ module Fastlane
                             else
                               apply_dependency_update(update_dependencies, next_version, change_marker)
                             end
-          changelog = Helper::VersioningHelper.changelog_for_dependency_update(changelog_entry)
+          changelog = Helper::VersioningHelper.changelog_for_dependency_update(changelog_entry, **changelog_options)
         end
 
         unless progress[:bumped]
@@ -98,7 +103,7 @@ module Fastlane
                                                                   version_files_on(tag, params[:files_to_update]),
                                                                   version_files_on(tag, params[:files_to_update_without_prerelease_modifiers]),
                                                                   params[:files_to_update_on_latest_stable_releases])
-          if pr_number && params[:omit_pr_references_in_changelog_files]
+          if pr_number && (omit_pr_references_in_changelog_files || (public_repo_name && !links))
             changelog_in_files = Helper::VersioningHelper.changelog_for_pull_request(pull_request, author_name, include_pr_references: false)
           end
           Helper::RevenuecatInternalHelper.write_changelog(changelog_in_files || changelog, changelog_latest_path)
@@ -334,6 +339,10 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
+          FastlaneCore::ConfigItem.new(key: :public_repo_name,
+                                       description: "Public SDK repository name. Adds fully qualified commit and PR links to the changelog files, taking precedence over omit_pr_references_in_changelog_files",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Print the hotfix that would be created without changing anything",
                                        optional: true,

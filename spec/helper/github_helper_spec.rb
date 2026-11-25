@@ -1,4 +1,74 @@
 describe Fastlane::Helper::GitHubHelper do
+  describe '.verified_changelog_pr' do
+    let(:sha) { 'a' * 40 }
+    let(:repository) { 'RevenueCat/purchases_internal' }
+    let(:selected_pr) { { 'number' => 13 } }
+
+    it 'fetches details for a search result and verifies its merge SHA' do
+      verified_pr = selected_pr.merge('merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => sha)
+      allow(described_class).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/#{repository}/pulls/13", max_retries: 0))
+        .and_return({ body: verified_pr.to_json })
+
+      expect(described_class.verified_changelog_pr(selected_pr, sha, repository, 'mock-token')).to eq(verified_pr)
+    end
+
+    it 'warns and omits the link when the optional request fails' do
+      allow(described_class).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/#{repository}/pulls/13", max_retries: 0))
+        .and_raise(IOError, 'Network unavailable')
+      expect(FastlaneCore::UI).to receive(:important).with(/Could not verify .*#13.*#{sha}.*without its PR links/)
+
+      expect(described_class.verified_changelog_pr(selected_pr, sha, repository, 'mock-token')).to be_nil
+    end
+  end
+
+  describe '.recover_changelog_pr' do
+    let(:repository) { 'RevenueCat/purchases_internal' }
+    let(:sha) { 'a' * 40 }
+    let(:merge_sha) { 'b' * 40 }
+    let(:title) { 'Update internal workflow (#2)' }
+    let(:pull_request) do
+      { 'number' => 2, 'title' => 'Update internal workflow', 'merged_at' => '2026-11-17T13:04:16Z',
+        'base' => { 'ref' => 'main' }, 'merge_commit_sha' => merge_sha,
+        'labels' => [{ 'name' => 'pr:changelog_ignore' }], 'user' => { 'login' => 'jane' } }
+    end
+    let(:details) do
+      { 'commit' => { 'author' => { 'name' => 'Jane Doe', 'date' => '2026-11-17T13:04:15Z' }, 'message' => title },
+        'parents' => [{ 'sha' => 'd' * 40 }], 'stats' => { 'total' => 1 },
+        'files' => [{ 'filename' => 'Fastfile', 'status' => 'modified', 'sha' => 'c' * 40, 'patch' => "@@ -1 +1 @@\n-old\n+new" }] }
+    end
+
+    def stub_optional_request(path, response)
+      allow(described_class).to receive(:github_api_call_with_retry)
+        .with(hash_including(path: "/repos/#{repository}/#{path}", max_retries: 0))
+        .and_return({ body: response.to_json })
+    end
+
+    before do
+      stub_optional_request('pulls/2', pull_request)
+      stub_optional_request("commits/#{sha}", details.merge('sha' => sha))
+      stub_optional_request("commits/#{merge_sha}", details.merge('sha' => merge_sha, 'parents' => [{ 'sha' => 'e' * 40 }]))
+    end
+
+    it 'recovers the original PR and its labels for a rewritten commit' do
+      expect(described_class.recover_changelog_pr(title, sha, repository, 'main', 'token')).to eq(pull_request)
+    end
+
+    it 'declines a same-title PR when the commit diff differs' do
+      changed_file = details['files'].first.merge('patch' => "@@ -1 +1 @@\n-old\n+different")
+      stub_optional_request("commits/#{merge_sha}", details.merge('sha' => merge_sha, 'files' => [changed_file]))
+
+      expect(described_class.recover_changelog_pr(title, sha, repository, 'main', 'token')).to be_nil
+    end
+
+    it 'declines a rewritten commit when GitHub cannot return the change details' do
+      stub_optional_request("commits/#{merge_sha}", { 'message' => 'Not Found' })
+
+      expect(described_class.recover_changelog_pr(title, sha, repository, 'main', 'token')).to be_nil
+    end
+  end
+
   describe '.get_pr_resp_items_for_sha' do
     let(:base_branch) { 'main' }
     let(:server_url) { 'https://api.github.com' }

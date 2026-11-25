@@ -249,6 +249,78 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
       end
     end
 
+    it 'writes linked notes to the changelog and uses them in the release PR when a public repo is configured' do
+      setup_stubs
+      allow(FastlaneCore::UI).to receive(:important).and_call_original
+      snapshot_fallback_shas = ['a' * 40]
+      linked_changelog = '* Fix foo ([`abc1234`](https://github.com/RevenueCat/mock-public-repo/commit/abc1234)) via Jane Doe (@jane) ([RevenueCat/mock-repo-name#12](https://github.com/RevenueCat/mock-repo-name/pull/12))'
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return("#{linked_changelog}\n")
+      expect(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil,
+              public_repo_name: 'mock-public-repo', snapshot_fallback_shas: snapshot_fallback_shas)
+        .and_return(linked_changelog)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog).with(linked_changelog, mock_changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:create_pr)
+        .with("Release/1.13.0", "#{linked_changelog}\n", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels: labels, enable_auto_merge: false, slack_url: nil)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        public_repo_name: 'mock-public-repo',
+        snapshot_fallback_shas: snapshot_fallback_shas,
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        is_prerelease: false,
+        omit_pr_references_in_changelog_files: true
+      )
+      expect(FastlaneCore::UI).to have_received(:important).with(/public_repo_name takes precedence over omit_pr_references_in_changelog_files/).once
+    end
+
+    it 'writes the changelog and opens the release PR while a public export is pending' do
+      setup_stubs
+      sha = 'd' * 40
+      commit_message = 'A change waiting for Copybara'
+      commit = { 'sha' => sha, 'commit' => { 'author' => { 'name' => 'Jane Doe' }, 'message' => commit_message } }
+      allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
+      allow(Fastlane::Helper::VersioningHelper).to receive(:auto_generate_changelog)
+        .with(mock_repo_name, mock_github_token, 3, false, nil, nil, new_version, filter_labels: nil, exclude_labels: nil, include_purchases_js: nil, fallback_pr_lookup: nil, public_repo_name: 'mock-public-repo')
+        .and_call_original
+      allow(Fastlane::Helper::VersioningHelper).to receive(:latest_version_number_smaller_than).with(new_version, include_prereleases: false).and_return(current_version)
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(mock_github_token, current_version, mock_repo_name).and_return([commit])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+        .with(sha, mock_github_token, 3, mock_repo_name, base_branch, fallback_commit_message: nil)
+        .and_return([])
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
+      expected_notes = "### 🔄 Other Changes\n* #{commit_message} via Jane Doe"
+      allow(File).to receive(:read).with(mock_changelog_latest_path).and_return("#{expected_notes}\n")
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to receive(:write_changelog).with(expected_notes, mock_changelog_latest_path)
+
+      Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.run(
+        current_version: current_version,
+        changelog_latest_path: mock_changelog_latest_path,
+        changelog_path: mock_changelog_path,
+        files_to_update: { "./test_file.sh" => ['{x}'], "./test_file2.rb" => ['{x}'] },
+        files_to_update_without_prerelease_modifiers: { "./test_file3.kt" => ['{x}'], "./test_file4.swift" => ['{x}'] },
+        files_to_update_on_latest_stable_releases: { "./test_file5.kt" => ['{x}'], "./test_file6.swift" => ['{x}'] },
+        repo_name: mock_repo_name,
+        public_repo_name: 'mock-public-repo',
+        github_pr_token: mock_github_pr_token,
+        github_token: mock_github_token,
+        github_rate_limit: 3,
+        is_prerelease: false
+      )
+
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:attach_changelog_to_main)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+        .with("Release/1.13.0", "#{expected_notes}\n", mock_repo_name, base_branch, new_branch_name, mock_github_pr_token, labels: labels, enable_auto_merge: false, slack_url: nil)
+    end
+
     it 'fails if selected no during prompt validating current branch' do
       allow(FastlaneCore::UI).to receive(:interactive?).and_return(true)
       allow(FastlaneCore::UI).to receive(:confirm).with(anything).and_return(false)
@@ -868,7 +940,7 @@ describe Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction do
 
   describe '#available_options' do
     it 'has correct number of options' do
-      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(25)
+      expect(Fastlane::Actions::BumpVersionUpdateChangelogCreatePrAction.available_options.size).to eq(27)
     end
   end
 end

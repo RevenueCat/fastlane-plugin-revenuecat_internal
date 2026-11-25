@@ -34,6 +34,16 @@ A plugin including commonly used automation logic for RevenueCat SDKs.
 - `ci_pull_request_context`: This action returns the current CircleCI pull-request number, head commit and branch and, for merge-queue builds, the target branch and actual base SHA encoded in the queue branch. CircleCI values take precedence over Git fallbacks. It returns an empty hash outside a pull request.
 - `sentry_ci_metadata`: This action combines the Sentry organization and project with normalized CircleCI pull-request context. Sentry infers ordinary Git metadata; merge-queue builds provide their encoded base branch and SHA explicitly.
 
+### Linked SDK changelogs
+
+Pass the public repository's name as `public_repo_name` to `bump_version_update_changelog_create_pr` and `create_hotfix`. Keep passing the internal repository's name as `repo_name`. The actions add links after changelog filtering. Version calculation continues to use the existing PR lookup. If `omit_pr_references_in_changelog_files` is also enabled, Fastlane logs a migration warning and generates linked changelogs.
+
+Release prep looks for each source commit in the public default branch. A shared SHA takes precedence over Copybara's `GitOrigin-RevId`. Missing or ambiguous mappings and failed public history reads log warnings and leave the entries in place without public commit links. Hotfixes can link to the release snapshot by tag when an individual commit cannot be resolved.
+
+For a regular release with commits known to be exported only in the release snapshot, pass their full internal SHAs as `snapshot_fallback_shas` to `bump_version_update_changelog_create_pr`. Each missing allowlisted SHA gets a logged snapshot link. Available public commit links take precedence.
+
+An internal PR link normally requires a merged PR with the exact source SHA. When the normal lookup finds no PR, Fastlane can recover a squash-merge PR from its title suffix by verifying the source SHA or matching the rewritten commit's author, message, and diff against the original. Recovered PR labels apply to both changelog variants, including `pr:changelog_ignore`. Unresolved entries omit the bare PR suffix. External attribution requires matching import metadata. `create_github_release` uses the existing `CHANGELOG.latest.md` as the release body.
+
 ## Example
 
 Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.

@@ -1135,6 +1135,175 @@ describe Fastlane::Helper::VersioningHelper do
     end
   end
 
+  describe '.auto_generate_changelog_variants with a public repo' do
+    let(:repo_name) { 'purchases_internal' }
+    let(:public_repo_name) { 'purchases' }
+    let(:github_token) { 'mock-github-token' }
+    let(:sha) { 'a' * 40 }
+    let(:commit_message) { "Update things\n\nCommit details" }
+    let(:commit) { { 'sha' => sha, 'commit' => { 'author' => { 'name' => 'Jane Doe' }, 'message' => commit_message } } }
+    let(:pull_requests) { [] }
+    let(:versions_file_path) { './VERSIONS.md' }
+    let(:hybrid_common_version) { '4.5.3' }
+
+    before do
+      allow(Fastlane::Actions).to receive(:sh).with('git fetch --tags -f')
+      allow(described_class).to receive(:latest_version_number_smaller_than).with('1.2.0', include_prereleases: false).and_return('1.1.0')
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit])
+      allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+        .with(sha, github_token, 0, repo_name, 'main', fallback_commit_message: nil)
+        .and_return(pull_requests)
+      allow(Open3).to receive(:capture3).and_return(["#{sha}\t\0", '', instance_double(Process::Status, success?: true)])
+    end
+
+    def linked_changelogs(**options)
+      described_class.auto_generate_changelog_variants(repo_name, github_token, 0, false, hybrid_common_version, versions_file_path, '1.2.0', public_repo_name: public_repo_name, **options)
+    end
+
+    it 'links a direct commit under Other Changes using the existing PR lookup' do
+      expect(linked_changelogs).to eq(
+        with_pr_references: "### 🔄 Other Changes\n* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe",
+        without_pr_references: "### 🔄 Other Changes\n* Update things via Jane Doe"
+      )
+    end
+
+    context 'with a commit that includes a PR number but has no normal match' do
+      let(:commit_message) { "Update things (#13)\n\nCommit details" }
+      let(:recovered_pr) do
+        { 'number' => 13, 'title' => 'Update things', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:fix' }],
+          'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'b' * 40 }
+      end
+
+      def recover_as(pull_request)
+        allow(Fastlane::Helper::GitHubHelper).to receive(:recover_changelog_pr)
+          .with('Update things (#13)', sha, 'RevenueCat/purchases_internal', 'main', github_token)
+          .and_return(pull_request)
+      end
+
+      it 'removes the unqualified PR suffix when recovery finds no match' do
+        recover_as(nil)
+
+        expect(linked_changelogs).to eq(
+          with_pr_references: "### 🔄 Other Changes\n* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe",
+          without_pr_references: "### 🔄 Other Changes\n* Update things via Jane Doe"
+        )
+      end
+
+      it 'links a recovered internal PR using its verified repository' do
+        recover_as(recovered_pr)
+
+        expect(linked_changelogs[:with_pr_references]).to end_with(
+          "* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))"
+        )
+      end
+
+      it 'does not reuse a recovered PR for a later commit' do
+        recover_as(recovered_pr)
+        later_sha = 'c' * 40
+        later_commit = { 'sha' => later_sha, 'commit' => { 'author' => { 'name' => 'John Doe' }, 'message' => 'Fix behavior' } }
+        later_pr = { 'number' => 14, 'title' => 'Fix behavior', 'user' => { 'login' => 'john' }, 'labels' => [{ 'name' => 'pr:fix' }],
+                     'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'f' * 40 }
+        allow(Fastlane::Helper::GitHubHelper).to receive(:get_commits_since_old_version).with(github_token, '1.1.0', repo_name).and_return([commit, later_commit])
+        allow(Fastlane::Helper::GitHubHelper).to receive(:get_pr_resp_items_for_sha)
+          .with(later_sha, github_token, 0, repo_name, 'main', fallback_commit_message: nil)
+          .and_return([later_pr])
+        allow(Open3).to receive(:capture3).and_return(["#{sha}\t\0#{later_sha}\t\0", '', instance_double(Process::Status, success?: true)])
+
+        expect(linked_changelogs[:with_pr_references].lines(chomp: true)).to include(
+          "* Fix behavior ([`ccccccc`](https://github.com/RevenueCat/purchases/commit/#{later_sha})) via John Doe (@john)",
+          "* Update things ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))"
+        )
+      end
+
+      it 'applies the recovered changelog_ignore label to both variants' do
+        recover_as(recovered_pr.merge('labels' => [{ 'name' => 'pr:changelog_ignore' }]))
+
+        expect(linked_changelogs).to eq(with_pr_references: '', without_pr_references: '')
+      end
+    end
+
+    it 'uses the target release tag for an explicitly allowlisted commit without a public SHA' do
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
+
+      notes = linked_changelogs(snapshot_fallback_shas: [sha])
+
+      expect(notes[:with_pr_references]).to eq("### 🔄 Other Changes\n* Update things ([public release snapshot](https://github.com/RevenueCat/purchases/tree/refs/tags/1.2.0)) via Jane Doe")
+    end
+
+    context 'when the selected PR has a different merge SHA' do
+      let(:pull_requests) do
+        [{ 'number' => 13, 'title' => 'Fix behavior', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:fix' }],
+           'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => 'b' * 40 }]
+      end
+
+      it 'preserves the entry and its section with only a verified public commit link' do
+        expect(linked_changelogs).to eq(
+          with_pr_references: "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix behavior ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane)",
+          without_pr_references: "## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix behavior via Jane Doe (@jane)"
+        )
+      end
+
+      it 'keeps the existing version calculation without verifying links' do
+        allow(described_class).to receive(:latest_version_number).with(include_prereleases: false, current_version: '1.1.0').and_return('1.1.0')
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:verified_changelog_pr)
+
+        expect(described_class.determine_next_version_using_labels(repo_name, github_token, 0, false, '1.1.0')).to eq(['1.1.1', :patch])
+      end
+
+      it 'uses plain notes for an invalid optional repo name' do
+        notes = linked_changelogs(public_repo_name: '../not-an-sdk')
+
+        expect(notes[:with_pr_references]).to eq(notes[:without_pr_references])
+        expect(notes[:with_pr_references]).to include('* Fix behavior via Jane Doe (@jane)')
+      end
+    end
+
+    context 'when the selected PR is excluded from the changelog' do
+      let(:pull_requests) do
+        [{ 'number' => 13, 'title' => 'Internal change', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:changelog_ignore' }] }]
+      end
+
+      it 'applies the existing filter before trying to look up links' do
+        expect(Fastlane::Helper::GitHubHelper).not_to receive(:verified_changelog_pr)
+        expect(Open3).not_to receive(:capture3)
+
+        expect(linked_changelogs).to eq(with_pr_references: '', without_pr_references: '')
+      end
+    end
+
+    context 'with a PHC dependency PR' do
+      let(:pull_requests) do
+        [{ 'number' => 13, 'title' => 'Update Hybrid Common', 'user' => { 'login' => 'jane' }, 'labels' => [{ 'name' => 'pr:phc_dependencies' }],
+           'merged_at' => '2026-11-24T12:00:00Z', 'merge_commit_sha' => sha }]
+      end
+
+      it 'nests the native release links under the dependency entry in both variants' do
+        native_links = "\n  * [iOS 5.0](https://github.com/RevenueCat/purchases-ios/releases/tag/5.0)"
+        allow(described_class).to receive(:native_releases_links).with(github_token, hybrid_common_version, versions_file_path, include_purchases_js: false).and_return(native_links)
+        expect(linked_changelogs).to eq(
+          with_pr_references: "## RevenueCat SDK\n### 📦 Dependency Updates\n* Update Hybrid Common ([`aaaaaaa`](https://github.com/RevenueCat/purchases/commit/#{sha})) via Jane Doe (@jane) ([RevenueCat/purchases_internal#13](https://github.com/RevenueCat/purchases_internal/pull/13))#{native_links}",
+          without_pr_references: "## RevenueCat SDK\n### 📦 Dependency Updates\n* Update Hybrid Common via Jane Doe (@jane)#{native_links}"
+        )
+      end
+    end
+  end
+
+  describe '.changelog_for_dependency_update' do
+    it 'preserves trusted Markdown from the Fastfile callback in linked hotfixes' do
+      links = Fastlane::Helper::ChangelogLinks.new('purchases_internal', 'purchases', snapshot_tag: '2.0.1')
+      entry = "Update [iOS](https://example.test/ios) and `native_version`\n  * [Details](https://example.test/details)"
+
+      changelog = described_class.changelog_for_dependency_update(entry, links: links)
+
+      expect(changelog).to eq(<<~MARKDOWN.chomp)
+        ## RevenueCat SDK
+        ### 📦 Dependency Updates
+        * Update [iOS](https://example.test/ios) and `native_version` ([public release snapshot](https://github.com/RevenueCat/purchases/tree/refs/tags/2.0.1))
+          * [Details](https://example.test/details)
+      MARKDOWN
+    end
+  end
+
   describe '.changelog_for_pull_request' do
     def pull_request(labels)
       {

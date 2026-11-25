@@ -9,6 +9,8 @@ module Fastlane
       # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         repo_name = params[:repo_name]
+        public_repo_name = params[:public_repo_name]
+        snapshot_fallback_shas = params[:snapshot_fallback_shas] || []
         github_pr_token = params[:github_pr_token]
         github_token = params[:github_token]
         rate_limit_sleep = params[:github_rate_limit]
@@ -32,7 +34,7 @@ module Fastlane
         exclude_labels = params[:exclude_labels]
         include_purchases_js = params[:include_purchases_js]
         fallback_pr_lookup = params[:fallback_pr_lookup]
-        omit_pr_references_in_changelog_files = params[:omit_pr_references_in_changelog_files]
+        omit_pr_references_in_changelog_files = Helper::VersioningHelper.omit_changelog_pr_references?(params[:omit_pr_references_in_changelog_files], public_repo_name)
 
         # See if we got any conflicting arguments.
         Helper::VersioningHelper.validate_input_if_appending_phc_version?(
@@ -84,6 +86,8 @@ module Fastlane
 
         changelog_arguments = [repo_name, github_token, rate_limit_sleep, include_prereleases, hybrid_common_version, versions_file_path, new_version_number]
         changelog_options = { filter_labels: filter_labels, exclude_labels: exclude_labels, include_purchases_js: include_purchases_js, fallback_pr_lookup: fallback_pr_lookup }
+        changelog_options[:public_repo_name] = public_repo_name if public_repo_name
+        changelog_options[:snapshot_fallback_shas] = snapshot_fallback_shas unless snapshot_fallback_shas.empty?
         if omit_pr_references_in_changelog_files
           changelogs = Helper::VersioningHelper.auto_generate_changelog_variants(*changelog_arguments, **changelog_options)
           generated_contents = changelogs[:without_pr_references]
@@ -266,6 +270,15 @@ module Fastlane
                                        optional: true,
                                        is_string: false,
                                        default_value: false),
+          FastlaneCore::ConfigItem.new(key: :public_repo_name,
+                                       description: "Public SDK repository name. Adds fully qualified commit and PR links to the changelog files, taking precedence over omit_pr_references_in_changelog_files",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :snapshot_fallback_shas,
+                                       description: "Full internal commit SHAs known to be exported only in the release snapshot. Requires public_repo_name and logs each fallback",
+                                       optional: true,
+                                       default_value: [],
+                                       type: Array),
           FastlaneCore::ConfigItem.new(key: :dry_run,
                                        description: "Whether to run the action in dry run mode",
                                        optional: true,

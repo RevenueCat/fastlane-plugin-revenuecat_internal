@@ -1,5 +1,6 @@
 describe Fastlane::Actions::CreateHotfixAction do
-  let(:repo_name) { 'purchases-android' }
+  let(:repo_name) { 'purchases-android_internal' }
+  let(:repo_api_path) { "/repos/RevenueCat/#{repo_name}" }
   let(:github_pr_token) { 'mock-github-pr-token' }
   let(:fix_sha) { 'f1x5ha' }
   let(:tag_commit) { 't4gc0mm1t' }
@@ -23,7 +24,7 @@ describe Fastlane::Actions::CreateHotfixAction do
   let(:unmerged_files) { '' }
   let(:sh_calls) { [] }
   let(:api_calls) { [] }
-  let(:release_pr_url) { 'https://github.com/RevenueCat/purchases-android/pull/456' }
+  let(:release_pr_url) { "https://github.com/RevenueCat/#{repo_name}/pull/456" }
   let(:published_dependency_releases) { ['purchases-ios/4.5.1'] }
   let(:changed_files) { " M build.gradle\n" }
 
@@ -93,18 +94,18 @@ describe Fastlane::Actions::CreateHotfixAction do
   def api_response(params)
     path = params[:path]
     case [params[:http_method], path]
-    when ['GET', '/repos/RevenueCat/purchases-android/pulls/123']
+    when ['GET', "#{repo_api_path}/pulls/123"]
       { status: 200, json: pull_request }
-    when ['POST', '/repos/RevenueCat/purchases-android/git/refs']
+    when ['POST', "#{repo_api_path}/git/refs"]
       create_ref_response(params[:body][:sha])
-    when ['POST', '/repos/RevenueCat/purchases-android/issues/123/comments']
+    when ['POST', "#{repo_api_path}/issues/123/comments"]
       { status: 201, json: {} }
     else
       if (release = path.match(%r{\A/repos/RevenueCat/([^/]+)/releases/tags/(.+)\z}))
         { status: published_dependency_releases.include?("#{release[1]}/#{release[2]}") ? 200 : 404, json: {} }
-      elsif path.start_with?('/repos/RevenueCat/purchases-android/git/ref/heads/hotfix/')
+      elsif path.start_with?("#{repo_api_path}/git/ref/heads/hotfix/")
         base_branch_ref_response
-      elsif path.start_with?('/repos/RevenueCat/purchases-android/pulls?')
+      elsif path.start_with?("#{repo_api_path}/pulls?")
         { status: 200, json: open_release_prs }
       else
         raise "Unexpected API call: #{params[:http_method]} #{path}"
@@ -123,9 +124,10 @@ describe Fastlane::Actions::CreateHotfixAction do
     { status: 201, json: { 'object' => { 'sha' => sha } } }
   end
 
-  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {}, pr_number: 123, update_dependencies: nil, dependency_releases: {}, omit_pr_references_in_changelog_files: false)
+  def run_action(version: '10.2.0', dry_run: false, files_without_prerelease_modifiers: {}, pr_number: 123, update_dependencies: nil, dependency_releases: {}, omit_pr_references_in_changelog_files: false, public_repo_name: nil)
     Fastlane::Actions::CreateHotfixAction.run(
       repo_name: repo_name,
+      public_repo_name: public_repo_name,
       pr_number: pr_number,
       update_dependencies: update_dependencies,
       dependency_releases: dependency_releases,
@@ -157,7 +159,7 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(run_action).to eq(release_pr_url)
 
       expect(api_calls).to include(hash_including(http_method: 'POST',
-                                                  path: '/repos/RevenueCat/purchases-android/git/refs',
+                                                  path: "#{repo_api_path}/git/refs",
                                                   body: { ref: 'refs/heads/hotfix/10.2.0', sha: tag_commit }))
       expect(sh_calls).to include(['git', 'checkout', '-b', 'release/10.2.1', '10.2.0'])
       expect(sh_calls).to include(['git', 'cherry-pick', '-x', fix_sha])
@@ -187,6 +189,23 @@ describe Fastlane::Actions::CreateHotfixAction do
       expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
         .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n## RevenueCat SDK\n### 🐞 Bugfixes\n* Fix the bug (#123) via Jane Doe (@jane-doe)",
               repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
+    end
+
+    it 'writes the linked PR and public release snapshot when the hotfix has no individual export' do
+      allow(Open3).to receive(:capture3).and_return(['', '', instance_double(Process::Status, success?: true)])
+      allow(FastlaneCore::UI).to receive(:important).and_call_original
+      expect(run_action(public_repo_name: 'purchases-android', omit_pr_references_in_changelog_files: true)).to eq(release_pr_url)
+      expect(FastlaneCore::UI).to have_received(:important).with(/public_repo_name takes precedence over omit_pr_references_in_changelog_files/).once
+
+      expected_changelog = <<~MARKDOWN.chomp
+        ## RevenueCat SDK
+        ### 🐞 Bugfixes
+        * Fix the bug ([public release snapshot](https://github.com/RevenueCat/purchases-android/tree/refs/tags/10.2.1)) via Jane Doe (@jane-doe) ([RevenueCat/purchases-android_internal#123](https://github.com/RevenueCat/purchases-android_internal/pull/123))
+      MARKDOWN
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:write_changelog)
+        .with(expected_changelog, changelog_latest_path)
+      expect(Fastlane::Helper::RevenuecatInternalHelper).to have_received(:create_pr)
+        .with('Release/10.2.1', "Hotfix of #123 on 10.2.0.\n\n#{expected_changelog}", repo_name, 'hotfix/10.2.0', 'release/10.2.1', github_pr_token, labels: ['pr:next_release'])
     end
 
     it 'patches the latest release of a major when given only the major' do
